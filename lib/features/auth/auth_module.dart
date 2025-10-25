@@ -1,0 +1,31 @@
+import 'package:flutter_modular/flutter_modular.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/repositories/auth_repository.dart';
+import 'bloc/auth_bloc.dart';
+import 'pages/login_page.dart';
+import 'pages/register_page.dart';
+
+class AuthModule extends Module {
+  @override
+  List<Bind> get binds => [
+        Bind.factory((i) => AuthBloc(i<AuthRepository>())),
+      ];
+
+  @override
+  List<ModularRoute> get routes => [
+        ChildRoute(
+          '/',
+          child: (_, __) => BlocProvider(
+            create: (_) => Modular.get<AuthBloc>(),
+            child: const LoginPage(),
+          ),
+        ),
+        ChildRoute(
+          '/register',
+          child: (_, __) => BlocProvider(
+            create: (_) => Modular.get<AuthBloc>(),
+            child: const RegisterPage(),
+          ),
+        ),
+      ];
+}

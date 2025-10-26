@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -45,6 +47,25 @@ class _RegisterPageState extends State<RegisterPage>
   bool _emailValid = false;
   bool _passwordValid = false;
   bool _confirmPasswordValid = false;
+
+  // Datos del carrusel para cada paso
+  final List<Map<String, dynamic>> _stepData = [
+    {
+      'icon': Icons.person_outline,
+      'title': 'Información Personal',
+      'subtitle': 'Cuéntanos sobre ti',
+    },
+    {
+      'icon': Icons.lock_outline,
+      'title': 'Seguridad',
+      'subtitle': 'Crea tu acceso seguro',
+    },
+    {
+      'icon': Icons.description_outlined,
+      'title': 'Datos Adicionales',
+      'subtitle': 'Completa tu perfil',
+    },
+  ];
 
   @override
   void initState() {
@@ -244,7 +265,7 @@ class _RegisterPageState extends State<RegisterPage>
             child: Column(
               children: [
                 // Header
-                _buildHeader(colorScheme),
+                _buildHeader(colorScheme, isLoading),
                 
                 // Stepper Progress
                 _buildStepperProgress(colorScheme),
@@ -269,146 +290,148 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
+  Widget _buildHeader(ColorScheme colorScheme, bool isLoading) {
+    final stepInfo = _stepData[_currentStep];
+    
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: _currentStep > 0
-                    ? _previousStep
-                    : () => Navigator.pop(context),
+      color: Colors.white,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Botón atrás minimalista
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppStyles.spacingLarge,
+                vertical: AppStyles.spacingMedium,
               ),
-              const SizedBox(width: 8),
-              const Expanded(
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, size: 20),
+                    onPressed: isLoading ? null : () {
+                      if (_currentStep > 0) {
+                        _previousStep();
+                      } else {
+                        Modular.to.navigate('/');
+                      }
+                    },
+                    style: IconButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Paso ${_currentStep + 1} de 3',
+                    style: const TextStyle(
+                      fontSize: AppStyles.fontSizeSmall,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Carrusel visual minimalista
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                key: ValueKey<int>(_currentStep),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppStyles.spacingXLarge,
+                  vertical: AppStyles.spacingLarge,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Crear Cuenta',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    // Icono minimalista
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        stepInfo['icon'] as IconData,
+                        size: 40,
+                        color: AppColors.primary,
                       ),
                     ),
+                    const SizedBox(height: AppStyles.spacingLarge),
+                    // Título del paso
                     Text(
-                      'Únete a la comunidad VolunRed',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                      stepInfo['title'] as String,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
                       ),
+                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: AppStyles.spacingSmall),
+                    // Subtítulo
+                    Text(
+                      stepInfo['subtitle'] as String,
+                      style: const TextStyle(
+                        fontSize: AppStyles.fontSizeBody,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppStyles.spacingLarge),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.volunteer_activism,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStepperProgress(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppStyles.spacingXLarge,
+        vertical: AppStyles.spacingSmall,
+      ),
       child: Row(
-        children: [
-          _buildStepIndicator(0, 'Datos\nPersonales', colorScheme),
-          _buildStepConnector(0, colorScheme),
-          _buildStepIndicator(1, 'Cuenta', colorScheme),
-          _buildStepConnector(1, colorScheme),
-          _buildStepIndicator(2, 'Adicional', colorScheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepIndicator(int step, String label, ColorScheme colorScheme) {
-    final isActive = _currentStep >= step;
-    final isCurrent = _currentStep == step;
-
-    return Expanded(
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isActive ? colorScheme.primary : Colors.grey[300],
-              shape: BoxShape.circle,
-              boxShadow: isCurrent
-                  ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.4),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : null,
+        children: List.generate(3, (index) {
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: index < 2 ? AppStyles.spacingSmall : 0,
+              ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: 3,
+                decoration: BoxDecoration(
+                  color: index <= _currentStep 
+                      ? AppColors.primary 
+                      : AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-            child: Center(
-              child: isActive && _currentStep > step
-                  ? const Icon(Icons.check, color: Colors.white, size: 20)
-                  : Text(
-                      '${step + 1}',
-                      style: TextStyle(
-                        color: isActive ? Colors.white : Colors.grey[600],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: isActive ? colorScheme.primary : Colors.grey[600],
-              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepConnector(int step, ColorScheme colorScheme) {
-    final isActive = _currentStep > step;
-    return Expanded(
-      child: Container(
-        height: 2,
-        margin: const EdgeInsets.only(bottom: 40),
-        decoration: BoxDecoration(
-          color: isActive ? colorScheme.primary : Colors.grey[300],
-        ),
+          );
+        }),
       ),
     );
   }

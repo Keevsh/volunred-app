@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/theme/app_widgets.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -101,18 +104,18 @@ class _WelcomePageState extends State<WelcomePage> {
                         const Text(
                           'VolunRed',
                           style: TextStyle(
-                            fontSize: 32,
+                            fontSize: AppStyles.fontSizeHeader,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -1,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppStyles.spacingMedium),
                         Text(
-                          'Una plataforma creada para fortalecer el voluntariado en Ecuador. Descubre proyectos, organiza tus actividades y trabaja en equipo por un futuro más solidario.',
+                          'Una plataforma creada para fortalecer el voluntariado en Bolivia. Descubre proyectos, organiza tus actividades y trabaja en equipo por un futuro más solidario.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.grey[700],
+                            fontSize: AppStyles.fontSizeNormal,
+                            color: AppColors.textSecondary,
                             height: 1.5,
                           ),
                         ),
@@ -130,16 +133,16 @@ class _WelcomePageState extends State<WelcomePage> {
                         // Botón Login
                         SizedBox(
                           width: double.infinity,
-                          height: 56,
+                          height: AppStyles.buttonHeightLarge,
                           child: ElevatedButton(
                             onPressed: () {
                               Modular.to.navigate('/auth/');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0D4C3D),
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: AppStyles.borderRadiusMediumAll,
                               ),
                               elevation: 0,
                             ),
@@ -149,51 +152,51 @@ class _WelcomePageState extends State<WelcomePage> {
                                 const Text(
                                   'Login',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: AppStyles.fontSizeBody,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppStyles.spacingSmall),
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withOpacity(AppStyles.opacityMedium),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.arrow_forward,
-                                    size: 18,
+                                    size: AppStyles.iconSizeSmall,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppStyles.spacingMedium),
 
                         // Botón Registrarse
                         SizedBox(
                           width: double.infinity,
-                          height: 56,
+                          height: AppStyles.buttonHeightLarge,
                           child: OutlinedButton(
                             onPressed: () {
                               Modular.to.navigate('/auth/register');
                             },
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF0D4C3D),
+                              foregroundColor: AppColors.primary,
                               side: const BorderSide(
-                                color: Color(0xFF0D4C3D),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: AppStyles.borderRadiusMediumAll,
                               ),
                             ),
                             child: const Text(
                               'Registrarse',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: AppStyles.fontSizeBody,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.5,
                               ),
@@ -223,19 +226,15 @@ class _WelcomePageState extends State<WelcomePage> {
             height: size.height * 0.35,
             width: double.infinity,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: AppStyles.borderRadiusLargeAll,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.green[100]!,
-                  Colors.blue[50]!,
-                  Colors.orange[50]!,
-                ],
+                colors: AppColors.cardGradientLight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withOpacity(AppStyles.opacityLight),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -259,19 +258,19 @@ class _WelcomePageState extends State<WelcomePage> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withOpacity(AppStyles.opacityHigh),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(AppStyles.opacityLight),
                           blurRadius: 8,
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.favorite,
-                      color: Colors.red,
-                      size: 24,
+                      color: AppColors.iconRed,
+                      size: AppStyles.iconSizeMedium,
                     ),
                   ),
                 ),
@@ -281,19 +280,19 @@ class _WelcomePageState extends State<WelcomePage> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withOpacity(AppStyles.opacityHigh),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(AppStyles.opacityLight),
                           blurRadius: 8,
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.star,
-                      color: Colors.amber,
-                      size: 24,
+                      color: AppColors.iconAmber,
+                      size: AppStyles.iconSizeMedium,
                     ),
                   ),
                 ),
@@ -306,20 +305,20 @@ class _WelcomePageState extends State<WelcomePage> {
           Text(
             slide['title']!,
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: AppStyles.fontSizeTitle,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppStyles.spacingMedium),
 
           // Subtítulo
           Text(
             slide['subtitle']!,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey[600],
+            style: const TextStyle(
+              fontSize: AppStyles.fontSizeNormal,
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),

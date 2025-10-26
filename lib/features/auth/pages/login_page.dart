@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/theme/app_widgets.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -41,48 +44,22 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Text('¡Bienvenido ${state.usuario.nombres}!'),
-                  ],
-                ),
-                backgroundColor: Colors.green[700],
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(16),
-              ),
+            AppWidgets.showStyledSnackBar(
+              context: context,
+              message: '¡Bienvenido ${state.usuario.nombres}!',
+              isError: false,
             );
             Modular.to.navigate('/home/');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(state.message)),
-                  ],
-                ),
-                backgroundColor: Colors.red[700],
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(16),
-              ),
+            AppWidgets.showStyledSnackBar(
+              context: context,
+              message: state.message,
+              isError: true,
             );
           }
         },
@@ -90,27 +67,19 @@ class _LoginPageState extends State<LoginPage> {
           final isLoading = state is AuthLoading;
 
           return SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Botón de regreso
-                    IconButton(
-                      onPressed: () => Modular.to.navigate('/'),
-                      icon: const Icon(Icons.arrow_back_ios),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.grey[100],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildHeader(size),
-                    const SizedBox(height: 48),
-                    _buildLoginForm(isLoading),
-                  ],
+            child: Column(
+              children: [
+                // Header minimalista
+                _buildHeader(isLoading),
+                
+                // Form
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppStyles.spacingXLarge),
+                    child: _buildLoginForm(isLoading),
+                  ),
                 ),
-              ),
+              ],
             ),
           );
         },
@@ -118,28 +87,25 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildHeader(Size size) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '¡Hola de nuevo! 👋',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -1,
+  Widget _buildHeader(bool isLoading) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppStyles.spacingLarge,
+        vertical: AppStyles.spacingMedium,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios, size: 20),
+            onPressed: isLoading ? null : () => Modular.to.navigate('/'),
+            style: IconButton.styleFrom(
+              foregroundColor: AppColors.textPrimary,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Inicia sesión para continuar tu voluntariado',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[600],
-            height: 1.5,
-          ),
-        ),
-      ],
+          const Spacer(),
+        ],
+      ),
     );
   }
 
@@ -149,32 +115,55 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Email field
-          TextFormField(
-            controller: _emailController,
-            enabled: !isLoading,
-            keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(fontSize: 16),
-            decoration: InputDecoration(
-              labelText: 'Email',
-              hintText: 'tu@email.com',
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+          // Icono de login
+          Center(
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+              child: const Icon(
+                Icons.lock_outline,
+                size: 50,
+                color: AppColors.primary,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF0D4C3D), width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-              contentPadding: const EdgeInsets.all(20),
             ),
+          ),
+          const SizedBox(height: AppStyles.spacingXLarge),
+          
+          // Título
+          const Text(
+            'Iniciar Sesión',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppStyles.spacingSmall),
+          
+          const Text(
+            'Bienvenido de vuelta',
+            style: TextStyle(
+              fontSize: AppStyles.fontSizeBody,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppStyles.spacingXXLarge),
+
+          // Email field
+          AppWidgets.styledTextField(
+            controller: _emailController,
+            label: 'Email',
+            hint: 'tu@email.com',
+            prefixIcon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+            enabled: !isLoading,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingresa tu email';
@@ -185,46 +174,24 @@ class _LoginPageState extends State<LoginPage> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppStyles.spacingLarge),
 
           // Password field
-          TextFormField(
+          AppWidgets.styledTextField(
             controller: _passwordController,
-            enabled: !isLoading,
+            label: 'Contraseña',
+            hint: '••••••••',
+            prefixIcon: Icons.lock_outline,
+            suffixIcon: _obscurePassword 
+                ? Icons.visibility_outlined 
+                : Icons.visibility_off_outlined,
+            onSuffixIconPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
             obscureText: _obscurePassword,
-            style: const TextStyle(fontSize: 16),
-            decoration: InputDecoration(
-              labelText: 'Contraseña',
-              hintText: '••••••••',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF0D4C3D), width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-              contentPadding: const EdgeInsets.all(20),
-            ),
+            enabled: !isLoading,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Por favor ingresa tu contraseña';
@@ -232,7 +199,7 @@ class _LoginPageState extends State<LoginPage> {
               return null;
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppStyles.spacingMedium),
 
           // Forgot password
           Align(
@@ -242,73 +209,33 @@ class _LoginPageState extends State<LoginPage> {
               child: const Text(
                 '¿Olvidaste tu contraseña?',
                 style: TextStyle(
-                  color: Color(0xFF0D4C3D),
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: AppStyles.fontSizeMedium,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppStyles.spacingXLarge),
 
           // Login button
-          SizedBox(
-            height: 56,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D4C3D),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Iniciar Sesión',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-            ),
+          AppWidgets.gradientButton(
+            onPressed: _handleLogin,
+            text: 'Iniciar Sesión',
+            icon: Icons.arrow_forward,
+            isLoading: isLoading,
           ),
-          const SizedBox(height: 24),
-
-          // Divider
-          Row(
-            children: [
-              Expanded(child: Divider(color: Colors.grey[300])),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'O',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              ),
-              Expanded(child: Divider(color: Colors.grey[300])),
-            ],
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppStyles.spacingXLarge),
 
           // Register link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 '¿No tienes cuenta? ',
                 style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 15,
+                  color: AppColors.textSecondary,
+                  fontSize: AppStyles.fontSizeNormal,
                 ),
               ),
               TextButton(
@@ -321,11 +248,11 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
                 child: const Text(
-                  'Regístrate aquí',
+                  'Regístrate',
                   style: TextStyle(
-                    color: Color(0xFF0D4C3D),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: AppStyles.fontSizeNormal,
                   ),
                 ),
               ),

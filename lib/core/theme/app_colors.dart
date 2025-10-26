@@ -56,6 +56,12 @@ class AppColors {
   static const Color backgroundLight = Color(0xFFFAFAFA);
   static const Color backgroundWhite = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
+  static const Color cardBackground = Color(0xFFFAFAFA);
+  
+  // Colores de información
+  static const Color infoBackground = Color(0xFFE3F2FD);
+  static const Color infoBorder = Color(0xFFBBDEFB);
+  static const Color infoText = Color(0xFF0D47A1);
   
   // Colores de bordes
   static const Color border = Color(0xFFE0E0E0);

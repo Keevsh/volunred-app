@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_styles.dart';
+import '../../../core/models/enums.dart';
+import '../../../core/theme/theme.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -34,6 +34,7 @@ class _RegisterPageState extends State<RegisterPage>
   final _confirmPasswordFocus = FocusNode();
   
   String? _sexo;
+  TipoUsuario? _tipoUsuario; // Voluntario o Funcionario
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   int _currentStep = 0;
@@ -51,6 +52,11 @@ class _RegisterPageState extends State<RegisterPage>
   // Datos del carrusel para cada paso
   final List<Map<String, dynamic>> _stepData = [
     {
+      'icon': Icons.how_to_reg_outlined,
+      'title': 'Tipo de Cuenta',
+      'subtitle': '¿Cómo quieres participar?',
+    },
+    {
       'icon': Icons.person_outline,
       'title': 'Información Personal',
       'subtitle': 'Cuéntanos sobre ti',
@@ -61,9 +67,9 @@ class _RegisterPageState extends State<RegisterPage>
       'subtitle': 'Crea tu acceso seguro',
     },
     {
-      'icon': Icons.description_outlined,
-      'title': 'Datos Adicionales',
-      'subtitle': 'Completa tu perfil',
+      'icon': Icons.info_outline,
+      'title': 'Información Adicional',
+      'subtitle': 'Completa tu perfil (opcional)',
     },
   ];
 
@@ -158,32 +164,50 @@ class _RegisterPageState extends State<RegisterPage>
     final strength = _getPasswordStrength();
     switch (strength) {
       case 'Fuerte':
-        return Colors.green;
+        return AppColors.success;
       case 'Media':
-        return Colors.orange;
+        return AppColors.warning;
       case 'Débil':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
   void _nextStep() {
     if (_currentStep == 0) {
-      // Validar paso 1
-      if (!_nombresValid || !_apellidosValid) {
-        _showSnackBar('Por favor completa tus nombres y apellidos');
+      // Validar paso 0: Tipo de usuario
+      if (_tipoUsuario == null) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Por favor selecciona el tipo de cuenta',
+          isError: true,
+        );
         return;
       }
     } else if (_currentStep == 1) {
-      // Validar paso 2
+      // Validar paso 1: Datos personales
+      if (!_nombresValid || !_apellidosValid) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Por favor completa tus nombres y apellidos',
+          isError: true,
+        );
+        return;
+      }
+    } else if (_currentStep == 2) {
+      // Validar paso 2: Credenciales
       if (!_emailValid || !_passwordValid || !_confirmPasswordValid) {
-        _showSnackBar('Verifica tu email y contraseña');
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Verifica tu email y contraseña',
+          isError: true,
+        );
         return;
       }
     }
 
-    if (_currentStep < 2) {
+    if (_currentStep < 3) {
       setState(() => _currentStep++);
     } else {
       _handleRegister();
@@ -196,31 +220,16 @@ class _RegisterPageState extends State<RegisterPage>
     }
   }
 
-  void _showSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: isError ? Colors.red[700] : Colors.green[700],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+
 
   void _handleRegister() {
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
-        _showSnackBar('Las contraseñas no coinciden');
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Las contraseñas no coinciden',
+          isError: true,
+        );
         return;
       }
 
@@ -250,12 +259,20 @@ class _RegisterPageState extends State<RegisterPage>
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            _showSnackBar('¡Registro exitoso! Bienvenido', isError: false);
+            AppWidgets.showStyledSnackBar(
+              context: context,
+              message: '¡Registro exitoso! Bienvenido',
+              isError: false,
+            );
             Future.delayed(const Duration(milliseconds: 500), () {
               Modular.to.navigate('/profile/create');
             });
           } else if (state is AuthError) {
-            _showSnackBar(state.message);
+            AppWidgets.showStyledSnackBar(
+              context: context,
+              message: state.message,
+              isError: true,
+            );
           }
         },
         builder: (context, state) {
@@ -442,12 +459,12 @@ class _RegisterPageState extends State<RegisterPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CircularProgressIndicator(),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppStyles.spacingLarge),
           Text(
             'Creando tu cuenta...',
             style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
+              fontSize: AppStyles.fontSizeBody,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -459,7 +476,7 @@ class _RegisterPageState extends State<RegisterPage>
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppStyles.spacingLarge),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: _getCurrentStepWidget(),
@@ -471,37 +488,216 @@ class _RegisterPageState extends State<RegisterPage>
   Widget _getCurrentStepWidget() {
     switch (_currentStep) {
       case 0:
-        return _buildStep1PersonalInfo();
+        return _buildStep0TipoCuenta();
       case 1:
-        return _buildStep2AccountInfo();
+        return _buildStep1PersonalInfo();
       case 2:
+        return _buildStep2AccountInfo();
+      case 3:
         return _buildStep3AdditionalInfo();
       default:
         return const SizedBox();
     }
   }
 
-  Widget _buildStep1PersonalInfo() {
+  // Paso 0: Selección de tipo de cuenta
+  Widget _buildStep0TipoCuenta() {
     return Column(
       key: const ValueKey(0),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          '¿Cómo te llamas?',
+          '¿Cómo quieres participar?',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: AppStyles.fontSizeTitle,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppStyles.spacingSmall),
+        Text(
+          'Selecciona el tipo de cuenta que mejor se adapte a ti',
+          style: TextStyle(
+            fontSize: AppStyles.fontSizeSmall,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: AppStyles.spacingXLarge),
+        _buildTipoCuentaCard(
+          tipo: TipoUsuario.voluntario,
+          icon: Icons.volunteer_activism,
+          title: 'Voluntario',
+          description:
+              'Participa en proyectos sociales y ayuda a construir un mundo mejor',
+          features: [
+            'Explora proyectos de voluntariado',
+            'Inscríbete en actividades',
+            'Registra tus horas de voluntariado',
+            'Obtén reconocimientos y certificados',
+          ],
+        ),
+        const SizedBox(height: AppStyles.spacingLarge),
+        _buildTipoCuentaCard(
+          tipo: TipoUsuario.funcionario,
+          icon: Icons.business_center,
+          title: 'Funcionario/Organización',
+          description:
+              'Crea y gestiona proyectos de voluntariado para tu organización',
+          features: [
+            'Crea proyectos y actividades',
+            'Gestiona voluntarios',
+            'Asigna tareas y responsabilidades',
+            'Genera reportes de impacto',
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTipoCuentaCard({
+    required TipoUsuario tipo,
+    required IconData icon,
+    required String title,
+    required String description,
+    required List<String> features,
+  }) {
+    final isSelected = _tipoUsuario == tipo;
+
+    return InkWell(
+      onTap: () => setState(() => _tipoUsuario = tipo),
+      borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+      child: Container(
+        padding: const EdgeInsets.all(AppStyles.spacingLarge),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppStyles.spacingMedium),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary.withOpacity(0.1)
+                        : AppColors.borderLight,
+                    borderRadius:
+                        BorderRadius.circular(AppStyles.borderRadiusSmall),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    size: AppStyles.iconSizeLarge,
+                  ),
+                ),
+                const SizedBox(width: AppStyles.spacingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: AppStyles.fontSizeTitle,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: AppStyles.fontSizeSmall,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppStyles.spacingMedium),
+            const Divider(),
+            const SizedBox(height: AppStyles.spacingSmall),
+            ...features.map((feature) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppStyles.spacingSmall),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 18,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: AppStyles.spacingSmall),
+                      Expanded(
+                        child: Text(
+                          feature,
+                          style: TextStyle(
+                            fontSize: AppStyles.fontSizeSmall,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep1PersonalInfo() {
+    return Column(
+      key: const ValueKey(1),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '¿Cómo te llamas?',
+          style: TextStyle(
+            fontSize: AppStyles.fontSizeTitle,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppStyles.spacingSmall),
         Text(
           'Ingresa tu nombre completo',
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
+            fontSize: AppStyles.fontSizeSmall,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppStyles.spacingLarge),
         _buildTextField(
           controller: _nombresController,
           focusNode: _nombresFocus,
@@ -520,7 +716,7 @@ class _RegisterPageState extends State<RegisterPage>
           },
           onFieldSubmitted: (_) => _apellidosFocus.requestFocus(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppStyles.spacingMedium),
         _buildTextField(
           controller: _apellidosController,
           focusNode: _apellidosFocus,
@@ -547,25 +743,25 @@ class _RegisterPageState extends State<RegisterPage>
     final strengthColor = _getPasswordStrengthColor();
 
     return Column(
-      key: const ValueKey(1),
+      key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Configura tu cuenta',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: AppStyles.fontSizeTitle,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppStyles.spacingSmall),
         Text(
           'Crea tus credenciales de acceso',
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
+            fontSize: AppStyles.fontSizeSmall,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppStyles.spacingLarge),
         _buildTextField(
           controller: _emailController,
           focusNode: _emailFocus,
@@ -585,7 +781,7 @@ class _RegisterPageState extends State<RegisterPage>
           },
           onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppStyles.spacingMedium),
         _buildTextField(
           controller: _passwordController,
           focusNode: _passwordFocus,
@@ -612,7 +808,7 @@ class _RegisterPageState extends State<RegisterPage>
           onFieldSubmitted: (_) => _confirmPasswordFocus.requestFocus(),
         ),
         if (_passwordController.text.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppStyles.spacingSmall),
           Row(
             children: [
               Expanded(
@@ -622,16 +818,16 @@ class _RegisterPageState extends State<RegisterPage>
                       : passwordStrength == 'Media'
                           ? 0.66
                           : 0.33,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor: AppColors.borderLight,
                   color: strengthColor,
                   minHeight: 4,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppStyles.spacingMedium),
               Text(
                 passwordStrength,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AppStyles.fontSizeSmall,
                   color: strengthColor,
                   fontWeight: FontWeight.bold,
                 ),
@@ -639,7 +835,7 @@ class _RegisterPageState extends State<RegisterPage>
             ],
           ),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: AppStyles.spacingMedium),
         _buildTextField(
           controller: _confirmPasswordController,
           focusNode: _confirmPasswordFocus,
@@ -673,25 +869,25 @@ class _RegisterPageState extends State<RegisterPage>
 
   Widget _buildStep3AdditionalInfo() {
     return Column(
-      key: const ValueKey(2),
+      key: const ValueKey(3),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Información adicional',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: AppStyles.fontSizeTitle,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppStyles.spacingSmall),
         Text(
           'Opcional - Puedes completar esto después',
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
+            fontSize: AppStyles.fontSizeSmall,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppStyles.spacingLarge),
         _buildTextField(
           controller: _telefonoController,
           label: 'Teléfono',
@@ -700,7 +896,7 @@ class _RegisterPageState extends State<RegisterPage>
           keyboardType: TextInputType.phone,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppStyles.spacingMedium),
         _buildTextField(
           controller: _ciController,
           label: 'Cédula de Identidad',
@@ -709,17 +905,17 @@ class _RegisterPageState extends State<RegisterPage>
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppStyles.spacingMedium),
         DropdownButtonFormField<String>(
           value: _sexo,
           decoration: InputDecoration(
             labelText: 'Sexo',
             prefixIcon: const Icon(Icons.wc_outlined),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
             ),
             filled: true,
-            fillColor: Colors.grey[50],
+            fillColor: AppColors.cardBackground,
           ),
           items: const [
             DropdownMenuItem(value: 'M', child: Text('Masculino')),
@@ -728,24 +924,24 @@ class _RegisterPageState extends State<RegisterPage>
           ],
           onChanged: (value) => setState(() => _sexo = value),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppStyles.spacingLarge),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppStyles.spacingMedium),
           decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.blue[200]!),
+            color: AppColors.infoBackground,
+            borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+            border: Border.all(color: AppColors.infoBorder),
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue[700]),
-              const SizedBox(width: 12),
+              Icon(Icons.info_outline, color: AppColors.info),
+              const SizedBox(width: AppStyles.spacingMedium),
               Expanded(
                 child: Text(
                   'Estos datos son opcionales y puedes completarlos más tarde en tu perfil.',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.blue[900],
+                    fontSize: AppStyles.fontSizeSmall,
+                    color: AppColors.infoText,
                   ),
                 ),
               ),
@@ -770,57 +966,27 @@ class _RegisterPageState extends State<RegisterPage>
     String? Function(String?)? validator,
     void Function(String)? onFieldSubmitted,
   }) {
-    return TextFormField(
+    return AppWidgets.styledTextField(
       controller: controller,
-      focusNode: focusNode,
+      label: label,
+      hint: hint,
+      prefixIcon: icon,
+      suffixIcon: suffixIcon != null ? null : (isValid && controller.text.isNotEmpty ? Icons.check_circle : null),
       obscureText: obscureText,
       keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
       validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        suffixIcon: suffixIcon ??
-            (controller.text.isNotEmpty && validator != null
-                ? Icon(
-                    isValid ? Icons.check_circle : Icons.error,
-                    color: isValid ? Colors.green : Colors.red,
-                  )
-                : null),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: isValid && controller.text.isNotEmpty
-                ? Colors.green
-                : Colors.grey[300]!,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).primaryColor,
-            width: 2,
-          ),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
+      enabled: true,
     );
   }
 
   Widget _buildNavigationButtons(ColorScheme colorScheme, bool isLoading) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppStyles.spacingLarge),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withOpacity(AppStyles.opacityLight),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -3),
@@ -834,46 +1000,25 @@ class _RegisterPageState extends State<RegisterPage>
               child: OutlinedButton(
                 onPressed: isLoading ? null : _previousStep,
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: AppStyles.spacingMedium),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppStyles.borderRadiusMediumAll,
                   ),
+                  side: const BorderSide(color: AppColors.primary),
+                  foregroundColor: AppColors.primary,
                 ),
                 child: const Text('Atrás'),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppStyles.spacingMedium),
           ],
           Expanded(
             flex: 2,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _nextStep,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: colorScheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _currentStep < 2 ? 'Continuar' : 'Crear Cuenta',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _currentStep < 2 ? Icons.arrow_forward : Icons.check,
-                    size: 20,
-                  ),
-                ],
-              ),
+            child: AppWidgets.gradientButton(
+              onPressed: _nextStep,
+              text: _currentStep < 2 ? 'Continuar' : 'Crear Cuenta',
+              icon: _currentStep < 2 ? Icons.arrow_forward : Icons.check,
+              isLoading: isLoading,
             ),
           ),
         ],

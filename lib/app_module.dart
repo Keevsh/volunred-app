@@ -5,7 +5,8 @@ import 'core/repositories/voluntario_repository.dart';
 import 'features/auth/auth_module.dart';
 import 'features/auth/pages/welcome_page.dart';
 import 'features/profile/profile_module.dart';
-import 'modules/home/home_module.dart';
+import 'features/home/home_module.dart';
+import 'features/experiencias/experiencias_module.dart';
 
 class AppModule extends Module {
   @override
@@ -24,5 +25,6 @@ class AppModule extends Module {
         ModuleRoute('/auth', module: AuthModule()),
         ModuleRoute('/profile', module: ProfileModule()),
         ModuleRoute('/home', module: HomeModule()),
+        ModuleRoute('/experiencias', module: ExperienciasModule()),
       ];
 }

@@ -54,7 +54,17 @@ class _LoginPageState extends State<LoginPage> {
               message: '¡Bienvenido ${state.usuario.nombres}!',
               isError: false,
             );
-            Modular.to.navigate('/home/');
+            
+            // Redirigir según el rol del usuario con un pequeño delay para asegurar que el contexto esté listo
+            Future.microtask(() {
+              if (state.usuario.isAdmin) {
+                // Si es admin, llevar directamente al panel de administración
+                Modular.to.navigate('/admin/');
+              } else {
+                // Si es funcionario o voluntario, llevar al home normal
+                Modular.to.navigate('/home/');
+              }
+            });
           } else if (state is AuthError) {
             AppWidgets.showStyledSnackBar(
               context: context,

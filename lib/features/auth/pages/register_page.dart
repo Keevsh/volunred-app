@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
 import '../../../core/models/enums.dart';
+import '../../../core/repositories/admin_repository.dart';
+import '../../../core/repositories/auth_repository.dart';
 import '../../../core/theme/theme.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -260,27 +262,101 @@ class _RegisterPageState extends State<RegisterPage>
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthAuthenticated) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: '¡Registro exitoso! Bienvenido',
-              isError: false,
-            );
+            print('✅ Usuario registrado: ${state.usuario.nombreCompleto}');
+            print('✅ ID Rol actual: ${state.usuario.idRol}');
+            print('✅ Tipo de usuario seleccionado: ${_tipoUsuario?.value}');
             
-            print('✅ Usuario autenticado: ${state.usuario.nombreCompleto}');
-            print('✅ Tipo de usuario: ${state.usuario.tipoUsuario}');
-            
-            // Redirigir según el tipo de usuario
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (state.usuario.tipoUsuario == 'funcionario') {
-                print('➡️ Redirigiendo a crear perfil de funcionario');
-                Modular.to.navigate('/profile/create-funcionario');
-              } else {
-                print('➡️ Redirigiendo a crear perfil de voluntario');
-                Modular.to.navigate('/profile/create');
+            // Si el usuario no tiene rol asignado y seleccionó un tipo
+            if (state.usuario.idRol == null && _tipoUsuario != null) {
+              print('⚠️ Usuario sin rol, asignando automáticamente...');
+              
+              // Mapear tipo_usuario a id_rol
+              final idRol = _tipoUsuario == TipoUsuario.funcionario ? 2 : 3;
+              
+              try {
+                final adminRepo = Modular.get<AdminRepository>();
+                await adminRepo.asignarRol(
+                  AsignarRolRequest(
+                    idUsuario: state.usuario.idUsuario,
+                    idRol: idRol,
+                  ),
+                );
+                
+                print('✅ Rol $idRol asignado correctamente');
+                
+                // Recargar usuario para obtener el rol actualizado
+                final authRepo = Modular.get<AuthRepository>();
+                final usuarioActualizado = await authRepo.getProfile();
+                
+                print('✅ Usuario actualizado con rol: ${usuarioActualizado.rol?.nombre}');
+                
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: '¡Registro exitoso! Bienvenido',
+                  isError: false,
+                );
+                
+                // Redirigir según el rol asignado
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (idRol == 2) {
+                    print('➡️ Redirigiendo a crear perfil de funcionario');
+                    Modular.to.navigate('/profile/create-funcionario');
+                  } else {
+                    print('➡️ Redirigiendo a crear perfil de voluntario');
+                    Modular.to.navigate('/profile/create');
+                  }
+                });
+              } catch (e) {
+                print('❌ Error al asignar rol: $e');
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: 'Error al asignar rol: ${e.toString()}',
+                  isError: true,
+                );
               }
-            });
+            } else if (state.usuario.idRol != null) {
+              // Usuario ya tiene rol (caso poco probable en registro)
+              
+              // IMPORTANTE: Admin NO se crea por registro, solo desde BD
+              if (state.usuario.idRol == 1) {
+                print('⚠️ Usuario admin detectado - no debería registrarse por la app');
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: 'Error: Los administradores no se crean desde el registro',
+                  isError: true,
+                );
+                return;
+              }
+              
+              AppWidgets.showStyledSnackBar(
+                context: context,
+                message: '¡Registro exitoso! Bienvenido',
+                isError: false,
+              );
+              
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (state.usuario.idRol == 2) {
+                  // Funcionario → crear perfil de funcionario
+                  Modular.to.navigate('/profile/create-funcionario');
+                } else if (state.usuario.idRol == 3) {
+                  // Voluntario → crear perfil de voluntario
+                  Modular.to.navigate('/profile/create');
+                } else {
+                  // Rol desconocido
+                  print('❌ Rol no reconocido: ${state.usuario.idRol}');
+                  Modular.to.navigate('/home');
+                }
+              });
+            } else {
+              // No se seleccionó tipo de usuario (no debería pasar)
+              AppWidgets.showStyledSnackBar(
+                context: context,
+                message: 'Registro exitoso, pero no se pudo asignar rol',
+                isError: true,
+              );
+            }
           } else if (state is AuthError) {
             AppWidgets.showStyledSnackBar(
               context: context,

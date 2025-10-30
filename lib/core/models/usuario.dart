@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'rol.dart';
 
 class Usuario extends Equatable {
   final int idUsuario;
@@ -9,6 +10,8 @@ class Usuario extends Equatable {
   final int? ci;
   final String? sexo;
   final String? tipoUsuario; // 'voluntario' o 'funcionario'
+  final int? idRol;
+  final Rol? rol;
   final DateTime? creadoEn;
 
   const Usuario({
@@ -20,6 +23,8 @@ class Usuario extends Equatable {
     this.ci,
     this.sexo,
     this.tipoUsuario,
+    this.idRol,
+    this.rol,
     this.creadoEn,
   });
 
@@ -33,6 +38,8 @@ class Usuario extends Equatable {
       ci: json['ci'] as int?,
       sexo: json['sexo'] as String?,
       tipoUsuario: json['tipo_usuario'] as String?,
+      idRol: json['id_rol'] as int?,
+      rol: json['rol'] != null ? Rol.fromJson(json['rol']) : null,
       creadoEn: json['creado_en'] != null 
           ? DateTime.parse(json['creado_en'] as String)
           : null,
@@ -49,11 +56,17 @@ class Usuario extends Equatable {
       'ci': ci,
       'sexo': sexo,
       'tipo_usuario': tipoUsuario,
+      'id_rol': idRol,
+      if (rol != null) 'rol': rol!.toJson(),
       'creado_en': creadoEn?.toIso8601String(),
     };
   }
 
   String get nombreCompleto => '$nombres $apellidos';
+
+  bool get isAdmin => idRol == 1;
+  bool get isFuncionario => idRol == 2;
+  bool get isVoluntario => idRol == 3;
 
   @override
   List<Object?> get props => [
@@ -65,6 +78,8 @@ class Usuario extends Equatable {
         ci,
         sexo,
         tipoUsuario,
+        idRol,
+        rol,
         creadoEn,
       ];
 }

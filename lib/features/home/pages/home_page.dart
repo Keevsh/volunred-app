@@ -13,6 +13,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   String _userName = 'Usuario';
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage> {
     if (usuario != null) {
       setState(() {
         _userName = usuario.nombres;
+        _isAdmin = usuario.isAdmin; // id_rol == 1
       });
     }
   }
@@ -471,6 +473,81 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(AppStyles.spacingLarge),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                // Mostrar opción de Admin solo si es administrador
+                if (_isAdmin) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: AppStyles.spacingMedium),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.purple, Colors.purple.shade700],
+                      ),
+                      borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purple.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Modular.to.pushNamed('/admin/'),
+                        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppStyles.spacingMedium),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(AppStyles.spacingSmall),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(AppStyles.borderRadiusSmall),
+                                ),
+                                child: const Icon(
+                                  Icons.admin_panel_settings,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: AppStyles.spacingMedium),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Panel de Administración',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Gestionar sistema',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppStyles.spacingMedium),
+                ],
                 _buildProfileOption(
                   icon: Icons.person_outline,
                   title: 'Editar Perfil',

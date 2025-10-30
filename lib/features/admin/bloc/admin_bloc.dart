@@ -1,0 +1,388 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/models/dto/request_models.dart';
+import '../../../core/repositories/admin_repository.dart';
+import 'admin_event.dart';
+import 'admin_state.dart';
+
+class AdminBloc extends Bloc<AdminEvent, AdminState> {
+  final AdminRepository adminRepository;
+
+  AdminBloc(this.adminRepository) : super(AdminInitial()) {
+    // Usuarios
+    on<LoadUsuariosRequested>(_onLoadUsuariosRequested);
+    on<LoadUsuarioByIdRequested>(_onLoadUsuarioByIdRequested);
+    on<DeleteUsuarioRequested>(_onDeleteUsuarioRequested);
+
+    // Roles
+    on<LoadRolesRequested>(_onLoadRolesRequested);
+    on<LoadRolByIdRequested>(_onLoadRolByIdRequested);
+    on<CreateRolRequested>(_onCreateRolRequested);
+    on<DeleteRolRequested>(_onDeleteRolRequested);
+    on<AsignarRolRequested>(_onAsignarRolRequested);
+
+    // Permisos
+    on<LoadPermisosRequested>(_onLoadPermisosRequested);
+    on<LoadPermisosByRolRequested>(_onLoadPermisosByRolRequested);
+    on<AsignarPermisosRequested>(_onAsignarPermisosRequested);
+    on<DeletePermisoRequested>(_onDeletePermisoRequested);
+
+    // Programas
+    on<LoadProgramasRequested>(_onLoadProgramasRequested);
+    on<CreateProgramaRequested>(_onCreateProgramaRequested);
+
+    // Módulos y Aplicaciones
+    on<LoadModulosRequested>(_onLoadModulosRequested);
+    on<LoadAplicacionesRequested>(_onLoadAplicacionesRequested);
+    on<CreateAplicacionRequested>(_onCreateAplicacionRequested);
+
+    // Aptitudes
+    on<LoadAptitudesRequested>(_onLoadAptitudesRequested);
+    on<LoadAptitudByIdRequested>(_onLoadAptitudByIdRequested);
+    on<CreateAptitudRequested>(_onCreateAptitudRequested);
+    on<UpdateAptitudRequested>(_onUpdateAptitudRequested);
+    on<DeleteAptitudRequested>(_onDeleteAptitudRequested);
+  }
+
+  // ==================== USUARIOS ====================
+
+  Future<void> _onLoadUsuariosRequested(
+    LoadUsuariosRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final result = await adminRepository.getUsuarios(
+        page: event.page,
+        limit: event.limit,
+        email: event.email,
+      );
+      emit(UsuariosLoaded(
+        usuarios: result['usuarios'],
+        total: result['total'],
+        page: result['page'],
+        limit: result['limit'],
+      ));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadUsuarioByIdRequested(
+    LoadUsuarioByIdRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final usuario = await adminRepository.getUsuarioById(event.id);
+      emit(UsuarioLoaded(usuario));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteUsuarioRequested(
+    DeleteUsuarioRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteUsuario(event.id);
+      emit(const UsuarioDeleted('Usuario eliminado correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== ROLES ====================
+
+  Future<void> _onLoadRolesRequested(
+    LoadRolesRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final roles = await adminRepository.getRoles();
+      emit(RolesLoaded(roles));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadRolByIdRequested(
+    LoadRolByIdRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final rol = await adminRepository.getRolById(event.id);
+      emit(RolLoaded(rol));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateRolRequested(
+    CreateRolRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final rol = await adminRepository.createRol(
+        CreateRolRequest(nombre: event.nombre, descripcion: event.descripcion),
+      );
+      emit(RolCreated(rol));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteRolRequested(
+    DeleteRolRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteRol(event.id);
+      emit(const RolDeleted('Rol eliminado correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onAsignarRolRequested(
+    AsignarRolRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final usuario = await adminRepository.asignarRol(
+        AsignarRolRequest(idUsuario: event.idUsuario, idRol: event.idRol),
+      );
+      emit(RolAsignado(
+        usuario: usuario,
+        message: 'Rol asignado correctamente',
+      ));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== PERMISOS ====================
+
+  Future<void> _onLoadPermisosRequested(
+    LoadPermisosRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final permisos = await adminRepository.getPermisos();
+      emit(PermisosLoaded(permisos));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadPermisosByRolRequested(
+    LoadPermisosByRolRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final result = await adminRepository.getPermisosByRol(event.idRol);
+      emit(PermisosByRolLoaded(
+        rol: result['rol'],
+        permisos: result['permisos'],
+        total: result['total'],
+      ));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onAsignarPermisosRequested(
+    AsignarPermisosRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.asignarPermisos(
+        AsignarPermisosRequest(idRol: event.idRol, programas: event.programas),
+      );
+      emit(const PermisosAsignados('Permisos asignados correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeletePermisoRequested(
+    DeletePermisoRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deletePermiso(event.id);
+      emit(const PermisoDeleted('Permiso revocado correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== PROGRAMAS ====================
+
+  Future<void> _onLoadProgramasRequested(
+    LoadProgramasRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final programas = await adminRepository.getProgramas();
+      emit(ProgramasLoaded(programas));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateProgramaRequested(
+    CreateProgramaRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final programa = await adminRepository.createPrograma(
+        CreateProgramaRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+          idAplicacion: event.idAplicacion,
+        ),
+      );
+      emit(ProgramaCreated(programa));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== MÓDULOS Y APLICACIONES ====================
+
+  Future<void> _onLoadModulosRequested(
+    LoadModulosRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final modulos = await adminRepository.getModulos();
+      emit(ModulosLoaded(modulos));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadAplicacionesRequested(
+    LoadAplicacionesRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aplicaciones = await adminRepository.getAplicaciones();
+      emit(AplicacionesLoaded(aplicaciones));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateAplicacionRequested(
+    CreateAplicacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aplicacion = await adminRepository.createAplicacion(
+        CreateAplicacionRequest(
+          nombre: event.nombre,
+          idModulo: event.idModulo,
+        ),
+      );
+      emit(AplicacionCreated(aplicacion));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== APTITUDES ====================
+
+  Future<void> _onLoadAptitudesRequested(
+    LoadAptitudesRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aptitudes = await adminRepository.getAptitudes();
+      emit(AptitudesLoaded(aptitudes));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadAptitudByIdRequested(
+    LoadAptitudByIdRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aptitud = await adminRepository.getAptitudById(event.id);
+      emit(AptitudLoaded(aptitud));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateAptitudRequested(
+    CreateAptitudRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aptitud = await adminRepository.createAptitud(
+        CreateAptitudRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+        ),
+      );
+      emit(AptitudCreated(aptitud));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateAptitudRequested(
+    UpdateAptitudRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aptitud = await adminRepository.updateAptitud(
+        event.id,
+        UpdateAptitudRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+          estado: event.estado,
+        ),
+      );
+      emit(AptitudUpdated(aptitud));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteAptitudRequested(
+    DeleteAptitudRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteAptitud(event.id);
+      emit(const AptitudDeleted('Aptitud eliminada correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+}

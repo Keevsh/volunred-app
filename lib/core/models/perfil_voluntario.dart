@@ -18,10 +18,20 @@ class PerfilVoluntario extends Equatable {
   });
 
   factory PerfilVoluntario.fromJson(Map<String, dynamic> json) {
+    // Manejar disponibilidad que puede venir como String o List
+    String? disponibilidadValue;
+    if (json['disponibilidad'] != null) {
+      if (json['disponibilidad'] is List) {
+        disponibilidadValue = (json['disponibilidad'] as List).join(', ');
+      } else if (json['disponibilidad'] is String) {
+        disponibilidadValue = json['disponibilidad'] as String;
+      }
+    }
+
     return PerfilVoluntario(
       idPerfilVoluntario: json['id_perfil_voluntario'] as int,
       bio: json['bio'] as String?,
-      disponibilidad: json['disponibilidad'] as String?,
+      disponibilidad: disponibilidadValue,
       estado: json['estado'] as String? ?? 'activo',
       usuarioId: json['usuario_id'] as int,
       creadoEn: json['creado_en'] != null

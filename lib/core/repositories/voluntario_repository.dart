@@ -16,10 +16,15 @@ class VoluntarioRepository {
   Future<PerfilVoluntario> createPerfil(
       CreatePerfilVoluntarioRequest request) async {
     try {
+      print('📤 Enviando request: ${request.toJson()}');
+      
       final response = await _dioClient.dio.post(
         ApiConfig.perfilesVoluntarios,
         data: request.toJson(),
       );
+
+      print('📥 Respuesta del servidor: ${response.data}');
+      print('📥 Tipo de respuesta: ${response.data.runtimeType}');
 
       final perfil = PerfilVoluntario.fromJson(response.data);
 
@@ -31,7 +36,14 @@ class VoluntarioRepository {
 
       return perfil;
     } on DioException catch (e) {
+      print('❌ DioException: ${e.message}');
+      print('❌ Response: ${e.response?.data}');
+      print('❌ Status Code: ${e.response?.statusCode}');
       throw _handleError(e);
+    } catch (e, stackTrace) {
+      print('❌ Error general: $e');
+      print('❌ StackTrace: $stackTrace');
+      rethrow;
     }
   }
 
@@ -89,17 +101,37 @@ class VoluntarioRepository {
       final statusCode = error.response!.statusCode;
       final data = error.response!.data;
 
+      print('🔍 Error Response Data: $data');
+      print('🔍 Error Response Type: ${data.runtimeType}');
+
       switch (statusCode) {
         case 400:
-          return data['message'] ?? 'Datos inválidos';
+          // Intentar extraer mensaje de error más específico
+          if (data is Map<String, dynamic>) {
+            if (data['message'] is String) {
+              return 'Datos inválidos: ${data['message']}';
+            } else if (data['message'] is List) {
+              final messages = (data['message'] as List).join(', ');
+              return 'Datos inválidos: $messages';
+            } else if (data['error'] is String) {
+              return 'Error: ${data['error']}';
+            }
+          }
+          return 'Datos inválidos. Por favor verifica la información ingresada.';
         case 401:
           return 'No autorizado. Inicia sesión nuevamente.';
         case 409:
+          if (data is Map && data['message'] != null) {
+            return data['message'].toString();
+          }
           return 'Ya tienes un perfil de voluntario';
         case 404:
           return 'Recurso no encontrado';
         default:
-          return data['message'] ?? 'Error en el servidor';
+          if (data is Map && data['message'] != null) {
+            return data['message'].toString();
+          }
+          return 'Error en el servidor (${statusCode ?? "desconocido"})';
       }
     } else {
       return 'Error de conexión. Verifica tu internet.';

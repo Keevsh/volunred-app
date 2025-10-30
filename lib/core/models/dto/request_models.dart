@@ -6,6 +6,7 @@ class RegisterRequest {
   final int? telefono;
   final int? ci;
   final String? sexo;
+  final String? tipoUsuario; // 'voluntario' o 'funcionario'
 
   RegisterRequest({
     required this.nombres,
@@ -15,6 +16,7 @@ class RegisterRequest {
     this.telefono,
     this.ci,
     this.sexo,
+    this.tipoUsuario,
   });
 
   Map<String, dynamic> toJson() {
@@ -26,6 +28,7 @@ class RegisterRequest {
       'telefono': telefono,
       'ci': ci,
       'sexo': sexo,
+      if (tipoUsuario != null) 'tipo_usuario': tipoUsuario,
     };
   }
 }

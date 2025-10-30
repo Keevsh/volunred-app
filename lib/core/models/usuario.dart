@@ -8,6 +8,7 @@ class Usuario extends Equatable {
   final int? telefono;
   final int? ci;
   final String? sexo;
+  final String? tipoUsuario; // 'voluntario' o 'funcionario'
   final DateTime? creadoEn;
 
   const Usuario({
@@ -18,6 +19,7 @@ class Usuario extends Equatable {
     this.telefono,
     this.ci,
     this.sexo,
+    this.tipoUsuario,
     this.creadoEn,
   });
 
@@ -30,6 +32,7 @@ class Usuario extends Equatable {
       telefono: json['telefono'] as int?,
       ci: json['ci'] as int?,
       sexo: json['sexo'] as String?,
+      tipoUsuario: json['tipo_usuario'] as String?,
       creadoEn: json['creado_en'] != null 
           ? DateTime.parse(json['creado_en'] as String)
           : null,
@@ -45,6 +48,7 @@ class Usuario extends Equatable {
       'telefono': telefono,
       'ci': ci,
       'sexo': sexo,
+      'tipo_usuario': tipoUsuario,
       'creado_en': creadoEn?.toIso8601String(),
     };
   }
@@ -60,6 +64,7 @@ class Usuario extends Equatable {
         telefono,
         ci,
         sexo,
+        tipoUsuario,
         creadoEn,
       ];
 }

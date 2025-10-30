@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/voluntario_repository.dart';
 import 'bloc/profile_bloc.dart';
 import 'pages/create_profile_page.dart';
+import 'pages/create_funcionario_profile_page.dart';
 import 'pages/select_aptitudes_page.dart';
 
 class ProfileModule extends Module {
@@ -19,6 +20,10 @@ class ProfileModule extends Module {
             create: (_) => Modular.get<ProfileBloc>(),
             child: const CreateProfilePage(),
           ),
+        ),
+        ChildRoute(
+          '/create-funcionario',
+          child: (_, __) => const CreateFuncionarioProfilePage(),
         ),
         ChildRoute(
           '/aptitudes',

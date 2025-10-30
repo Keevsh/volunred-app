@@ -63,6 +63,9 @@ class _CreateProfilePageState extends State<CreateProfilePage>
     final authRepo = Modular.get<AuthRepository>();
     final usuario = await authRepo.getStoredUser();
 
+    print('👤 Usuario recuperado: ${usuario?.toJson()}');
+    print('👤 ID Usuario: ${usuario?.idUsuario}');
+
     if (usuario == null) {
       _showSnackBar('Error: Usuario no encontrado');
       return;
@@ -71,6 +74,9 @@ class _CreateProfilePageState extends State<CreateProfilePage>
     final disponibilidad = _selectedDisponibilidad.isEmpty
         ? _disponibilidadController.text.trim()
         : _selectedDisponibilidad.join(', ');
+
+    print('📝 Disponibilidad final: $disponibilidad');
+    print('📝 Bio: ${_bioController.text.trim()}');
 
     BlocProvider.of<ProfileBloc>(context).add(
       CreatePerfilRequested(

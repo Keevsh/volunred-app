@@ -233,6 +233,8 @@ class _RegisterPageState extends State<RegisterPage>
         return;
       }
 
+      print('🎯 Registrando usuario con tipo: ${_tipoUsuario?.value}');
+
       BlocProvider.of<AuthBloc>(context).add(
         AuthRegisterRequested(
           RegisterRequest(
@@ -243,6 +245,7 @@ class _RegisterPageState extends State<RegisterPage>
             telefono: int.tryParse(_telefonoController.text),
             ci: int.tryParse(_ciController.text),
             sexo: _sexo,
+            tipoUsuario: _tipoUsuario?.value, // Enviar tipo de usuario
           ),
         ),
       );
@@ -264,8 +267,19 @@ class _RegisterPageState extends State<RegisterPage>
               message: '¡Registro exitoso! Bienvenido',
               isError: false,
             );
+            
+            print('✅ Usuario autenticado: ${state.usuario.nombreCompleto}');
+            print('✅ Tipo de usuario: ${state.usuario.tipoUsuario}');
+            
+            // Redirigir según el tipo de usuario
             Future.delayed(const Duration(milliseconds: 500), () {
-              Modular.to.navigate('/profile/create');
+              if (state.usuario.tipoUsuario == 'funcionario') {
+                print('➡️ Redirigiendo a crear perfil de funcionario');
+                Modular.to.navigate('/profile/create-funcionario');
+              } else {
+                print('➡️ Redirigiendo a crear perfil de voluntario');
+                Modular.to.navigate('/profile/create');
+              }
             });
           } else if (state is AuthError) {
             AppWidgets.showStyledSnackBar(

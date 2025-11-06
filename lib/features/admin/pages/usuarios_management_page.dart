@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/usuario.dart';
 import '../../../core/models/rol.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_styles.dart';
 import '../../../core/theme/app_widgets.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
@@ -341,24 +338,15 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Gestión de Usuarios'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Modular.to.pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-            tooltip: 'Recargar',
-          ),
-        ],
+      backgroundColor: const Color(0xFFF5F5F7),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateUserDialog,
+        backgroundColor: const Color(0xFF007AFF),
+        elevation: 2,
+        child: const Icon(Icons.add_rounded),
       ),
-      body: BlocConsumer<AdminBloc, AdminState>(
+      body: SafeArea(
+        child: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {
           if (state is RolAsignado) {
             AppWidgets.showStyledSnackBar(
@@ -391,202 +379,355 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
           final filteredUsuarios = _getFilteredUsuarios();
 
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Barra de búsqueda y filtros
-              Container(
-                padding: const EdgeInsets.all(AppStyles.spacingMedium),
-                color: Colors.white,
-                child: Column(
+              // Header simple estilo Apple
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
                   children: [
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por email o nombre...',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppStyles.borderRadiusMedium,
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Color(0xFF1D1D1F),
+                            size: 20,
                           ),
                         ),
                       ),
-                      onChanged: (value) => setState(() {}),
                     ),
-                    const SizedBox(height: AppStyles.spacingSmall),
-                    Row(
-                      children: [
-                        const Text('Filtrar por rol:'),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: DropdownButton<int?>(
-                            value: _selectedRolFilter,
-                            isExpanded: true,
-                            hint: const Text('Todos los roles'),
-                            items: [
-                              const DropdownMenuItem(
-                                value: null,
-                                child: Text('Todos'),
-                              ),
-                              ..._roles.map((rol) {
-                                return DropdownMenuItem(
-                                  value: rol.idRol,
-                                  child: Text(rol.nombre),
-                                );
-                              }).toList(),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedRolFilter = value;
-                              });
-                            },
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'Usuarios',
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D1D1F),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: _loadData,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(
+                            Icons.refresh_rounded,
+                            color: Color(0xFF1D1D1F),
+                            size: 20,
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              // Lista de usuarios
-              Expanded(
-                child: filteredUsuarios.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 80,
-                              color: Colors.blue.withOpacity(0.3),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No se encontraron usuarios',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: AppColors.textSecondary,
+              
+              // Barra de búsqueda limpia
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE5E5EA),
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar usuarios...',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF8E8E93),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: Color(0xFF8E8E93),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.clear_rounded,
+                                color: Color(0xFF8E8E93),
                               ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () async => _loadData(),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(AppStyles.spacingMedium),
-                          itemCount: filteredUsuarios.length,
-                          itemBuilder: (context, index) {
-                            final usuario = filteredUsuarios[index];
-                            return _buildUsuarioCard(usuario);
-                          },
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (value) => setState(() {}),
+                  ),
+                ),
+              ),
+              
+              // Filtro por rol
+              if (_roles.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE5E5EA),
+                        width: 1,
+                      ),
+                    ),
+                    child: DropdownButton<int?>(
+                      value: _selectedRolFilter,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      hint: const Text(
+                        'Todos los roles',
+                        style: TextStyle(
+                          color: Color(0xFF1D1D1F),
+                          fontSize: 15,
                         ),
                       ),
-              ),
+                      icon: const Icon(
+                        Icons.arrow_drop_down_rounded,
+                        color: Color(0xFF8E8E93),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todos los roles'),
+                        ),
+                        ..._roles.map((rol) {
+                          return DropdownMenuItem(
+                            value: rol.idRol,
+                            child: Text(rol.nombre),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRolFilter = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              
+              const SizedBox(height: 16),
+
+              // Lista de usuarios
+              if (filteredUsuarios.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF007AFF).withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.people_rounded,
+                            size: 64,
+                            color: Color(0xFF007AFF),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'No hay usuarios',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1D1D1F),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Presiona + para crear el primero',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF86868B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    itemCount: filteredUsuarios.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final usuario = filteredUsuarios[index];
+                      return _buildUsuarioCard(usuario);
+                    },
+                  ),
+                ),
             ],
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateUserDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Crear Usuario'),
-        backgroundColor: AppColors.primary,
+        ),
       ),
     );
   }
 
   Widget _buildUsuarioCard(Usuario usuario) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppStyles.spacingMedium),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: Text(
-            usuario.nombres[0].toUpperCase(),
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text('${usuario.nombres} ${usuario.apellidos}'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(usuario.email),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _getRolColor(usuario.rol?.nombre ?? 'Sin rol'),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                usuario.rol?.nombre ?? 'Sin rol',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
+    final rolColor = _getRolColor(usuario.rol?.nombre ?? 'Sin rol');
+    
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => _showEditUserDialog(usuario),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Avatar circular
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF007AFF).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    usuario.nombres[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFF007AFF),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          itemBuilder: (context) => [
-            const PopupMenuItem<String>(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 20),
-                  SizedBox(width: 8),
-                  Text('Editar'),
+              const SizedBox(width: 16),
+              // Contenido
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${usuario.nombres} ${usuario.apellidos}',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1D1D1F),
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      usuario.email,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF86868B),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Badge de rol
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: rolColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  usuario.rol?.nombre ?? 'Sin rol',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: rolColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Menú
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_horiz_rounded,
+                  color: Color(0xFF8E8E93),
+                  size: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      _showEditUserDialog(usuario);
+                      break;
+                    case 'role':
+                      _showAssignRoleDialog(usuario);
+                      break;
+                    case 'delete':
+                      _confirmDelete(usuario);
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 20),
+                        SizedBox(width: 8),
+                        Text('Editar'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'role',
+                    child: Row(
+                      children: [
+                        Icon(Icons.admin_panel_settings, size: 20),
+                        SizedBox(width: 8),
+                        Text('Asignar Rol'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 20, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Eliminar', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const PopupMenuItem<String>(
-              value: 'role',
-              child: Row(
-                children: [
-                  Icon(Icons.admin_panel_settings, size: 20),
-                  SizedBox(width: 8),
-                  Text('Asignar Rol'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem<String>(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 20, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Eliminar', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                _showEditUserDialog(usuario);
-                break;
-              case 'role':
-                _showAssignRoleDialog(usuario);
-                break;
-              case 'delete':
-                _confirmDelete(usuario);
-                break;
-            }
-          },
+            ],
+          ),
         ),
       ),
     );
@@ -595,13 +736,13 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
   Color _getRolColor(String rolNombre) {
     switch (rolNombre.toLowerCase()) {
       case 'admin':
-        return Colors.red;
+        return const Color(0xFFFF2D55); // Rosa Apple
       case 'funcionario':
-        return Colors.blue;
+        return const Color(0xFF007AFF); // Azul Apple
       case 'voluntario':
-        return Colors.green;
+        return const Color(0xFF34C759); // Verde Apple
       default:
-        return Colors.grey;
+        return const Color(0xFF8E8E93); // Gris Apple
     }
   }
 }

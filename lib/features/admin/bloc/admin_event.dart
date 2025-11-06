@@ -35,6 +35,50 @@ class LoadUsuarioByIdRequested extends AdminEvent {
   List<Object?> get props => [id];
 }
 
+class CreateUsuarioRequested extends AdminEvent {
+  final String email;
+  final String nombres;
+  final String apellidos;
+  final int ci;
+  final int telefono;
+  final String? sexo;
+
+  const CreateUsuarioRequested({
+    required this.email,
+    required this.nombres,
+    required this.apellidos,
+    required this.ci,
+    required this.telefono,
+    this.sexo,
+  });
+
+  @override
+  List<Object?> get props => [email, nombres, apellidos, ci, telefono, sexo];
+}
+
+class UpdateUsuarioRequested extends AdminEvent {
+  final int id;
+  final String? email;
+  final String? nombres;
+  final String? apellidos;
+  final int? ci;
+  final int? telefono;
+  final String? sexo;
+
+  const UpdateUsuarioRequested({
+    required this.id,
+    this.email,
+    this.nombres,
+    this.apellidos,
+    this.ci,
+    this.telefono,
+    this.sexo,
+  });
+
+  @override
+  List<Object?> get props => [id, email, nombres, apellidos, ci, telefono, sexo];
+}
+
 class DeleteUsuarioRequested extends AdminEvent {
   final int id;
 
@@ -143,9 +187,50 @@ class CreateProgramaRequested extends AdminEvent {
   List<Object?> get props => [nombre, descripcion, idAplicacion];
 }
 
+class UpdateProgramaRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+  final int? idAplicacion;
+
+  const UpdateProgramaRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+    this.idAplicacion,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion, idAplicacion];
+}
+
+class DeleteProgramaRequested extends AdminEvent {
+  final int id;
+
+  const DeleteProgramaRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
 // ==================== MÓDULOS Y APLICACIONES ====================
 
 class LoadModulosRequested extends AdminEvent {}
+
+class UpdateModuloRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+
+  const UpdateModuloRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion];
+}
 
 class LoadAplicacionesRequested extends AdminEvent {}
 
@@ -160,6 +245,32 @@ class CreateAplicacionRequested extends AdminEvent {
 
   @override
   List<Object?> get props => [nombre, idModulo];
+}
+
+class UpdateAplicacionRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+  final int? idModulo;
+
+  const UpdateAplicacionRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+    this.idModulo,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion, idModulo];
+}
+
+class DeleteAplicacionRequested extends AdminEvent {
+  final int id;
+
+  const DeleteAplicacionRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
 }
 
 // ==================== APTITUDES ====================
@@ -209,6 +320,107 @@ class DeleteAptitudRequested extends AdminEvent {
   final int id;
 
   const DeleteAptitudRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== UPDATE ROL ====================
+
+class UpdateRolRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+  final String? estado;
+
+  const UpdateRolRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion, estado];
+}
+
+// ==================== CATEGORÍAS ORGANIZACIONES ====================
+
+class LoadCategoriasOrganizacionesRequested extends AdminEvent {}
+
+class CreateCategoriaOrganizacionRequested extends AdminEvent {
+  final String nombre;
+  final String? descripcion;
+
+  const CreateCategoriaOrganizacionRequested({
+    required this.nombre,
+    this.descripcion,
+  });
+
+  @override
+  List<Object?> get props => [nombre, descripcion];
+}
+
+class UpdateCategoriaOrganizacionRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+
+  const UpdateCategoriaOrganizacionRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion];
+}
+
+class DeleteCategoriaOrganizacionRequested extends AdminEvent {
+  final int id;
+
+  const DeleteCategoriaOrganizacionRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== CATEGORÍAS PROYECTOS ====================
+
+class LoadCategoriasProyectosRequested extends AdminEvent {}
+
+class CreateCategoriaProyectoRequested extends AdminEvent {
+  final String nombre;
+  final String? descripcion;
+
+  const CreateCategoriaProyectoRequested({
+    required this.nombre,
+    this.descripcion,
+  });
+
+  @override
+  List<Object?> get props => [nombre, descripcion];
+}
+
+class UpdateCategoriaProyectoRequested extends AdminEvent {
+  final int id;
+  final String? nombre;
+  final String? descripcion;
+
+  const UpdateCategoriaProyectoRequested({
+    required this.id,
+    this.nombre,
+    this.descripcion,
+  });
+
+  @override
+  List<Object?> get props => [id, nombre, descripcion];
+}
+
+class DeleteCategoriaProyectoRequested extends AdminEvent {
+  final int id;
+
+  const DeleteCategoriaProyectoRequested(this.id);
 
   @override
   List<Object?> get props => [id];

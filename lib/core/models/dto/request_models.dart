@@ -6,7 +6,8 @@ class RegisterRequest {
   final int? telefono;
   final int? ci;
   final String? sexo;
-  final String? tipoUsuario; // 'voluntario' o 'funcionario'
+  // Nota: tipoUsuario NO se envía al backend, solo se usa en el cliente
+  // para determinar el flujo después del registro
 
   RegisterRequest({
     required this.nombres,
@@ -16,7 +17,6 @@ class RegisterRequest {
     this.telefono,
     this.ci,
     this.sexo,
-    this.tipoUsuario,
   });
 
   Map<String, dynamic> toJson() {
@@ -28,7 +28,7 @@ class RegisterRequest {
       'telefono': telefono,
       'ci': ci,
       'sexo': sexo,
-      if (tipoUsuario != null) 'tipo_usuario': tipoUsuario,
+      // NO enviamos tipo_usuario al backend
     };
   }
 }
@@ -143,8 +143,8 @@ class AsignarRolRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'id_usuario': idUsuario,
-      'id_rol': idRol,
+      'usuario_id': idUsuario,
+      'rol_id': idRol,
     };
   }
 }
@@ -188,6 +188,27 @@ class CreateProgramaRequest {
   }
 }
 
+/// Actualizar programa
+class UpdateProgramaRequest {
+  final String? nombre;
+  final String? descripcion;
+  final int? idAplicacion;
+
+  UpdateProgramaRequest({
+    this.nombre,
+    this.descripcion,
+    this.idAplicacion,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (nombre != null) 'nombre': nombre,
+      if (descripcion != null) 'descripcion': descripcion,
+      if (idAplicacion != null) 'id_aplicacion': idAplicacion,
+    };
+  }
+}
+
 /// Crear aplicación
 class CreateAplicacionRequest {
   final String nombre;
@@ -206,25 +227,100 @@ class CreateAplicacionRequest {
   }
 }
 
-/// Actualizar usuario (admin)
-class UpdateUsuarioRequest {
+/// Actualizar aplicación
+class UpdateAplicacionRequest {
   final String? nombre;
-  final String? apellido;
-  final String? email;
-  final String? sexo;
+  final String? descripcion;
+  final int? idModulo;
 
-  UpdateUsuarioRequest({
+  UpdateAplicacionRequest({
     this.nombre,
-    this.apellido,
-    this.email,
-    this.sexo,
+    this.descripcion,
+    this.idModulo,
   });
 
   Map<String, dynamic> toJson() {
     return {
       if (nombre != null) 'nombre': nombre,
-      if (apellido != null) 'apellido': apellido,
+      if (descripcion != null) 'descripcion': descripcion,
+      if (idModulo != null) 'id_modulo': idModulo,
+    };
+  }
+}
+
+/// Actualizar módulo
+class UpdateModuloRequest {
+  final String? nombre;
+  final String? descripcion;
+
+  UpdateModuloRequest({
+    this.nombre,
+    this.descripcion,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (nombre != null) 'nombre': nombre,
+      if (descripcion != null) 'descripcion': descripcion,
+    };
+  }
+}
+
+/// Crear usuario (admin)
+class CreateUsuarioRequest {
+  final String email;
+  final String nombres;
+  final String apellidos;
+  final int ci;
+  final int telefono;
+  final String? sexo;
+
+  CreateUsuarioRequest({
+    required this.email,
+    required this.nombres,
+    required this.apellidos,
+    required this.ci,
+    required this.telefono,
+    this.sexo,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'nombres': nombres,
+      'apellidos': apellidos,
+      'ci': ci,
+      'telefono': telefono,
+      if (sexo != null) 'sexo': sexo,
+    };
+  }
+}
+
+/// Actualizar usuario (admin)
+class UpdateUsuarioRequest {
+  final String? email;
+  final String? nombres;
+  final String? apellidos;
+  final int? ci;
+  final int? telefono;
+  final String? sexo;
+
+  UpdateUsuarioRequest({
+    this.email,
+    this.nombres,
+    this.apellidos,
+    this.ci,
+    this.telefono,
+    this.sexo,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
       if (email != null) 'email': email,
+      if (nombres != null) 'nombres': nombres,
+      if (apellidos != null) 'apellidos': apellidos,
+      if (ci != null) 'ci': ci,
+      if (telefono != null) 'telefono': telefono,
       if (sexo != null) 'sexo': sexo,
     };
   }

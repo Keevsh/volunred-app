@@ -11,6 +11,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     // Usuarios
     on<LoadUsuariosRequested>(_onLoadUsuariosRequested);
     on<LoadUsuarioByIdRequested>(_onLoadUsuarioByIdRequested);
+    on<CreateUsuarioRequested>(_onCreateUsuarioRequested);
+    on<UpdateUsuarioRequested>(_onUpdateUsuarioRequested);
     on<DeleteUsuarioRequested>(_onDeleteUsuarioRequested);
 
     // Roles
@@ -29,11 +31,16 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     // Programas
     on<LoadProgramasRequested>(_onLoadProgramasRequested);
     on<CreateProgramaRequested>(_onCreateProgramaRequested);
+    on<UpdateProgramaRequested>(_onUpdateProgramaRequested);
+    on<DeleteProgramaRequested>(_onDeleteProgramaRequested);
 
     // Módulos y Aplicaciones
     on<LoadModulosRequested>(_onLoadModulosRequested);
+    on<UpdateModuloRequested>(_onUpdateModuloRequested);
     on<LoadAplicacionesRequested>(_onLoadAplicacionesRequested);
     on<CreateAplicacionRequested>(_onCreateAplicacionRequested);
+    on<UpdateAplicacionRequested>(_onUpdateAplicacionRequested);
+    on<DeleteAplicacionRequested>(_onDeleteAplicacionRequested);
 
     // Aptitudes
     on<LoadAptitudesRequested>(_onLoadAptitudesRequested);
@@ -41,6 +48,21 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<CreateAptitudRequested>(_onCreateAptitudRequested);
     on<UpdateAptitudRequested>(_onUpdateAptitudRequested);
     on<DeleteAptitudRequested>(_onDeleteAptitudRequested);
+
+    // Update Rol
+    on<UpdateRolRequested>(_onUpdateRolRequested);
+
+    // Categorías Organizaciones
+    on<LoadCategoriasOrganizacionesRequested>(_onLoadCategoriasOrganizacionesRequested);
+    on<CreateCategoriaOrganizacionRequested>(_onCreateCategoriaOrganizacionRequested);
+    on<UpdateCategoriaOrganizacionRequested>(_onUpdateCategoriaOrganizacionRequested);
+    on<DeleteCategoriaOrganizacionRequested>(_onDeleteCategoriaOrganizacionRequested);
+
+    // Categorías Proyectos
+    on<LoadCategoriasProyectosRequested>(_onLoadCategoriasProyectosRequested);
+    on<CreateCategoriaProyectoRequested>(_onCreateCategoriaProyectoRequested);
+    on<UpdateCategoriaProyectoRequested>(_onUpdateCategoriaProyectoRequested);
+    on<DeleteCategoriaProyectoRequested>(_onDeleteCategoriaProyectoRequested);
   }
 
   // ==================== USUARIOS ====================
@@ -75,6 +97,49 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final usuario = await adminRepository.getUsuarioById(event.id);
       emit(UsuarioLoaded(usuario));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateUsuarioRequested(
+    CreateUsuarioRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final usuario = await adminRepository.createUsuario(CreateUsuarioRequest(
+        email: event.email,
+        nombres: event.nombres,
+        apellidos: event.apellidos,
+        ci: event.ci,
+        telefono: event.telefono,
+        sexo: event.sexo,
+      ));
+      emit(UsuarioCreated(usuario));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateUsuarioRequested(
+    UpdateUsuarioRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final usuario = await adminRepository.updateUsuario(
+        event.id,
+        UpdateUsuarioRequest(
+          email: event.email,
+          nombres: event.nombres,
+          apellidos: event.apellidos,
+          ci: event.ci,
+          telefono: event.telefono,
+          sexo: event.sexo,
+        ),
+      );
+      emit(UsuarioUpdated(usuario));
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -261,6 +326,39 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     }
   }
 
+  Future<void> _onUpdateProgramaRequested(
+    UpdateProgramaRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final programa = await adminRepository.updatePrograma(
+        event.id,
+        UpdateProgramaRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+          idAplicacion: event.idAplicacion,
+        ),
+      );
+      emit(ProgramaUpdated(programa));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteProgramaRequested(
+    DeleteProgramaRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deletePrograma(event.id);
+      emit(const ProgramaDeleted('Programa eliminado correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
   // ==================== MÓDULOS Y APLICACIONES ====================
 
   Future<void> _onLoadModulosRequested(
@@ -271,6 +369,25 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final modulos = await adminRepository.getModulos();
       emit(ModulosLoaded(modulos));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateModuloRequested(
+    UpdateModuloRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final modulo = await adminRepository.updateModulo(
+        event.id,
+        UpdateModuloRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+        ),
+      );
+      emit(ModuloUpdated(modulo));
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -302,6 +419,39 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         ),
       );
       emit(AplicacionCreated(aplicacion));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateAplicacionRequested(
+    UpdateAplicacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final aplicacion = await adminRepository.updateAplicacion(
+        event.id,
+        UpdateAplicacionRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+          idModulo: event.idModulo,
+        ),
+      );
+      emit(AplicacionUpdated(aplicacion));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteAplicacionRequested(
+    DeleteAplicacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteAplicacion(event.id);
+      emit(const AplicacionDeleted('Aplicación eliminada correctamente'));
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -381,6 +531,154 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       await adminRepository.deleteAptitud(event.id);
       emit(const AptitudDeleted('Aptitud eliminada correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== UPDATE ROL ====================
+
+  Future<void> _onUpdateRolRequested(
+    UpdateRolRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final rol = await adminRepository.updateRol(
+        event.id,
+        UpdateRolRequest(
+          nombre: event.nombre,
+          descripcion: event.descripcion,
+          estado: event.estado,
+        ),
+      );
+      emit(RolUpdated(rol));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== CATEGORÍAS ORGANIZACIONES ====================
+
+  Future<void> _onLoadCategoriasOrganizacionesRequested(
+    LoadCategoriasOrganizacionesRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categorias = await adminRepository.getCategoriasOrganizaciones();
+      emit(CategoriasOrganizacionesLoaded(categorias));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateCategoriaOrganizacionRequested(
+    CreateCategoriaOrganizacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categoria = await adminRepository.createCategoriaOrganizacion({
+        'nombre': event.nombre,
+        if (event.descripcion != null) 'descripcion': event.descripcion,
+      });
+      emit(CategoriaOrganizacionCreated(categoria));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateCategoriaOrganizacionRequested(
+    UpdateCategoriaOrganizacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categoria = await adminRepository.updateCategoriaOrganizacion(
+        event.id,
+        {
+          if (event.nombre != null) 'nombre': event.nombre,
+          if (event.descripcion != null) 'descripcion': event.descripcion,
+        },
+      );
+      emit(CategoriaOrganizacionUpdated(categoria));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteCategoriaOrganizacionRequested(
+    DeleteCategoriaOrganizacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteCategoriaOrganizacion(event.id);
+      emit(const CategoriaOrganizacionDeleted('Categoría eliminada correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== CATEGORÍAS PROYECTOS ====================
+
+  Future<void> _onLoadCategoriasProyectosRequested(
+    LoadCategoriasProyectosRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categorias = await adminRepository.getCategoriasProyectos();
+      emit(CategoriasProyectosLoaded(categorias));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateCategoriaProyectoRequested(
+    CreateCategoriaProyectoRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categoria = await adminRepository.createCategoriaProyecto({
+        'nombre': event.nombre,
+        if (event.descripcion != null) 'descripcion': event.descripcion,
+      });
+      emit(CategoriaProyectoCreated(categoria));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateCategoriaProyectoRequested(
+    UpdateCategoriaProyectoRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final categoria = await adminRepository.updateCategoriaProyecto(
+        event.id,
+        {
+          if (event.nombre != null) 'nombre': event.nombre,
+          if (event.descripcion != null) 'descripcion': event.descripcion,
+        },
+      );
+      emit(CategoriaProyectoUpdated(categoria));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteCategoriaProyectoRequested(
+    DeleteCategoriaProyectoRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteCategoriaProyecto(event.id);
+      emit(const CategoriaProyectoDeleted('Categoría eliminada correctamente'));
     } catch (e) {
       emit(AdminError(e.toString()));
     }

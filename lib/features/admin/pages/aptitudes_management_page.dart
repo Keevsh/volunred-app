@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/aptitud.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_styles.dart';
 import '../../../core/theme/app_widgets.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
+import 'create_aptitud_page.dart';
+import 'edit_aptitud_page.dart';
 
 class AptitudesManagementPage extends StatefulWidget {
   const AptitudesManagementPage({super.key});
@@ -27,46 +27,51 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
     BlocProvider.of<AdminBloc>(context).add(LoadAptitudesRequested());
   }
 
+  Future<void> _navigateToCreatePage() async {
+    final adminBloc = context.read<AdminBloc>();
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: adminBloc,
+          child: const CreateAptitudPage(),
+        ),
+      ),
+    );
+    
+    if (result == true) {
+      _loadAptitudes();
+    }
+  }
+
+  Future<void> _navigateToEditPage(Aptitud aptitud) async {
+    final adminBloc = context.read<AdminBloc>();
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: adminBloc,
+          child: EditAptitudPage(aptitud: aptitud),
+        ),
+      ),
+    );
+    
+    if (result == true) {
+      _loadAptitudes();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Gestión de Aptitudes'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAptitudes,
-            tooltip: 'Recargar',
-          ),
-        ],
+      backgroundColor: const Color(0xFFF5F5F7),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToCreatePage,
+        backgroundColor: const Color(0xFF007AFF),
+        child: const Icon(Icons.add_rounded),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateAptitudDialog(),
-        backgroundColor: Colors.teal,
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva Aptitud'),
-      ),
-      body: BlocConsumer<AdminBloc, AdminState>(
+      body: SafeArea(
+        child: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {
-          if (state is AptitudCreated) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: 'Aptitud "${state.aptitud.nombre}" creada exitosamente',
-              isError: false,
-            );
-            _loadAptitudes();
-          } else if (state is AptitudUpdated) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: 'Aptitud "${state.aptitud.nombre}" actualizada',
-              isError: false,
-            );
-            _loadAptitudes();
-          } else if (state is AptitudDeleted) {
+          if (state is AptitudDeleted) {
             AppWidgets.showStyledSnackBar(
               context: context,
               message: state.message,
@@ -89,49 +94,113 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
           }
 
           if (state is AptitudesLoaded) {
-            if (state.aptitudes.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.emoji_events_outlined,
-                      size: 64,
-                      color: AppColors.textSecondary.withOpacity(0.5),
-                    ),
-                    const SizedBox(height: AppStyles.spacingMedium),
-                    Text(
-                      'No hay aptitudes registradas',
-                      style: TextStyle(
-                        fontSize: AppStyles.fontSizeBody,
-                        color: AppColors.textSecondary,
+            return Column(
+              children: [
+                // Header simple
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppStyles.spacingMedium),
-                    ElevatedButton.icon(
-                      onPressed: () => _showCreateAptitudDialog(),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Crear Primera Aptitud'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        foregroundColor: Colors.white,
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Aptitudes',
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1D1D1F),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          onTap: _loadAptitudes,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () async => _loadAptitudes(),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppStyles.spacingMedium),
-                itemCount: state.aptitudes.length,
-                itemBuilder: (context, index) {
-                  final aptitud = state.aptitudes[index];
-                  return _buildAptitudCard(aptitud);
-                },
-              ),
+                
+                if (state.aptitudes.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.emoji_events_rounded,
+                              size: 64,
+                              color: Color(0xFF8E8E93),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'No hay aptitudes',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1D1D1F),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Presiona + para crear la primera',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Color(0xFF86868B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      itemCount: state.aptitudes.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final aptitud = state.aptitudes[index];
+                        return _buildAptitudCard(aptitud);
+                      },
+                    ),
+                  ),
+              ],
             );
           }
 
@@ -139,6 +208,7 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
             child: Text('Cargando aptitudes...'),
           );
         },
+        ),
       ),
     );
   }
@@ -146,317 +216,227 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
   Widget _buildAptitudCard(Aptitud aptitud) {
     final isActivo = aptitud.estado == 'activo';
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppStyles.spacingMedium),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
-        side: BorderSide(
-          color: isActivo ? Colors.teal.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppStyles.spacingMedium,
-          vertical: AppStyles.spacingSmall,
-        ),
-        leading: Container(
-          padding: const EdgeInsets.all(AppStyles.spacingSmall),
-          decoration: BoxDecoration(
-            color: isActivo ? Colors.teal.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppStyles.borderRadiusSmall),
-          ),
-          child: Icon(
-            Icons.emoji_events,
-            color: isActivo ? Colors.teal : Colors.grey,
-            size: 24,
-          ),
-        ),
-        title: Text(
-          aptitud.nombre,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: AppStyles.fontSizeBody,
-            color: isActivo ? AppColors.textPrimary : AppColors.textSecondary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (aptitud.descripcion != null &&
-                aptitud.descripcion!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                aptitud.descripcion!,
-                style: TextStyle(
-                  fontSize: AppStyles.fontSizeSmall,
-                  color: AppColors.textSecondary,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => _navigateToEditPage(aptitud),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icono circular
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F7),
+                  shape: BoxShape.circle,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 2,
-              ),
-              decoration: BoxDecoration(
-                color: isActivo
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                isActivo ? 'Activo' : 'Inactivo',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: isActivo ? Colors.green.shade700 : Colors.grey,
+                child: Icon(
+                  Icons.emoji_events_rounded,
+                  color: isActivo ? const Color(0xFF1D1D1F) : const Color(0xFF8E8E93),
+                  size: 24,
                 ),
               ),
-            ),
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                _showEditAptitudDialog(aptitud);
-                break;
-              case 'toggle':
-                _toggleAptitudEstado(aptitud);
-                break;
-              case 'delete':
-                _confirmDelete(aptitud);
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 20),
-                  SizedBox(width: 8),
-                  Text('Editar'),
-                ],
+              const SizedBox(width: 16),
+              // Contenido
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      aptitud.nombre,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1D1D1F),
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    if (aptitud.descripcion != null && aptitud.descripcion!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        aptitud.descripcion!,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF86868B),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-            PopupMenuItem(
-              value: 'toggle',
-              child: Row(
-                children: [
-                  Icon(
-                    isActivo ? Icons.visibility_off : Icons.visibility,
-                    size: 20,
+              const SizedBox(width: 12),
+              // Badge de estado
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isActivo ? 'Activo' : 'Inactivo',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isActivo ? const Color(0xFF1D1D1F) : const Color(0xFF8E8E93),
                   ),
-                  const SizedBox(width: 8),
-                  Text(isActivo ? 'Desactivar' : 'Activar'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 20, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Eliminar', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCreateAptitudDialog() {
-    final nombreController = TextEditingController();
-    final descripcionController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Nueva Aptitud'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre *',
-                  hintText: 'Ej: Trabajo en equipo',
-                  border: OutlineInputBorder(),
                 ),
-                textCapitalization: TextCapitalization.words,
               ),
-              const SizedBox(height: AppStyles.spacingMedium),
-              TextField(
-                controller: descripcionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción (opcional)',
-                  hintText: 'Describe la aptitud',
-                  border: OutlineInputBorder(),
+              const SizedBox(width: 8),
+              // Menú
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_horiz_rounded,
+                  color: Color(0xFF8E8E93),
+                  size: 20,
                 ),
-                maxLines: 3,
-                textCapitalization: TextCapitalization.sentences,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      _navigateToEditPage(aptitud);
+                      break;
+                    case 'toggle':
+                      _toggleAptitudEstado(aptitud);
+                      break;
+                    case 'delete':
+                      _confirmDelete(aptitud);
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 20),
+                        SizedBox(width: 8),
+                        Text('Editar'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'toggle',
+                    child: Row(
+                      children: [
+                        Icon(
+                          isActivo ? Icons.visibility_off : Icons.visibility,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(isActivo ? 'Desactivar' : 'Activar'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 20, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Eliminar', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final nombre = nombreController.text.trim();
-              if (nombre.isEmpty) {
-                AppWidgets.showStyledSnackBar(
-                  context: context,
-                  message: 'El nombre es obligatorio',
-                  isError: true,
-                );
-                return;
-              }
-
-              BlocProvider.of<AdminBloc>(context).add(
-                    CreateAptitudRequested(
-                      nombre: nombre,
-                      descripcion: descripcionController.text.trim().isEmpty
-                          ? null
-                          : descripcionController.text.trim(),
-                    ),
-                  );
-
-              Navigator.of(dialogContext).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Crear'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditAptitudDialog(Aptitud aptitud) {
-    final nombreController = TextEditingController(text: aptitud.nombre);
-    final descripcionController =
-        TextEditingController(text: aptitud.descripcion ?? '');
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Editar Aptitud'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre *',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.words,
-              ),
-              const SizedBox(height: AppStyles.spacingMedium),
-              TextField(
-                controller: descripcionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción (opcional)',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                textCapitalization: TextCapitalization.sentences,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final nombre = nombreController.text.trim();
-              if (nombre.isEmpty) {
-                AppWidgets.showStyledSnackBar(
-                  context: context,
-                  message: 'El nombre es obligatorio',
-                  isError: true,
-                );
-                return;
-              }
-
-              BlocProvider.of<AdminBloc>(context).add(
-                    UpdateAptitudRequested(
-                      id: aptitud.idAptitud,
-                      nombre: nombre,
-                      descripcion: descripcionController.text.trim().isEmpty
-                          ? null
-                          : descripcionController.text.trim(),
-                    ),
-                  );
-
-              Navigator.of(dialogContext).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Guardar'),
-          ),
-        ],
       ),
     );
   }
 
   void _toggleAptitudEstado(Aptitud aptitud) {
     final nuevoEstado = aptitud.estado == 'activo' ? 'inactivo' : 'activo';
+    final accion = nuevoEstado == 'activo' ? 'activar' : 'desactivar';
 
-    BlocProvider.of<AdminBloc>(context).add(
-          UpdateAptitudRequested(
-            id: aptitud.idAptitud,
-            estado: nuevoEstado,
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${accion.substring(0, 1).toUpperCase()}${accion.substring(1)} Aptitud'),
+        content: RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 16, color: Color(0xFF1D1D1F)),
+            children: [
+              TextSpan(text: '¿Está seguro que desea $accion la aptitud '),
+              TextSpan(
+                text: '"${aptitud.nombre}"',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const TextSpan(text: '?'),
+            ],
           ),
-        );
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF007AFF),
+            ),
+            onPressed: () {
+              BlocProvider.of<AdminBloc>(context).add(
+                    UpdateAptitudRequested(
+                      id: aptitud.idAptitud,
+                      estado: nuevoEstado,
+                    ),
+                  );
+              Navigator.pop(context);
+            },
+            child: Text(accion.substring(0, 1).toUpperCase() + accion.substring(1)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _confirmDelete(Aptitud aptitud) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Confirmar eliminación'),
-        content: Text(
-          '¿Estás seguro de eliminar la aptitud "${aptitud.nombre}"?\n\n'
-          'Esta acción no se puede deshacer y afectará a todos los voluntarios que tengan esta aptitud asignada.',
+        title: const Text('Eliminar Aptitud'),
+        content: RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 16, color: Color(0xFF1D1D1F)),
+            children: [
+              const TextSpan(text: '¿Está seguro que desea eliminar la aptitud '),
+              TextSpan(
+                text: '"${aptitud.nombre}"',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const TextSpan(text: '?\n\n'),
+              const TextSpan(
+                text: 'Esta acción no se puede deshacer y afectará a todos los voluntarios que tengan esta aptitud asignada.',
+                style: TextStyle(color: Color(0xFF86868B), fontSize: 14),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancelar'),
           ),
-          ElevatedButton(
+          FilledButton(
             onPressed: () {
               BlocProvider.of<AdminBloc>(context).add(
                     DeleteAptitudRequested(aptitud.idAptitud),
                   );
               Navigator.of(dialogContext).pop();
             },
-            style: ElevatedButton.styleFrom(
+            style: FilledButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),

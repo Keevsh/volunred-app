@@ -30,15 +30,24 @@ class AdminModule extends Module {
         ),
         ChildRoute(
           '/roles',
-          child: (_, __) => const RolesManagementPage(),
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const RolesManagementPage(),
+          ),
         ),
         ChildRoute(
           '/permisos',
-          child: (_, __) => const PermisosManagementPage(),
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const PermisosManagementPage(),
+          ),
         ),
         ChildRoute(
           '/programas',
-          child: (_, __) => const ProgramasManagementPage(),
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const ProgramasManagementPage(),
+          ),
         ),
         ChildRoute(
           '/aptitudes',

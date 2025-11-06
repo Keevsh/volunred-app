@@ -55,6 +55,24 @@ class UsuarioLoaded extends AdminState {
   List<Object?> get props => [usuario];
 }
 
+class UsuarioCreated extends AdminState {
+  final Usuario usuario;
+
+  const UsuarioCreated(this.usuario);
+
+  @override
+  List<Object?> get props => [usuario];
+}
+
+class UsuarioUpdated extends AdminState {
+  final Usuario usuario;
+
+  const UsuarioUpdated(this.usuario);
+
+  @override
+  List<Object?> get props => [usuario];
+}
+
 class UsuarioDeleted extends AdminState {
   final String message;
 
@@ -176,6 +194,24 @@ class ProgramaCreated extends AdminState {
   List<Object?> get props => [programa];
 }
 
+class ProgramaUpdated extends AdminState {
+  final Programa programa;
+
+  const ProgramaUpdated(this.programa);
+
+  @override
+  List<Object?> get props => [programa];
+}
+
+class ProgramaDeleted extends AdminState {
+  final String message;
+
+  const ProgramaDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 // ==================== MÓDULOS Y APLICACIONES ====================
 
 class ModulosLoaded extends AdminState {
@@ -185,6 +221,15 @@ class ModulosLoaded extends AdminState {
 
   @override
   List<Object?> get props => [modulos];
+}
+
+class ModuloUpdated extends AdminState {
+  final Modulo modulo;
+
+  const ModuloUpdated(this.modulo);
+
+  @override
+  List<Object?> get props => [modulo];
 }
 
 class AplicacionesLoaded extends AdminState {
@@ -203,6 +248,24 @@ class AplicacionCreated extends AdminState {
 
   @override
   List<Object?> get props => [aplicacion];
+}
+
+class AplicacionUpdated extends AdminState {
+  final Aplicacion aplicacion;
+
+  const AplicacionUpdated(this.aplicacion);
+
+  @override
+  List<Object?> get props => [aplicacion];
+}
+
+class AplicacionDeleted extends AdminState {
+  final String message;
+
+  const AplicacionDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 // ==================== APTITUDES ====================
@@ -247,6 +310,93 @@ class AptitudDeleted extends AdminState {
   final String message;
 
   const AptitudDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== UPDATE ROL ====================
+
+class RolUpdated extends AdminState {
+  final Rol rol;
+
+  const RolUpdated(this.rol);
+
+  @override
+  List<Object?> get props => [rol];
+}
+
+// ==================== CATEGORÍAS ORGANIZACIONES ====================
+
+class CategoriasOrganizacionesLoaded extends AdminState {
+  final List<dynamic> categorias;
+
+  const CategoriasOrganizacionesLoaded(this.categorias);
+
+  @override
+  List<Object?> get props => [categorias];
+}
+
+class CategoriaOrganizacionCreated extends AdminState {
+  final Map<String, dynamic> categoria;
+
+  const CategoriaOrganizacionCreated(this.categoria);
+
+  @override
+  List<Object?> get props => [categoria];
+}
+
+class CategoriaOrganizacionUpdated extends AdminState {
+  final Map<String, dynamic> categoria;
+
+  const CategoriaOrganizacionUpdated(this.categoria);
+
+  @override
+  List<Object?> get props => [categoria];
+}
+
+class CategoriaOrganizacionDeleted extends AdminState {
+  final String message;
+
+  const CategoriaOrganizacionDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== CATEGORÍAS PROYECTOS ====================
+
+class CategoriasProyectosLoaded extends AdminState {
+  final List<dynamic> categorias;
+
+  const CategoriasProyectosLoaded(this.categorias);
+
+  @override
+  List<Object?> get props => [categorias];
+}
+
+class CategoriaProyectoCreated extends AdminState {
+  final Map<String, dynamic> categoria;
+
+  const CategoriaProyectoCreated(this.categoria);
+
+  @override
+  List<Object?> get props => [categoria];
+}
+
+class CategoriaProyectoUpdated extends AdminState {
+  final Map<String, dynamic> categoria;
+
+  const CategoriaProyectoUpdated(this.categoria);
+
+  @override
+  List<Object?> get props => [categoria];
+}
+
+class CategoriaProyectoDeleted extends AdminState {
+  final String message;
+
+  const CategoriaProyectoDeleted(this.message);
 
   @override
   List<Object?> get props => [message];

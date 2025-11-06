@@ -7,6 +7,8 @@ class Rol extends Equatable {
   final String estado;
   final DateTime? creadoEn;
   final List<Map<String, dynamic>>? permisos;
+  final int? cantidadUsuarios;
+  final int? cantidadPermisos;
 
   const Rol({
     required this.idRol,
@@ -15,6 +17,8 @@ class Rol extends Equatable {
     this.estado = 'activo',
     this.creadoEn,
     this.permisos,
+    this.cantidadUsuarios,
+    this.cantidadPermisos,
   });
 
   factory Rol.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,12 @@ class Rol extends Equatable {
           ? (json['permisos'] as List)
               .map((p) => p as Map<String, dynamic>)
               .toList()
+          : null,
+      cantidadUsuarios: json['_count'] != null 
+          ? json['_count']['usuarios'] as int?
+          : null,
+      cantidadPermisos: json['_count'] != null 
+          ? json['_count']['permisos'] as int?
           : null,
     );
   }
@@ -53,5 +63,7 @@ class Rol extends Equatable {
         estado,
         creadoEn,
         permisos,
+        cantidadUsuarios,
+        cantidadPermisos,
       ];
 }

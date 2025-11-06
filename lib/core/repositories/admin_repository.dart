@@ -29,21 +29,46 @@ class AdminRepository {
       if (limit != null) queryParams['limit'] = limit;
       if (email != null) queryParams['email'] = email;
 
+      final url = '${ApiConfig.baseUrl}${ApiConfig.perfilesUsuarios}';
+      print('🔵 URL COMPLETA USUARIOS: $url');
+      print('🔵 Intentando obtener usuarios desde: ${ApiConfig.perfilesUsuarios}');
       final response = await _dioClient.dio.get(
         ApiConfig.perfilesUsuarios,
         queryParameters: queryParams,
       );
+      
+      print('🔵 Respuesta usuarios: ${response.statusCode}');
+      print('🔵 Tipo de datos: ${response.data.runtimeType}');
+      print('🔵 Datos usuarios: ${response.data}');
 
+      // El backend devuelve directamente un array []
+      if (response.data is List) {
+        final usuariosList = (response.data as List)
+            .map((u) => Usuario.fromJson(u as Map<String, dynamic>))
+            .toList();
+        
+        return {
+          'usuarios': usuariosList,
+          'total': usuariosList.length,
+          'page': page ?? 1,
+          'limit': limit ?? usuariosList.length,
+        };
+      }
+      
+      // Si por alguna razón viene como objeto con data
       final data = response.data as Map<String, dynamic>;
       return {
         'usuarios': (data['data'] as List)
-            .map((u) => Usuario.fromJson(u))
+            .map((u) => Usuario.fromJson(u as Map<String, dynamic>))
             .toList(),
         'total': data['total'] as int,
         'page': data['page'] as int,
         'limit': data['limit'] as int,
       };
     } on DioException catch (e) {
+      print('🔴 Error al obtener usuarios: ${e.response?.statusCode}');
+      print('🔴 URL que falló usuarios: ${e.requestOptions.uri}');
+      print('🔴 Mensaje: ${e.response?.data}');
       throw _handleError(e);
     }
   }
@@ -60,6 +85,27 @@ class AdminRepository {
     }
   }
 
+  /// Crear usuario
+  Future<Usuario> createUsuario(CreateUsuarioRequest request) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.perfilesUsuarios,
+        data: request.toJson(),
+      );
+      
+      // Manejar diferentes formatos de respuesta
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final usuarioData = data.containsKey('data') ? data['data'] : data;
+        return Usuario.fromJson(usuarioData as Map<String, dynamic>);
+      }
+      
+      throw Exception('Formato de respuesta inválido');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Actualizar usuario
   Future<Usuario> updateUsuario(int id, UpdateUsuarioRequest request) async {
     try {
@@ -67,6 +113,14 @@ class AdminRepository {
         '${ApiConfig.perfilesUsuarios}/$id',
         data: request.toJson(),
       );
+      
+      // Manejar diferentes formatos de respuesta
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final usuarioData = data.containsKey('data') ? data['data'] : data;
+        return Usuario.fromJson(usuarioData as Map<String, dynamic>);
+      }
+      
       return Usuario.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -87,9 +141,17 @@ class AdminRepository {
   /// Listar todos los roles
   Future<List<Rol>> getRoles() async {
     try {
+      final url = '${ApiConfig.baseUrl}${ApiConfig.adminRoles}';
+      print('🔵 URL COMPLETA: $url');
+      print('🔵 Intentando obtener roles desde: ${ApiConfig.adminRoles}');
       final response = await _dioClient.dio.get(ApiConfig.adminRoles);
+      print('🔵 Respuesta recibida: ${response.statusCode}');
+      print('🔵 Datos: ${response.data}');
       return (response.data as List).map((r) => Rol.fromJson(r)).toList();
     } on DioException catch (e) {
+      print('🔴 Error al obtener roles: ${e.response?.statusCode}');
+      print('🔴 URL que falló: ${e.requestOptions.uri}');
+      print('🔴 Mensaje: ${e.response?.data}');
       throw _handleError(e);
     }
   }
@@ -146,7 +208,8 @@ class AdminRepository {
         ApiConfig.adminAsignarRol,
         data: request.toJson(),
       );
-      return Usuario.fromJson(response.data['usuario']);
+      // La respuesta viene directamente como el objeto usuario, no envuelto
+      return Usuario.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -231,6 +294,35 @@ class AdminRepository {
     }
   }
 
+  /// Actualizar programa
+  Future<Programa> updatePrograma(int id, UpdateProgramaRequest request) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.adminProgramas}/$id',
+        data: request.toJson(),
+      );
+      
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final programaData = data.containsKey('data') ? data['data'] : data;
+        return Programa.fromJson(programaData as Map<String, dynamic>);
+      }
+      
+      return Programa.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar programa
+  Future<void> deletePrograma(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.adminProgramas}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== MÓDULOS ====================
 
   /// Listar módulos
@@ -238,6 +330,26 @@ class AdminRepository {
     try {
       final response = await _dioClient.dio.get(ApiConfig.adminModulos);
       return (response.data as List).map((m) => Modulo.fromJson(m)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar módulo
+  Future<Modulo> updateModulo(int id, UpdateModuloRequest request) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.adminModulos}/$id',
+        data: request.toJson(),
+      );
+      
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final moduloData = data.containsKey('data') ? data['data'] : data;
+        return Modulo.fromJson(moduloData as Map<String, dynamic>);
+      }
+      
+      return Modulo.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -265,6 +377,35 @@ class AdminRepository {
         data: request.toJson(),
       );
       return Aplicacion.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar aplicación
+  Future<Aplicacion> updateAplicacion(int id, UpdateAplicacionRequest request) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.adminAplicaciones}/$id',
+        data: request.toJson(),
+      );
+      
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final aplicacionData = data.containsKey('data') ? data['data'] : data;
+        return Aplicacion.fromJson(aplicacionData as Map<String, dynamic>);
+      }
+      
+      return Aplicacion.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar aplicación
+  Future<void> deleteAplicacion(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.adminAplicaciones}/$id');
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -366,6 +507,100 @@ class AdminRepository {
   Future<void> deleteAptitud(int id) async {
     try {
       await _dioClient.dio.delete('${ApiConfig.aptitudes}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CATEGORÍAS DE ORGANIZACIONES ====================
+
+  /// Listar categorías de organizaciones
+  Future<List<dynamic>> getCategoriasOrganizaciones() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.categoriasOrganizaciones);
+      return response.data as List;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear categoría de organización
+  Future<Map<String, dynamic>> createCategoriaOrganizacion(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.categoriasOrganizaciones,
+        data: data,
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar categoría de organización
+  Future<Map<String, dynamic>> updateCategoriaOrganizacion(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.categoriasOrganizaciones}/$id',
+        data: data,
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar categoría de organización
+  Future<void> deleteCategoriaOrganizacion(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.categoriasOrganizaciones}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CATEGORÍAS DE PROYECTOS ====================
+
+  /// Listar categorías de proyectos
+  Future<List<dynamic>> getCategoriasProyectos() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.categoriasProyectos);
+      return response.data as List;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear categoría de proyecto
+  Future<Map<String, dynamic>> createCategoriaProyecto(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.categoriasProyectos,
+        data: data,
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar categoría de proyecto
+  Future<Map<String, dynamic>> updateCategoriaProyecto(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.categoriasProyectos}/$id',
+        data: data,
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar categoría de proyecto
+  Future<void> deleteCategoriaProyecto(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.categoriasProyectos}/$id');
     } on DioException catch (e) {
       throw _handleError(e);
     }

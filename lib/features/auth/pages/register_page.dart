@@ -247,7 +247,7 @@ class _RegisterPageState extends State<RegisterPage>
             telefono: int.tryParse(_telefonoController.text),
             ci: int.tryParse(_ciController.text),
             sexo: _sexo,
-            tipoUsuario: _tipoUsuario?.value, // Enviar tipo de usuario
+            // NO enviamos tipoUsuario al backend (ya no está en RegisterRequest)
           ),
         ),
       );
@@ -301,8 +301,8 @@ class _RegisterPageState extends State<RegisterPage>
                 // Redirigir según el rol asignado
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (idRol == 2) {
-                    print('➡️ Redirigiendo a crear perfil de funcionario');
-                    Modular.to.navigate('/profile/create-funcionario');
+                    print('➡️ Redirigiendo a crear organización');
+                    Modular.to.navigate('/profile/create-organizacion');
                   } else {
                     print('➡️ Redirigiendo a crear perfil de voluntario');
                     Modular.to.navigate('/profile/create');
@@ -338,8 +338,8 @@ class _RegisterPageState extends State<RegisterPage>
               
               Future.delayed(const Duration(milliseconds: 500), () {
                 if (state.usuario.idRol == 2) {
-                  // Funcionario → crear perfil de funcionario
-                  Modular.to.navigate('/profile/create-funcionario');
+                  // Funcionario → crear organización
+                  Modular.to.navigate('/profile/create-organizacion');
                 } else if (state.usuario.idRol == 3) {
                   // Voluntario → crear perfil de voluntario
                   Modular.to.navigate('/profile/create');

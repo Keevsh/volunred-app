@@ -3,9 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
 import '../../../core/services/profile_check_service.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_styles.dart';
-import '../../../core/theme/app_widgets.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -22,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -45,57 +43,48 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthAuthenticated) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: '¡Bienvenido ${state.usuario.nombres}!',
-              isError: false,
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('¡Bienvenido ${state.usuario.nombres}!'),
+                backgroundColor: colorScheme.primaryContainer,
+                behavior: SnackBarBehavior.floating,
+              ),
             );
             
-            // Usar los perfiles de la respuesta del login para redirigir
             Future.microtask(() {
               try {
-                // Si tenemos la respuesta completa del login (con perfiles), usarla directamente
                 if (state.authResponse != null) {
                   final profileRoute = ProfileCheckService.checkProfileFromLogin(state.authResponse!);
                   
                   if (profileRoute != null) {
-                    print('📋 Usuario necesita crear perfil, redirigiendo a: $profileRoute');
                     Modular.to.navigate(profileRoute);
                     return;
                   }
                   
-                  // El usuario tiene el perfil requerido (o es admin), redirigir según rol
                   if (state.usuario.isAdmin) {
-                    print('👑 Usuario admin, redirigiendo a panel de administración');
                     Modular.to.navigate('/admin/');
                   } else {
-                    print('🏠 Usuario con perfil, redirigiendo a home');
                     Modular.to.navigate('/home/');
                   }
                 } else {
-                  // Fallback: si no tenemos la respuesta completa, verificar usando llamadas API
-                  print('⚠️ No se tiene respuesta completa del login, verificando mediante API...');
                   ProfileCheckService.checkProfile(state.usuario).then((profileRoute) {
                     if (profileRoute != null) {
-                      print('📋 Usuario necesita crear perfil, redirigiendo a: $profileRoute');
                       Modular.to.navigate(profileRoute);
                     } else {
                       if (state.usuario.isAdmin) {
-                        print('👑 Usuario admin, redirigiendo a panel de administración');
                         Modular.to.navigate('/admin/');
                       } else {
-                        print('🏠 Usuario con perfil, redirigiendo a home');
                         Modular.to.navigate('/home/');
                       }
                     }
                   }).catchError((e) {
-                    print('❌ Error verificando perfil: $e');
-                    // En caso de error, redirigir según rol
                     if (state.usuario.isAdmin) {
                       Modular.to.navigate('/admin/');
                     } else {
@@ -104,8 +93,6 @@ class _LoginPageState extends State<LoginPage> {
                   });
                 }
               } catch (e) {
-                print('❌ Error en redirección: $e');
-                // En caso de error, redirigir según rol
                 if (state.usuario.isAdmin) {
                   Modular.to.navigate('/admin/');
                 } else {
@@ -114,209 +101,173 @@ class _LoginPageState extends State<LoginPage> {
               }
             });
           } else if (state is AuthError) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: state.message,
-              isError: true,
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: colorScheme.errorContainer,
+                behavior: SnackBarBehavior.floating,
+              ),
             );
           }
         },
         builder: (context, state) {
-          final isLoading = state is AuthLoading;
+          _isLoading = state is AuthLoading;
 
           return SafeArea(
-            child: Column(
-              children: [
-                // Header minimalista
-                _buildHeader(isLoading),
-                
-                // Form
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(AppStyles.spacingXLarge),
-                    child: _buildLoginForm(isLoading),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Logo/Icon
+                      Icon(
+                        Icons.volunteer_activism,
+                        size: 80,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Title
+                      Text(
+                        'Bienvenido',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      Text(
+                        'Inicia sesión para continuar',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 48),
+                      
+                      // Form
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Email field
+                            TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              enabled: !_isLoading,
+                              decoration: const InputDecoration(
+                                labelText: 'Correo electrónico',
+                                hintText: 'tu@email.com',
+                                prefixIcon: Icon(Icons.email_outlined),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa tu email';
+                                }
+                                if (!value.contains('@')) {
+                                  return 'Email inválido';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Password field
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              enabled: !_isLoading,
+                              decoration: InputDecoration(
+                                labelText: 'Contraseña',
+                                hintText: '••••••••',
+                                prefixIcon: const Icon(Icons.lock_outlined),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa tu contraseña';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            
+                            // Forgot password
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _isLoading ? null : () {},
+                                child: const Text('¿Olvidaste tu contraseña?'),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Login button
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : const Text('Iniciar sesión'),
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Register link
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '¿No tienes cuenta? ',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () {
+                                          Modular.to.navigate('/auth/register');
+                                        },
+                                  child: const Text('Regístrate'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildHeader(bool isLoading) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppStyles.spacingLarge,
-        vertical: AppStyles.spacingMedium,
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: isLoading ? null : () => Modular.to.navigate('/'),
-            style: IconButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-            ),
-          ),
-          const Spacer(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginForm(bool isLoading) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Icono de login
-          Center(
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.lock_outline,
-                size: 50,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppStyles.spacingXLarge),
-          
-          // Título
-          const Text(
-            'Iniciar Sesión',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppStyles.spacingSmall),
-          
-          const Text(
-            'Bienvenido de vuelta',
-            style: TextStyle(
-              fontSize: AppStyles.fontSizeBody,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppStyles.spacingXXLarge),
-
-          // Email field
-          AppWidgets.styledTextField(
-            controller: _emailController,
-            label: 'Email',
-            hint: 'tu@email.com',
-            prefixIcon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-            enabled: !isLoading,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor ingresa tu email';
-              }
-              if (!value.contains('@')) {
-                return 'Email inválido';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: AppStyles.spacingLarge),
-
-          // Password field
-          AppWidgets.styledTextField(
-            controller: _passwordController,
-            label: 'Contraseña',
-            hint: '••••••••',
-            prefixIcon: Icons.lock_outline,
-            suffixIcon: _obscurePassword 
-                ? Icons.visibility_outlined 
-                : Icons.visibility_off_outlined,
-            onSuffixIconPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
-            obscureText: _obscurePassword,
-            enabled: !isLoading,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor ingresa tu contraseña';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: AppStyles.spacingMedium),
-
-          // Forgot password
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: isLoading ? null : () {},
-              child: const Text(
-                '¿Olvidaste tu contraseña?',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: AppStyles.fontSizeMedium,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppStyles.spacingXLarge),
-
-          // Login button
-          AppWidgets.gradientButton(
-            onPressed: _handleLogin,
-            text: 'Iniciar Sesión',
-            icon: Icons.arrow_forward,
-            isLoading: isLoading,
-          ),
-          const SizedBox(height: AppStyles.spacingXLarge),
-
-          // Register link
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                '¿No tienes cuenta? ',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: AppStyles.fontSizeNormal,
-                ),
-              ),
-              TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        Modular.to.navigate('/auth/register');
-                      },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-                child: const Text(
-                  'Regístrate',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: AppStyles.fontSizeNormal,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

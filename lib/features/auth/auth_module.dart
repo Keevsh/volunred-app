@@ -21,6 +21,13 @@ class AuthModule extends Module {
           ),
         ),
         ChildRoute(
+          '/login',
+          child: (_, __) => BlocProvider(
+            create: (_) => Modular.get<AuthBloc>(),
+            child: const LoginPage(),
+          ),
+        ),
+        ChildRoute(
           '/register',
           child: (_, __) => BlocProvider(
             create: (_) => Modular.get<AuthBloc>(),

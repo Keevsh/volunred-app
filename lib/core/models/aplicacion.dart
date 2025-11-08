@@ -7,6 +7,7 @@ class Aplicacion extends Equatable {
   final String estado;
   final int idModulo;
   final Modulo? modulo;
+  final String descripcion ;
 
   const Aplicacion({
     required this.idAplicacion,
@@ -14,6 +15,7 @@ class Aplicacion extends Equatable {
     this.estado = 'activo',
     required this.idModulo,
     this.modulo,
+    this.descripcion = 'sin descripcion',
   });
 
   factory Aplicacion.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class Aplicacion extends Equatable {
       modulo: json['modulo'] != null
           ? Modulo.fromJson(json['modulo'])
           : null,
+      descripcion: json['descripcion'] as String? ?? 'sin descripcion',
     );
   }
 
@@ -35,9 +38,10 @@ class Aplicacion extends Equatable {
       'estado': estado,
       'id_modulo': idModulo,
       if (modulo != null) 'modulo': modulo!.toJson(),
+      'descripcion': descripcion,
     };
   }
 
   @override
-  List<Object?> get props => [idAplicacion, nombre, estado, idModulo, modulo];
+  List<Object?> get props => [idAplicacion, nombre, estado, idModulo, modulo, descripcion];
 }

@@ -73,7 +73,7 @@ class _CreateFuncionarioProfilePageState
     );
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      Modular.to.navigate('/home');
+      Modular.to.navigate('/home/');
     });
   }
 
@@ -305,7 +305,7 @@ class _CreateFuncionarioProfilePageState
             Center(
               child: TextButton(
                 onPressed: () {
-                  Modular.to.navigate('/home');
+                  Modular.to.navigate('/home/');
                 },
                 child: Text(
                   'Completar después',

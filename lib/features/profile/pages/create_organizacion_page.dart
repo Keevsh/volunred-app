@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:volunred_app/core/models/perfil_funcionario.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/organizacion_repository.dart';
 import '../../../core/theme/app_widgets.dart';
@@ -142,37 +143,97 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       }
 
       // 1. Crear organización
+      // Mapear campos al formato esperado por la API
+      // Nota: id_categoria_organizacion no se puede enviar en la creación, debe asignarse después con una actualización
       final orgData = {
-        'nombre': _nombreOrgController.text.trim(),
-        'descripcion': _descripcionController.text.trim(),
-        'direccion': _direccionController.text.trim(),
+        'nombre_legal': _razonSocialController.text.trim(), // Requerido: nombre legal de la organización
+        if (_nombreOrgController.text.trim().isNotEmpty)
+          'nombre_corto': _nombreOrgController.text.trim(), // Opcional: nombre común/corto
+        'correo': _emailOrgController.text.trim(), // Requerido: correo electrónico
+        if (_direccionController.text.trim().isNotEmpty)
+          'direccion': _direccionController.text.trim(), // Opcional: dirección
         if (_telefonoOrgController.text.trim().isNotEmpty)
-          'telefono': _telefonoOrgController.text.trim(),
-        'email': _emailOrgController.text.trim(),
-        if (_sitioWebController.text.trim().isNotEmpty) 
-          'sitio_web': _sitioWebController.text.trim(),
-        'id_categoria_organizacion': _categoriaSeleccionada!,
-        'ruc': _rucController.text.trim(),
-        'razon_social': _razonSocialController.text.trim(),
-        'estado': 'activo',
+          'telefono': _telefonoOrgController.text.trim(), // Opcional: teléfono
+        'estado': 'activo', // Estado por defecto
       };
-
+      
       print('📦 Creando organización: $orgData');
       final organizacion = await orgRepo.createOrganizacion(orgData);
-      print('✅ Organización creada: ${organizacion.nombre}');
+      print('✅ Organización creada: ${organizacion.nombre.isNotEmpty ? organizacion.nombre : organizacion.razonSocial ?? "Organización"}');
+      
+      // Nota: La categoría no se puede asignar durante la creación ni inmediatamente después
+      // La categoría deberá ser asignada posteriormente por un administrador o mediante otro proceso
+      if (_categoriaSeleccionada != null) {
+        print('ℹ️ Categoría seleccionada: $_categoriaSeleccionada (se asignará posteriormente)');
+      }
 
-      // 2. Crear perfil de funcionario
-      final perfilData = {
-        'id_usuario': usuario.idUsuario,
-        'id_organizacion': organizacion.idOrganizacion,
-        'cargo': _cargoController.text.trim(),
-        'departamento': _departamentoController.text.trim(),
-        'estado': 'activo',
-      };
-
-      print('👤 Creando perfil de funcionario: $perfilData');
-      final perfil = await orgRepo.createPerfilFuncionario(perfilData);
-      print('✅ Perfil de funcionario creado: ${perfil.cargo}');
+      // 2. Crear perfil de funcionario con todos los datos requeridos
+      print('👤 Creando perfil de funcionario...');
+      PerfilFuncionario? perfil;
+      
+      try {
+        final perfilData = <String, dynamic>{
+          'usuario_id': usuario.idUsuario, // Requerido por el backend
+          'organizacion_id': organizacion.idOrganizacion, // Requerido por el backend
+          'fecha_ingreso': DateTime.now().toIso8601String().split('T')[0], // Formato YYYY-MM-DD
+          'estado': 'activo',
+        };
+        
+        // Agregar cargo si se proporcionó
+        if (_cargoController.text.trim().isNotEmpty) {
+          perfilData['cargo'] = _cargoController.text.trim();
+        }
+        
+        // Agregar area (departamento se mapea a area según la API)
+        if (_departamentoController.text.trim().isNotEmpty) {
+          perfilData['area'] = _departamentoController.text.trim();
+        }
+        
+        print('📤 Datos del perfil de funcionario: $perfilData');
+        
+        perfil = await orgRepo.createPerfilFuncionario(perfilData);
+        print('✅ Perfil de funcionario creado exitosamente: ${perfil.idPerfilFuncionario}');
+      } catch (e) {
+        print('⚠️ Error al crear perfil de funcionario: $e');
+        // Intentar obtener el perfil si ya existe
+        try {
+          final perfilExistente = await orgRepo.getPerfilFuncionarioByUsuario(usuario.idUsuario);
+          if (perfilExistente != null) {
+            print('✅ Perfil de funcionario ya existe: ${perfilExistente.idPerfilFuncionario}');
+            perfil = perfilExistente;
+            
+            // Actualizar con los datos nuevos si faltan
+            final updateData = <String, dynamic>{};
+            bool needsUpdate = false;
+            
+            if (_cargoController.text.trim().isNotEmpty && perfilExistente.cargo != _cargoController.text.trim()) {
+              updateData['cargo'] = _cargoController.text.trim();
+              needsUpdate = true;
+            }
+            if (_departamentoController.text.trim().isNotEmpty && 
+                (perfilExistente.area != _departamentoController.text.trim() && 
+                 perfilExistente.departamento != _departamentoController.text.trim())) {
+              updateData['area'] = _departamentoController.text.trim();
+              needsUpdate = true;
+            }
+            
+            // Verificar si necesita organizacion_id
+            if (perfilExistente.idOrganizacion != organizacion.idOrganizacion) {
+              updateData['organizacion_id'] = organizacion.idOrganizacion;
+              needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+              print('📝 Actualizando perfil existente: $updateData');
+              perfil = await orgRepo.updatePerfilFuncionario(perfilExistente.idPerfilFuncionario, updateData);
+              print('✅ Perfil de funcionario actualizado');
+            }
+          }
+        } catch (e2) {
+          print('⚠️ No se pudo obtener ni actualizar perfil: $e2');
+          // Continuamos aunque falle, la organización ya está creada
+        }
+      }
 
       if (mounted) {
         AppWidgets.showStyledSnackBar(
@@ -181,9 +242,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           isError: false,
         );
 
-        // Redirigir al home
+        // Redirigir al home (el home verificará que el perfil existe)
         Future.delayed(const Duration(seconds: 1), () {
-          Modular.to.navigate('/home');
+          Modular.to.navigate('/home/');
         });
       }
     } catch (e) {

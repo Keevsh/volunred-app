@@ -4,8 +4,12 @@ import '../models/aplicacion.dart';
 import '../models/aptitud.dart';
 import '../models/dto/request_models.dart';
 import '../models/modulo.dart';
+import '../models/organizacion.dart';
 import '../models/permiso.dart';
 import '../models/programa.dart';
+import '../models/proyecto.dart';
+import '../models/tarea.dart';
+import '../models/inscripcion.dart';
 import '../models/rol.dart';
 import '../models/usuario.dart';
 import '../services/dio_client.dart';
@@ -141,17 +145,12 @@ class AdminRepository {
   /// Listar todos los roles
   Future<List<Rol>> getRoles() async {
     try {
-      final url = '${ApiConfig.baseUrl}${ApiConfig.adminRoles}';
-      print('🔵 URL COMPLETA: $url');
-      print('🔵 Intentando obtener roles desde: ${ApiConfig.adminRoles}');
       final response = await _dioClient.dio.get(ApiConfig.adminRoles);
-      print('🔵 Respuesta recibida: ${response.statusCode}');
-      print('🔵 Datos: ${response.data}');
-      return (response.data as List).map((r) => Rol.fromJson(r)).toList();
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['roles'] ?? []);
+      return data.map((r) => Rol.fromJson(r as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
-      print('🔴 Error al obtener roles: ${e.response?.statusCode}');
-      print('🔴 URL que falló: ${e.requestOptions.uri}');
-      print('🔴 Mensaje: ${e.response?.data}');
       throw _handleError(e);
     }
   }
@@ -218,16 +217,40 @@ class AdminRepository {
   /// Obtener permisos de un rol
   Future<Map<String, dynamic>> getPermisosByRol(int idRol) async {
     try {
+      // Primero obtener el rol
+      final rol = await getRolById(idRol);
+      
+      // Luego obtener los permisos
       final response = await _dioClient.dio.get(
         '${ApiConfig.adminRoles}/$idRol/permisos',
       );
-      final data = response.data as Map<String, dynamic>;
+      
+      // La respuesta puede ser una lista directamente o un objeto con permisos
+      List<Permiso> permisos = [];
+      int total = 0;
+      
+      if (response.data is List) {
+        // Si la respuesta es una lista directamente
+        final permisosList = response.data as List;
+        permisos = permisosList
+            .map((p) => Permiso.fromJson(p as Map<String, dynamic>))
+            .toList();
+        total = permisos.length;
+      } else if (response.data is Map<String, dynamic>) {
+        // Si la respuesta es un objeto con estructura
+        final data = response.data as Map<String, dynamic>;
+        if (data['permisos'] != null && data['permisos'] is List) {
+          permisos = (data['permisos'] as List)
+              .map((p) => Permiso.fromJson(p as Map<String, dynamic>))
+              .toList();
+        }
+        total = data['total_permisos'] as int? ?? permisos.length;
+      }
+      
       return {
-        'rol': Rol.fromJson(data),
-        'permisos': (data['permisos'] as List)
-            .map((p) => Permiso.fromJson(p))
-            .toList(),
-        'total': data['total_permisos'] as int,
+        'rol': rol,
+        'permisos': permisos,
+        'total': total,
       };
     } on DioException catch (e) {
       throw _handleError(e);
@@ -601,6 +624,246 @@ class AdminRepository {
   Future<void> deleteCategoriaProyecto(int id) async {
     try {
       await _dioClient.dio.delete('${ApiConfig.categoriasProyectos}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== ORGANIZACIONES ====================
+
+  /// Listar todas las organizaciones
+  Future<List<Organizacion>> getOrganizaciones() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.organizaciones);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['organizaciones'] ?? []);
+      return data.map((json) => Organizacion.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener organización por ID
+  Future<Organizacion> getOrganizacionById(int id) async {
+    try {
+      final response = await _dioClient.dio.get('${ApiConfig.organizaciones}/$id');
+      return Organizacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear organización
+  Future<Organizacion> createOrganizacion(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.organizaciones,
+        data: data,
+      );
+      return Organizacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar organización
+  Future<Organizacion> updateOrganizacion(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.organizaciones}/$id',
+        data: data,
+      );
+      return Organizacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar organización
+  Future<void> deleteOrganizacion(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.organizaciones}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== PROYECTOS ====================
+
+  /// Listar todos los proyectos
+  Future<List<Proyecto>> getProyectos() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.proyectos);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['proyectos'] ?? []);
+      return data.map((json) => Proyecto.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener proyecto por ID
+  Future<Proyecto> getProyectoById(int id) async {
+    try {
+      final response = await _dioClient.dio.get('${ApiConfig.proyectos}/$id');
+      return Proyecto.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear proyecto
+  Future<Proyecto> createProyecto(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.proyectos,
+        data: data,
+      );
+      return Proyecto.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar proyecto
+  Future<Proyecto> updateProyecto(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.proyectos}/$id',
+        data: data,
+      );
+      return Proyecto.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar proyecto
+  Future<void> deleteProyecto(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.proyectos}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== TAREAS ====================
+
+  /// Listar todas las tareas
+  Future<List<Tarea>> getTareas() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.tareas);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['tareas'] ?? []);
+      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener tarea por ID
+  Future<Tarea> getTareaById(int id) async {
+    try {
+      final response = await _dioClient.dio.get('${ApiConfig.tareas}/$id');
+      return Tarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear tarea
+  Future<Tarea> createTarea(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.tareas,
+        data: data,
+      );
+      return Tarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar tarea
+  Future<Tarea> updateTarea(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.tareas}/$id',
+        data: data,
+      );
+      return Tarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar tarea
+  Future<void> deleteTarea(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.tareas}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== INSCRIPCIONES ====================
+
+  /// Listar todas las inscripciones
+  Future<List<Inscripcion>> getInscripciones() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.inscripciones);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['inscripciones'] ?? []);
+      return data.map((json) => Inscripcion.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener inscripción por ID
+  Future<Inscripcion> getInscripcionById(int id) async {
+    try {
+      final response = await _dioClient.dio.get('${ApiConfig.inscripciones}/$id');
+      return Inscripcion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear inscripción
+  Future<Inscripcion> createInscripcion(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.inscripciones,
+        data: data,
+      );
+      return Inscripcion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar inscripción (aprobar/rechazar)
+  Future<Inscripcion> updateInscripcion(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.inscripciones}/$id',
+        data: data,
+      );
+      return Inscripcion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar inscripción
+  Future<void> deleteInscripcion(int id) async {
+    try {
+      await _dioClient.dio.delete('${ApiConfig.inscripciones}/$id');
     } on DioException catch (e) {
       throw _handleError(e);
     }

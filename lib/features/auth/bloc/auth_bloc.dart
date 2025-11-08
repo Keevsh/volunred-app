@@ -45,7 +45,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final response = await authRepository.login(event.request);
-      emit(AuthAuthenticated(response.usuario));
+      // Pasar la respuesta completa para que incluya los perfiles
+      emit(AuthAuthenticated(response.usuario, authResponse: response));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -59,7 +60,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final response = await authRepository.register(event.request);
-      emit(AuthAuthenticated(response.usuario));
+      // Pasar la respuesta completa para que incluya los perfiles (si el registro los retorna)
+      emit(AuthAuthenticated(response.usuario, authResponse: response));
     } catch (e) {
       emit(AuthError(e.toString()));
     }

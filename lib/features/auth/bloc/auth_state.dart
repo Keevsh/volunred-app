@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../core/models/usuario.dart';
+import '../../../core/models/dto/response_models.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -14,11 +15,12 @@ class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
   final Usuario usuario;
+  final AuthResponse? authResponse; // Respuesta completa del login (incluye perfiles)
 
-  const AuthAuthenticated(this.usuario);
+  const AuthAuthenticated(this.usuario, {this.authResponse});
 
   @override
-  List<Object?> get props => [usuario];
+  List<Object?> get props => [usuario, authResponse];
 }
 
 class AuthUnauthenticated extends AuthState {}

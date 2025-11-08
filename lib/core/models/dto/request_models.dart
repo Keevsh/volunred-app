@@ -6,8 +6,7 @@ class RegisterRequest {
   final int? telefono;
   final int? ci;
   final String? sexo;
-  // Nota: tipoUsuario NO se envía al backend, solo se usa en el cliente
-  // para determinar el flujo después del registro
+  final int? idRol; // id_rol requerido por el backend
 
   RegisterRequest({
     required this.nombres,
@@ -17,10 +16,11 @@ class RegisterRequest {
     this.telefono,
     this.ci,
     this.sexo,
+    this.idRol,
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = {
       'nombres': nombres,
       'apellidos': apellidos,
       'email': email,
@@ -28,8 +28,14 @@ class RegisterRequest {
       'telefono': telefono,
       'ci': ci,
       'sexo': sexo,
-      // NO enviamos tipo_usuario al backend
     };
+    
+    // id_rol es requerido por el backend
+    if (idRol != null) {
+      json['id_rol'] = idRol;
+    }
+    
+    return json;
   }
 }
 
@@ -64,12 +70,10 @@ class CreatePerfilVoluntarioRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'usuario_id': usuarioId,
-      'bio': bio,
-      'disponibilidad': disponibilidad,
-      'estado': estado,
-    };
+    // El backend no espera estos campos en la creación
+    // El perfil se crea automáticamente o se actualiza después
+    // Por ahora, enviamos un body vacío o solo campos permitidos
+    return {};
   }
 }
 

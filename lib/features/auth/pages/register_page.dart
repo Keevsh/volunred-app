@@ -235,6 +235,18 @@ class _RegisterPageState extends State<RegisterPage>
         return;
       }
 
+      // Validar que se haya seleccionado un tipo de usuario
+      if (_tipoUsuario == null) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Por favor selecciona un tipo de cuenta',
+          isError: true,
+        );
+        // Ir al primer paso donde se selecciona el tipo
+        setState(() => _currentStep = 0);
+        return;
+      }
+
       print('🎯 Registrando usuario con tipo: ${_tipoUsuario?.value}');
 
       BlocProvider.of<AuthBloc>(context).add(
@@ -247,7 +259,11 @@ class _RegisterPageState extends State<RegisterPage>
             telefono: int.tryParse(_telefonoController.text),
             ci: int.tryParse(_ciController.text),
             sexo: _sexo,
-            // NO enviamos tipoUsuario al backend (ya no está en RegisterRequest)
+            // Mapear tipoUsuario a id_rol: funcionario=2, voluntario=3
+            // El backend requiere id_rol, así que siempre debe tener un valor
+            idRol: _tipoUsuario == TipoUsuario.funcionario 
+                ? 2 
+                : 3, // Si es voluntario o cualquier otro caso, usar 3
           ),
         ),
       );

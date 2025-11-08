@@ -155,6 +155,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         color: const Color(0xFFFF2D55), // Rosa Apple
         route: '/admin/aptitudes',
       ),
+      _AdminOption(
+        icon: Icons.business_rounded,
+        title: 'Organizaciones',
+        subtitle: 'Gestionar organizaciones',
+        color: const Color(0xFF007AFF), // Azul Apple
+        route: '/admin/organizaciones',
+      ),
+      _AdminOption(
+        icon: Icons.folder_special_rounded,
+        title: 'Proyectos',
+        subtitle: 'Gestionar proyectos',
+        color: const Color(0xFF5856D6), // Morado Apple
+        route: '/admin/proyectos',
+      ),
+      _AdminOption(
+        icon: Icons.task_rounded,
+        title: 'Tareas',
+        subtitle: 'Gestionar tareas',
+        color: const Color(0xFF007AFF), // Azul Apple
+        route: '/admin/tareas',
+      ),
+      _AdminOption(
+        icon: Icons.person_add_rounded,
+        title: 'Inscripciones',
+        subtitle: 'Aprobar/rechazar',
+        color: const Color(0xFFFF9500), // Naranja Apple
+        route: '/admin/inscripciones',
+      ),
     ];
 
     return items.asMap().entries.map((entry) {

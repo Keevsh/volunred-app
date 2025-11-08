@@ -36,24 +36,90 @@ class Organizacion extends Equatable {
   });
 
   factory Organizacion.fromJson(Map<String, dynamic> json) {
-    return Organizacion(
-      idOrganizacion: json['id_organizacion'] as int,
-      nombre: json['nombre'] as String,
-      descripcion: json['descripcion'] as String?,
-      direccion: json['direccion'] as String?,
-      telefono: json['telefono'] as String?,
-      email: json['email'] as String,
-      sitioWeb: json['sitio_web'] as String?,
-      idCategoriaOrganizacion: json['id_categoria_organizacion'] as int,
-      ruc: json['ruc'] as String?,
-      razonSocial: json['razon_social'] as String?,
-      estado: json['estado'] as String,
-      creadoEn: DateTime.parse(json['creado_en'] as String),
-      actualizadoEn: json['actualizado_en'] != null
-          ? DateTime.parse(json['actualizado_en'] as String)
-          : null,
-      categoriaOrganizacion: json['categoria_organizacion'] as Map<String, dynamic>?,
-    );
+    try {
+      // Helper function to safely get string value
+      String? _getString(dynamic value) {
+        if (value == null) return null;
+        return value.toString();
+      }
+      
+      // Helper function to safely get int value
+      int _getInt(dynamic value, {int defaultValue = 0}) {
+        if (value == null) return defaultValue;
+        if (value is int) return value;
+        return int.tryParse(value.toString()) ?? defaultValue;
+      }
+      
+      // Handle different field name variations from API
+      // API might return 'nombre', 'nombre_corto', or 'nombre_legal'
+      final nombre = _getString(json['nombre']) ?? 
+                     _getString(json['nombre_corto']) ?? 
+                     _getString(json['nombre_legal']) ?? 
+                     '';
+      
+      // API might return 'email' or 'correo'
+      final email = _getString(json['email']) ?? 
+                    _getString(json['correo']) ?? 
+                    '';
+      
+      if (email.isEmpty) {
+        throw Exception('Email is required but was not found in response');
+      }
+      
+      // Handle creado_en - might be missing in creation response
+      DateTime creadoEn;
+      final creadoEnValue = json['creado_en'];
+      if (creadoEnValue != null && creadoEnValue is String) {
+        try {
+          creadoEn = DateTime.parse(creadoEnValue);
+        } catch (e) {
+          creadoEn = DateTime.now();
+        }
+      } else {
+        creadoEn = DateTime.now();
+      }
+      
+      // Handle actualizado_en
+      DateTime? actualizadoEn;
+      final actualizadoEnValue = json['actualizado_en'];
+      if (actualizadoEnValue != null && actualizadoEnValue is String) {
+        try {
+          actualizadoEn = DateTime.parse(actualizadoEnValue);
+        } catch (e) {
+          actualizadoEn = null;
+        }
+      }
+      
+      // Safely parse id_organizacion
+      if (json['id_organizacion'] == null) {
+        throw Exception('id_organizacion is required but was null');
+      }
+      final idOrg = _getInt(json['id_organizacion']);
+      if (idOrg == 0) {
+        throw Exception('id_organizacion cannot be 0');
+      }
+      
+      return Organizacion(
+        idOrganizacion: idOrg,
+        nombre: nombre,
+        descripcion: _getString(json['descripcion']),
+        direccion: _getString(json['direccion']),
+        telefono: _getString(json['telefono']),
+        email: email,
+        sitioWeb: _getString(json['sitio_web']),
+        idCategoriaOrganizacion: _getInt(json['id_categoria_organizacion']),
+        ruc: _getString(json['ruc']),
+        razonSocial: _getString(json['razon_social']) ?? _getString(json['nombre_legal']),
+        estado: _getString(json['estado']) ?? 'activo',
+        creadoEn: creadoEn,
+        actualizadoEn: actualizadoEn,
+        categoriaOrganizacion: json['categoria_organizacion'] is Map 
+            ? json['categoria_organizacion'] as Map<String, dynamic>? 
+            : null,
+      );
+    } catch (e, stackTrace) {
+      throw Exception('Error parsing Organizacion from JSON: $e\nJSON: $json\nStackTrace: $stackTrace');
+    }
   }
 
   Map<String, dynamic> toJson() {

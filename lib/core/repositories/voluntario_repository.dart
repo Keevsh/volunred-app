@@ -26,7 +26,33 @@ class VoluntarioRepository {
       print('📥 Respuesta del servidor: ${response.data}');
       print('📥 Tipo de respuesta: ${response.data.runtimeType}');
 
-      final perfil = PerfilVoluntario.fromJson(response.data);
+      PerfilVoluntario perfil;
+
+      // El backend puede devolver un string (mensaje) o un JSON (perfil)
+      if (response.data is String) {
+        // Si la respuesta es un string, el perfil se creó exitosamente
+        // Intentamos obtener el perfil del usuario
+        print('✅ Perfil creado exitosamente. Obteniendo perfil del usuario...');
+        final perfilObtenido = await getPerfilByUsuario(request.usuarioId);
+        if (perfilObtenido != null) {
+          perfil = perfilObtenido;
+        } else {
+          print('⚠️ No se pudo obtener el perfil, creando perfil temporal...');
+          // Si no podemos obtenerlo, creamos un perfil temporal con los datos del request
+          perfil = PerfilVoluntario(
+            idPerfilVoluntario: 0, // Temporal, se actualizará después
+            usuarioId: request.usuarioId,
+            bio: request.bio,
+            disponibilidad: request.disponibilidad,
+            estado: request.estado,
+          );
+        }
+      } else if (response.data is Map<String, dynamic>) {
+        // Si la respuesta es un JSON, parseamos normalmente
+        perfil = PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Formato de respuesta no reconocido: ${response.data.runtimeType}');
+      }
 
       // Guardar perfil en storage
       await StorageService.saveString(
@@ -82,6 +108,43 @@ class VoluntarioRepository {
           aptitudId: aptitudId,
         ),
       );
+    }
+  }
+
+  /// Obtener perfil de voluntario por usuario
+  /// Retorna null si no existe el perfil
+  Future<PerfilVoluntario?> getPerfilByUsuario(int usuarioId) async {
+    try {
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.perfilesVoluntarios}/usuario/$usuarioId',
+      );
+      return PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      // Si el endpoint no existe o retorna 404, intentar obtener todos y filtrar
+      if (e.response?.statusCode == 404) {
+        try {
+          final response = await _dioClient.dio.get(ApiConfig.perfilesVoluntarios);
+          final List<dynamic> data = response.data is List
+              ? response.data
+              : (response.data['perfiles'] ?? []);
+          
+          for (var json in data) {
+            final perfil = PerfilVoluntario.fromJson(json as Map<String, dynamic>);
+            if (perfil.usuarioId == usuarioId) {
+              return perfil;
+            }
+          }
+          // No se encontró el perfil
+          return null;
+        } catch (e2) {
+          // Si falla obtener todos, retornar null
+          print('⚠️ No se pudo obtener perfil de voluntario: $e2');
+          return null;
+        }
+      }
+      // Para otros errores, también retornar null (no lanzar excepción)
+      print('⚠️ Error obteniendo perfil de voluntario: ${e.response?.statusCode}');
+      return null;
     }
   }
 

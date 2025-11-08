@@ -45,6 +45,19 @@ class AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
+    // Safety: Remove id_categoria_organizacion from organization creation requests
+    // The API doesn't accept this field during creation
+    if (options.method == 'POST' && 
+        options.path.contains('/organizaciones') && 
+        options.data is Map) {
+      final data = options.data as Map<String, dynamic>;
+      if (data.containsKey('id_categoria_organizacion')) {
+        print('⚠️ INTERCEPTOR: Removiendo id_categoria_organizacion del request');
+        data.remove('id_categoria_organizacion');
+        options.data = data;
+      }
+    }
+
     return handler.next(options);
   }
 

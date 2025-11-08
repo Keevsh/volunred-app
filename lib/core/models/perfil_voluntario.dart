@@ -7,6 +7,11 @@ class PerfilVoluntario extends Equatable {
   final String estado;
   final int usuarioId;
   final DateTime? creadoEn;
+  
+  // Campos adicionales que pueden venir en las respuestas
+  final Map<String, dynamic>? usuario;
+  final Map<String, dynamic>? organizacion;
+  final Map<String, dynamic>? inscripcion;
 
   const PerfilVoluntario({
     required this.idPerfilVoluntario,
@@ -15,6 +20,9 @@ class PerfilVoluntario extends Equatable {
     required this.estado,
     required this.usuarioId,
     this.creadoEn,
+    this.usuario,
+    this.organizacion,
+    this.inscripcion,
   });
 
   factory PerfilVoluntario.fromJson(Map<String, dynamic> json) {
@@ -36,6 +44,15 @@ class PerfilVoluntario extends Equatable {
       usuarioId: json['usuario_id'] as int,
       creadoEn: json['creado_en'] != null
           ? DateTime.parse(json['creado_en'] as String)
+          : null,
+      usuario: json['usuario'] is Map 
+          ? json['usuario'] as Map<String, dynamic>? 
+          : null,
+      organizacion: json['organizacion'] is Map 
+          ? json['organizacion'] as Map<String, dynamic>? 
+          : null,
+      inscripcion: json['inscripcion'] is Map 
+          ? json['inscripcion'] as Map<String, dynamic>? 
           : null,
     );
   }
@@ -59,5 +76,8 @@ class PerfilVoluntario extends Equatable {
         estado,
         usuarioId,
         creadoEn,
+        usuario,
+        organizacion,
+        inscripcion,
       ];
 }

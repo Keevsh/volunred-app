@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
+import '../../../core/services/profile_check_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/theme/app_widgets.dart';
@@ -47,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthAuthenticated) {
             AppWidgets.showStyledSnackBar(
               context: context,
@@ -55,14 +56,61 @@ class _LoginPageState extends State<LoginPage> {
               isError: false,
             );
             
-            // Redirigir según el rol del usuario con un pequeño delay para asegurar que el contexto esté listo
+            // Usar los perfiles de la respuesta del login para redirigir
             Future.microtask(() {
-              if (state.usuario.isAdmin) {
-                // Si es admin, llevar directamente al panel de administración
-                Modular.to.navigate('/admin/');
-              } else {
-                // Si es funcionario o voluntario, llevar al home normal
-                Modular.to.navigate('/home/');
+              try {
+                // Si tenemos la respuesta completa del login (con perfiles), usarla directamente
+                if (state.authResponse != null) {
+                  final profileRoute = ProfileCheckService.checkProfileFromLogin(state.authResponse!);
+                  
+                  if (profileRoute != null) {
+                    print('📋 Usuario necesita crear perfil, redirigiendo a: $profileRoute');
+                    Modular.to.navigate(profileRoute);
+                    return;
+                  }
+                  
+                  // El usuario tiene el perfil requerido (o es admin), redirigir según rol
+                  if (state.usuario.isAdmin) {
+                    print('👑 Usuario admin, redirigiendo a panel de administración');
+                    Modular.to.navigate('/admin/');
+                  } else {
+                    print('🏠 Usuario con perfil, redirigiendo a home');
+                    Modular.to.navigate('/home/');
+                  }
+                } else {
+                  // Fallback: si no tenemos la respuesta completa, verificar usando llamadas API
+                  print('⚠️ No se tiene respuesta completa del login, verificando mediante API...');
+                  ProfileCheckService.checkProfile(state.usuario).then((profileRoute) {
+                    if (profileRoute != null) {
+                      print('📋 Usuario necesita crear perfil, redirigiendo a: $profileRoute');
+                      Modular.to.navigate(profileRoute);
+                    } else {
+                      if (state.usuario.isAdmin) {
+                        print('👑 Usuario admin, redirigiendo a panel de administración');
+                        Modular.to.navigate('/admin/');
+                      } else {
+                        print('🏠 Usuario con perfil, redirigiendo a home');
+                        Modular.to.navigate('/home/');
+                      }
+                    }
+                  }).catchError((e) {
+                    print('❌ Error verificando perfil: $e');
+                    // En caso de error, redirigir según rol
+                    if (state.usuario.isAdmin) {
+                      Modular.to.navigate('/admin/');
+                    } else {
+                      Modular.to.navigate('/home/');
+                    }
+                  });
+                }
+              } catch (e) {
+                print('❌ Error en redirección: $e');
+                // En caso de error, redirigir según rol
+                if (state.usuario.isAdmin) {
+                  Modular.to.navigate('/admin/');
+                } else {
+                  Modular.to.navigate('/home/');
+                }
               }
             });
           } else if (state is AuthError) {

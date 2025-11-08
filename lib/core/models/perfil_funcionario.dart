@@ -5,7 +5,9 @@ class PerfilFuncionario extends Equatable {
   final int idUsuario;
   final int idOrganizacion;
   final String? cargo;
-  final String? departamento;
+  final String? area; // Campo requerido por la API (anteriormente era 'departamento')
+  final String? departamento; // Mantenido para compatibilidad
+  final DateTime? fechaIngreso; // Campo requerido por la API
   final String estado;
   final DateTime creadoEn;
   final DateTime? actualizadoEn;
@@ -19,7 +21,9 @@ class PerfilFuncionario extends Equatable {
     required this.idUsuario,
     required this.idOrganizacion,
     this.cargo,
+    this.area,
     this.departamento,
+    this.fechaIngreso,
     required this.estado,
     required this.creadoEn,
     this.actualizadoEn,
@@ -28,20 +32,115 @@ class PerfilFuncionario extends Equatable {
   });
 
   factory PerfilFuncionario.fromJson(Map<String, dynamic> json) {
-    return PerfilFuncionario(
-      idPerfilFuncionario: json['id_perfil_funcionario'] as int,
-      idUsuario: json['id_usuario'] as int,
-      idOrganizacion: json['id_organizacion'] as int,
-      cargo: json['cargo'] as String?,
-      departamento: json['departamento'] as String?,
-      estado: json['estado'] as String,
-      creadoEn: DateTime.parse(json['creado_en'] as String),
-      actualizadoEn: json['actualizado_en'] != null
-          ? DateTime.parse(json['actualizado_en'] as String)
-          : null,
-      usuario: json['usuario'] as Map<String, dynamic>?,
-      organizacion: json['organizacion'] as Map<String, dynamic>?,
-    );
+    try {
+      // Helper function to safely get string value
+      String? _getString(dynamic value) {
+        if (value == null) return null;
+        return value.toString();
+      }
+      
+      // Helper function to safely get int value
+      int _getInt(dynamic value, {int defaultValue = 0}) {
+        if (value == null) return defaultValue;
+        if (value is int) return value;
+        return int.tryParse(value.toString()) ?? defaultValue;
+      }
+      
+      // Handle creado_en - might be missing
+      DateTime creadoEn;
+      final creadoEnValue = json['creado_en'];
+      if (creadoEnValue != null && creadoEnValue is String) {
+        try {
+          creadoEn = DateTime.parse(creadoEnValue);
+        } catch (e) {
+          creadoEn = DateTime.now();
+        }
+      } else {
+        creadoEn = DateTime.now();
+      }
+      
+      // Handle actualizado_en
+      DateTime? actualizadoEn;
+      final actualizadoEnValue = json['actualizado_en'];
+      if (actualizadoEnValue != null && actualizadoEnValue is String) {
+        try {
+          actualizadoEn = DateTime.parse(actualizadoEnValue);
+        } catch (e) {
+          actualizadoEn = null;
+        }
+      }
+      
+      // Handle fecha_ingreso
+      DateTime? fechaIngreso;
+      final fechaIngresoValue = json['fecha_ingreso'];
+      if (fechaIngresoValue != null && fechaIngresoValue is String) {
+        try {
+          fechaIngreso = DateTime.parse(fechaIngresoValue);
+        } catch (e) {
+          fechaIngreso = null;
+        }
+      }
+      
+      // Safely parse id_perfil_funcionario (puede venir como id_perfil_funcionario o id_funcionario)
+      final idPerfilValue = json['id_perfil_funcionario'] ?? json['id_funcionario'];
+      if (idPerfilValue == null) {
+        throw Exception('id_perfil_funcionario or id_funcionario is required but was null');
+      }
+      final idPerfil = _getInt(idPerfilValue);
+      if (idPerfil == 0) {
+        throw Exception('id_perfil_funcionario cannot be 0');
+      }
+      
+      // Safely parse id_usuario
+      if (json['id_usuario'] == null) {
+        throw Exception('id_usuario is required but was null');
+      }
+      final idUsuario = _getInt(json['id_usuario']);
+      
+      // Safely parse id_organizacion
+      if (json['id_organizacion'] == null) {
+        throw Exception('id_organizacion is required but was null');
+      }
+      final idOrg = _getInt(json['id_organizacion']);
+      
+      // Obtener 'area' o 'departamento' (la API usa 'area')
+      final areaValue = _getString(json['area']) ?? _getString(json['departamento']);
+      
+      // Manejar estado: puede venir como string ('activo', 'inactivo') o como número (1, 0)
+      String estadoValue = 'activo';
+      final estadoJson = json['estado'];
+      if (estadoJson != null) {
+        if (estadoJson is String) {
+          estadoValue = estadoJson;
+        } else if (estadoJson is int) {
+          // Si es número, 1 = activo, 0 = inactivo
+          estadoValue = estadoJson == 1 ? 'activo' : 'inactivo';
+        } else {
+          estadoValue = estadoJson.toString();
+        }
+      }
+      
+      return PerfilFuncionario(
+        idPerfilFuncionario: idPerfil,
+        idUsuario: idUsuario,
+        idOrganizacion: idOrg,
+        cargo: _getString(json['cargo']),
+        area: areaValue,
+        departamento: _getString(json['departamento']), // Mantenido para compatibilidad
+        fechaIngreso: fechaIngreso,
+        estado: estadoValue,
+        creadoEn: creadoEn,
+        actualizadoEn: actualizadoEn,
+        usuario: json['usuario'] is Map 
+            ? json['usuario'] as Map<String, dynamic>? 
+            : null,
+        organizacion: json['organizacion'] is Map 
+            ? json['organizacion'] as Map<String, dynamic>? 
+            : null,
+      );
+    } catch (e, stackTrace) {
+      throw Exception('Error parsing PerfilFuncionario from JSON: $e\nJSON: $json\nStackTrace: $stackTrace');
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -50,7 +149,9 @@ class PerfilFuncionario extends Equatable {
       'id_usuario': idUsuario,
       'id_organizacion': idOrganizacion,
       if (cargo != null) 'cargo': cargo,
-      if (departamento != null) 'departamento': departamento,
+      if (area != null) 'area': area, // La API espera 'area'
+      if (departamento != null && area == null) 'departamento': departamento, // Solo si no hay 'area'
+      if (fechaIngreso != null) 'fecha_ingreso': fechaIngreso!.toIso8601String().split('T')[0], // Formato YYYY-MM-DD
       'estado': estado,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
@@ -65,7 +166,9 @@ class PerfilFuncionario extends Equatable {
         idUsuario,
         idOrganizacion,
         cargo,
+        area,
         departamento,
+        fechaIngreso,
         estado,
         creadoEn,
         actualizadoEn,

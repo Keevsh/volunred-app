@@ -2,8 +2,12 @@ import 'package:equatable/equatable.dart';
 import '../../../core/models/aplicacion.dart';
 import '../../../core/models/aptitud.dart';
 import '../../../core/models/modulo.dart';
+import '../../../core/models/organizacion.dart';
 import '../../../core/models/permiso.dart';
 import '../../../core/models/programa.dart';
+import '../../../core/models/proyecto.dart';
+import '../../../core/models/tarea.dart';
+import '../../../core/models/inscripcion.dart';
 import '../../../core/models/rol.dart';
 import '../../../core/models/usuario.dart';
 
@@ -397,6 +401,194 @@ class CategoriaProyectoDeleted extends AdminState {
   final String message;
 
   const CategoriaProyectoDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== ORGANIZACIONES ====================
+
+class OrganizacionesLoaded extends AdminState {
+  final List<Organizacion> organizaciones;
+
+  const OrganizacionesLoaded(this.organizaciones);
+
+  @override
+  List<Object?> get props => [organizaciones];
+}
+
+class OrganizacionLoaded extends AdminState {
+  final Organizacion organizacion;
+
+  const OrganizacionLoaded(this.organizacion);
+
+  @override
+  List<Object?> get props => [organizacion];
+}
+
+class OrganizacionCreated extends AdminState {
+  final Organizacion organizacion;
+
+  const OrganizacionCreated(this.organizacion);
+
+  @override
+  List<Object?> get props => [organizacion];
+}
+
+class OrganizacionUpdated extends AdminState {
+  final Organizacion organizacion;
+
+  const OrganizacionUpdated(this.organizacion);
+
+  @override
+  List<Object?> get props => [organizacion];
+}
+
+class OrganizacionDeleted extends AdminState {
+  final String message;
+
+  const OrganizacionDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== PROYECTOS ====================
+
+class ProyectosLoaded extends AdminState {
+  final List<Proyecto> proyectos;
+
+  const ProyectosLoaded(this.proyectos);
+
+  @override
+  List<Object?> get props => [proyectos];
+}
+
+class ProyectoLoaded extends AdminState {
+  final Proyecto proyecto;
+
+  const ProyectoLoaded(this.proyecto);
+
+  @override
+  List<Object?> get props => [proyecto];
+}
+
+class ProyectoCreated extends AdminState {
+  final Proyecto proyecto;
+
+  const ProyectoCreated(this.proyecto);
+
+  @override
+  List<Object?> get props => [proyecto];
+}
+
+class ProyectoUpdated extends AdminState {
+  final Proyecto proyecto;
+
+  const ProyectoUpdated(this.proyecto);
+
+  @override
+  List<Object?> get props => [proyecto];
+}
+
+class ProyectoDeleted extends AdminState {
+  final String message;
+
+  const ProyectoDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== TAREAS ====================
+
+class TareasLoaded extends AdminState {
+  final List<Tarea> tareas;
+
+  const TareasLoaded(this.tareas);
+
+  @override
+  List<Object?> get props => [tareas];
+}
+
+class TareaLoaded extends AdminState {
+  final Tarea tarea;
+
+  const TareaLoaded(this.tarea);
+
+  @override
+  List<Object?> get props => [tarea];
+}
+
+class TareaCreated extends AdminState {
+  final Tarea tarea;
+
+  const TareaCreated(this.tarea);
+
+  @override
+  List<Object?> get props => [tarea];
+}
+
+class TareaUpdated extends AdminState {
+  final Tarea tarea;
+
+  const TareaUpdated(this.tarea);
+
+  @override
+  List<Object?> get props => [tarea];
+}
+
+class TareaDeleted extends AdminState {
+  final String message;
+
+  const TareaDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== INSCRIPCIONES ====================
+
+class InscripcionesLoaded extends AdminState {
+  final List<Inscripcion> inscripciones;
+
+  const InscripcionesLoaded(this.inscripciones);
+
+  @override
+  List<Object?> get props => [inscripciones];
+}
+
+class InscripcionLoaded extends AdminState {
+  final Inscripcion inscripcion;
+
+  const InscripcionLoaded(this.inscripcion);
+
+  @override
+  List<Object?> get props => [inscripcion];
+}
+
+class InscripcionCreated extends AdminState {
+  final Inscripcion inscripcion;
+
+  const InscripcionCreated(this.inscripcion);
+
+  @override
+  List<Object?> get props => [inscripcion];
+}
+
+class InscripcionUpdated extends AdminState {
+  final Inscripcion inscripcion;
+
+  const InscripcionUpdated(this.inscripcion);
+
+  @override
+  List<Object?> get props => [inscripcion];
+}
+
+class InscripcionDeleted extends AdminState {
+  final String message;
+
+  const InscripcionDeleted(this.message);
 
   @override
   List<Object?> get props => [message];

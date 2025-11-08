@@ -22,6 +22,32 @@ class Rol extends Equatable {
   });
 
   factory Rol.fromJson(Map<String, dynamic> json) {
+    List<Map<String, dynamic>>? permisosList;
+    if (json['permisos'] != null) {
+      try {
+        final permisosData = json['permisos'];
+        if (permisosData is List) {
+          permisosList = permisosData
+              .map((p) => p is Map<String, dynamic> 
+                  ? p 
+                  : Map<String, dynamic>.from(p))
+              .toList();
+        }
+      } catch (e) {
+        // Si hay error al parsear permisos, los dejamos como null
+        permisosList = null;
+      }
+    }
+
+    // Manejo seguro del campo _count
+    int? cantidadUsuarios;
+    int? cantidadPermisos;
+    if (json['_count'] != null && json['_count'] is Map<String, dynamic>) {
+      final countMap = json['_count'] as Map<String, dynamic>;
+      cantidadUsuarios = countMap['usuarios'] as int?;
+      cantidadPermisos = countMap['permisos'] as int?;
+    }
+
     return Rol(
       idRol: json['id_rol'] as int,
       nombre: json['nombre'] as String,
@@ -30,17 +56,9 @@ class Rol extends Equatable {
       creadoEn: json['creado_en'] != null
           ? DateTime.parse(json['creado_en'] as String)
           : null,
-      permisos: json['permisos'] != null
-          ? (json['permisos'] as List)
-              .map((p) => p as Map<String, dynamic>)
-              .toList()
-          : null,
-      cantidadUsuarios: json['_count'] != null 
-          ? json['_count']['usuarios'] as int?
-          : null,
-      cantidadPermisos: json['_count'] != null 
-          ? json['_count']['permisos'] as int?
-          : null,
+      permisos: permisosList,
+      cantidadUsuarios: cantidadUsuarios,
+      cantidadPermisos: cantidadPermisos,
     );
   }
 

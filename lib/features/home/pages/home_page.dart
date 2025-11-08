@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/auth_repository.dart';
+import '../../../core/repositories/funcionario_repository.dart';
+import '../../../core/repositories/organizacion_repository.dart';
+import '../../../core/services/profile_check_service.dart';
+import '../../../core/models/organizacion.dart';
+import '../../../core/models/proyecto.dart';
+import '../../../core/models/inscripcion.dart';
 import '../../../core/theme/theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,6 +20,8 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   String _userName = 'Usuario';
   bool _isAdmin = false;
+  bool _isFuncionario = false;
+  int? _usuarioId;
 
   @override
   void initState() {
@@ -28,7 +36,28 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _userName = usuario.nombres;
         _isAdmin = usuario.isAdmin; // id_rol == 1
+        _isFuncionario = usuario.isFuncionario; // id_rol == 2
+        _usuarioId = usuario.idUsuario;
       });
+      
+      // Verificar si el usuario necesita crear un perfil
+      // Admin no necesita perfil, puede estar aquí
+      if (!usuario.isAdmin) {
+        try {
+          final profileRoute = await ProfileCheckService.checkProfile(usuario);
+          if (profileRoute != null && mounted) {
+            // El usuario no tiene el perfil requerido, redirigir a crear perfil
+            print('📋 Usuario en home pero no tiene perfil, redirigiendo a: $profileRoute');
+            Future.microtask(() {
+              Modular.to.navigate(profileRoute);
+            });
+            return;
+          }
+        } catch (e) {
+          print('❌ Error verificando perfil en home: $e');
+          // Continuar mostrando el home aunque haya error
+        }
+      }
     }
   }
 
@@ -75,11 +104,18 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColors.backgroundLight,
       body: IndexedStack(
         index: _currentIndex,
-        children: [
-          _buildHomeView(),
-          _buildActivitiesView(),
-          _buildProfileView(),
-        ],
+        children: _isFuncionario
+            ? [
+                _buildFuncionarioHomeView(),
+                _buildFuncionarioProyectosView(),
+                _buildFuncionarioInscripcionesView(),
+                _buildProfileView(),
+              ]
+            : [
+                _buildHomeView(),
+                _buildActivitiesView(),
+                _buildProfileView(),
+              ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -100,23 +136,46 @@ class _HomePageState extends State<HomePage> {
           unselectedItemColor: AppColors.textSecondary,
           selectedFontSize: AppStyles.fontSizeSmall,
           unselectedFontSize: AppStyles.fontSizeSmall,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Inicio',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.volunteer_activism_outlined),
-              activeIcon: Icon(Icons.volunteer_activism),
-              label: 'Actividades',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Perfil',
-            ),
-          ],
+          items: _isFuncionario
+              ? const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.dashboard_outlined),
+                    activeIcon: Icon(Icons.dashboard),
+                    label: 'Dashboard',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.folder_outlined),
+                    activeIcon: Icon(Icons.folder),
+                    label: 'Proyectos',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person_add_outlined),
+                    activeIcon: Icon(Icons.person_add),
+                    label: 'Inscripciones',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline),
+                    activeIcon: Icon(Icons.person),
+                    label: 'Perfil',
+                  ),
+                ]
+              : const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_outlined),
+                    activeIcon: Icon(Icons.home),
+                    label: 'Inicio',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.volunteer_activism_outlined),
+                    activeIcon: Icon(Icons.volunteer_activism),
+                    label: 'Actividades',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person_outline),
+                    activeIcon: Icon(Icons.person),
+                    label: 'Perfil',
+                  ),
+                ],
         ),
       ),
     );
@@ -680,5 +739,694 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  // ========== VISTAS FUNCIONARIO ==========
+
+  Widget _buildFuncionarioHomeView() {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 200,
+          floating: false,
+          pinned: true,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.orange.shade400, Colors.orange.shade600],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppStyles.spacingLarge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '¡Hola, $_userName!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: AppStyles.fontSizeHeader,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppStyles.spacingSmall),
+                      const Text(
+                        'Panel de Gestión de Organización',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: AppStyles.fontSizeBody,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(AppStyles.spacingLarge),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildFuncionarioStatsSection(),
+              const SizedBox(height: AppStyles.spacingLarge),
+              _buildFuncionarioQuickActionsSection(),
+              const SizedBox(height: AppStyles.spacingLarge),
+              _buildFuncionarioOrganizationInfo(),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFuncionarioStatsSection() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _loadFuncionarioStats(),
+      builder: (context, snapshot) {
+        final stats = snapshot.data ?? {
+          'proyectos': 0,
+          'inscripciones_pendientes': 0,
+        };
+        
+        return Row(
+          children: [
+            Expanded(
+              child: AppWidgets.gradientCard(
+                gradientColors: AppColors.gradientBlue,
+                child: Column(
+                  children: [
+                    AppWidgets.decorativeIcon(
+                      icon: Icons.folder,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: AppStyles.spacingSmall),
+                    Text(
+                      '${stats['proyectos']}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'Proyectos',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: AppStyles.fontSizeSmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: AppStyles.spacingMedium),
+            Expanded(
+              child: AppWidgets.gradientCard(
+                gradientColors: AppColors.gradientGreen,
+                child: Column(
+                  children: [
+                    AppWidgets.decorativeIcon(
+                      icon: Icons.person_add,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: AppStyles.spacingSmall),
+                    Text(
+                      '${stats['inscripciones_pendientes']}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'Pendientes',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: AppStyles.fontSizeSmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> _loadFuncionarioStats() async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      final dashboard = await funcionarioRepo.getDashboard();
+      
+      return {
+        'proyectos': dashboard['total_proyectos'] ?? 0,
+        'inscripciones_pendientes': dashboard['inscripciones_pendientes'] ?? 0,
+      };
+    } catch (e) {
+      print('Error cargando estadísticas: $e');
+      return {'proyectos': 0, 'inscripciones_pendientes': 0};
+    }
+  }
+
+  Widget _buildFuncionarioQuickActionsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Acciones Rápidas',
+          style: TextStyle(
+            fontSize: AppStyles.fontSizeTitle,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppStyles.spacingMedium),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppStyles.spacingMedium,
+          crossAxisSpacing: AppStyles.spacingMedium,
+          children: [
+            _buildActionCard(
+              icon: Icons.add_circle_outline,
+              title: 'Nuevo\nProyecto',
+              color: AppColors.iconBlue,
+              onTap: () {
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: 'Crear proyecto - Próximamente',
+                  isError: false,
+                );
+              },
+            ),
+            _buildActionCard(
+              icon: Icons.task_outlined,
+              title: 'Gestionar\nTareas',
+              color: AppColors.iconGreen,
+              onTap: () {
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: 'Gestión de tareas - Próximamente',
+                  isError: false,
+                );
+              },
+            ),
+            _buildActionCard(
+              icon: Icons.people_outline,
+              title: 'Ver\nInscripciones',
+              color: AppColors.iconAmber,
+              onTap: () {
+                setState(() => _currentIndex = 2);
+              },
+            ),
+            _buildActionCard(
+              icon: Icons.business_outlined,
+              title: 'Mi\nOrganización',
+              color: AppColors.iconRed,
+              onTap: () {
+                AppWidgets.showStyledSnackBar(
+                  context: context,
+                  message: 'Información de organización - Próximamente',
+                  isError: false,
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFuncionarioOrganizationInfo() {
+    return FutureBuilder<Organizacion?>(
+      future: _loadOrganizacion(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final organizacion = snapshot.data;
+        if (organizacion == null) {
+          return Container(
+            padding: const EdgeInsets.all(AppStyles.spacingLarge),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.business, size: 48, color: AppColors.textSecondary),
+                const SizedBox(height: AppStyles.spacingMedium),
+                const Text(
+                  'No tienes organización asignada',
+                  style: TextStyle(
+                    fontSize: AppStyles.fontSizeBody,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppStyles.spacingSmall),
+                TextButton(
+                  onPressed: () => Modular.to.pushNamed('/profile/create-organizacion'),
+                  child: const Text('Crear Organización'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return Container(
+          padding: const EdgeInsets.all(AppStyles.spacingLarge),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppStyles.spacingMedium),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppStyles.borderRadiusSmall),
+                    ),
+                    child: Icon(Icons.business, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: AppStyles.spacingMedium),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          organizacion.nombre.isNotEmpty 
+                              ? organizacion.nombre 
+                              : organizacion.razonSocial ?? 'Organización',
+                          style: const TextStyle(
+                            fontSize: AppStyles.fontSizeTitle,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (organizacion.email.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            organizacion.email,
+                            style: TextStyle(
+                              fontSize: AppStyles.fontSizeSmall,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<Organizacion?> _loadOrganizacion() async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      return await funcionarioRepo.getMiOrganizacion();
+    } catch (e) {
+      print('Error cargando organización: $e');
+      return null;
+    }
+  }
+
+  Widget _buildFuncionarioProyectosView() {
+    return FutureBuilder<List<Proyecto>>(
+      future: _loadProyectosOrganizacion(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final proyectos = snapshot.data ?? [];
+        
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Mis Proyectos'),
+              backgroundColor: AppColors.primary,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    AppWidgets.showStyledSnackBar(
+                      context: context,
+                      message: 'Crear proyecto - Próximamente',
+                      isError: false,
+                    );
+                  },
+                ),
+              ],
+            ),
+            if (proyectos.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(
+                  icon: Icons.folder_outlined,
+                  message: 'No tienes proyectos',
+                  subtitle: 'Crea tu primer proyecto para comenzar',
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(AppStyles.spacingLarge),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final proyecto = proyectos[index];
+                      return _buildProyectoCard(proyecto);
+                    },
+                    childCount: proyectos.length,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<List<Proyecto>> _loadProyectosOrganizacion() async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      // Los endpoints de funcionarios ya filtran automáticamente por organización
+      return await funcionarioRepo.getProyectos();
+    } catch (e) {
+      print('Error cargando proyectos: $e');
+      return [];
+    }
+  }
+
+  Widget _buildProyectoCard(Proyecto proyecto) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppStyles.spacingMedium),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(AppStyles.spacingMedium),
+        leading: Container(
+          padding: const EdgeInsets.all(AppStyles.spacingMedium),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppStyles.borderRadiusSmall),
+          ),
+          child: Icon(Icons.folder, color: AppColors.primary),
+        ),
+        title: Text(
+          proyecto.nombre,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                proyecto.objetivo!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: proyecto.estado == 'activo' 
+                    ? Colors.green.withOpacity(0.1)
+                    : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                proyecto.estado,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: proyecto.estado == 'activo' ? Colors.green : Colors.grey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        onTap: () {
+          AppWidgets.showStyledSnackBar(
+            context: context,
+            message: 'Detalle de proyecto - Próximamente',
+            isError: false,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFuncionarioInscripcionesView() {
+    return FutureBuilder<List<Inscripcion>>(
+      future: _loadInscripcionesOrganizacion(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final inscripciones = snapshot.data ?? [];
+        
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const Text('Inscripciones'),
+              backgroundColor: AppColors.primary,
+            ),
+            if (inscripciones.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(
+                  icon: Icons.person_add_outlined,
+                  message: 'No hay inscripciones',
+                  subtitle: 'Las solicitudes de voluntarios aparecerán aquí',
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(AppStyles.spacingLarge),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final inscripcion = inscripciones[index];
+                      return _buildInscripcionCard(inscripcion);
+                    },
+                    childCount: inscripciones.length,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<List<Inscripcion>> _loadInscripcionesOrganizacion() async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      // Los endpoints de funcionarios ya filtran automáticamente por organización
+      return await funcionarioRepo.getInscripciones();
+    } catch (e) {
+      print('Error cargando inscripciones: $e');
+      return [];
+    }
+  }
+
+  Widget _buildInscripcionCard(Inscripcion inscripcion) {
+    final usuario = inscripcion.usuario;
+    final nombreUsuario = usuario != null 
+        ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
+        : 'Usuario ${inscripcion.usuarioId}';
+    
+    final estadoColor = inscripcion.estado.toUpperCase() == 'APROBADO' 
+        ? Colors.green
+        : inscripcion.estado.toUpperCase() == 'RECHAZADO'
+            ? Colors.red
+            : Colors.orange;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppStyles.spacingMedium),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(AppStyles.spacingMedium),
+        leading: CircleAvatar(
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          child: Text(
+            nombreUsuario.isNotEmpty ? nombreUsuario[0].toUpperCase() : 'U',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(
+          nombreUsuario,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (usuario?['email'] != null) ...[
+              const SizedBox(height: 4),
+              Text(usuario!['email']),
+            ],
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: estadoColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                inscripcion.estado,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: estadoColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: inscripcion.estado.toUpperCase() == 'PENDIENTE'
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.check, color: Colors.green),
+                    onPressed: () => _aprobarInscripcion(inscripcion.idInscripcion),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    onPressed: () => _rechazarInscripcion(inscripcion.idInscripcion),
+                  ),
+                ],
+              )
+            : Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      ),
+    );
+  }
+
+  Future<void> _aprobarInscripcion(int id) async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      await funcionarioRepo.aprobarInscripcion(id);
+      if (mounted) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Inscripción aprobada exitosamente',
+          isError: false,
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: 'Error al aprobar inscripción: $e',
+          isError: true,
+        );
+      }
+    }
+  }
+
+  Future<void> _rechazarInscripcion(int id) async {
+    final motivoController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rechazar Inscripción'),
+        content: TextField(
+          controller: motivoController,
+          decoration: const InputDecoration(
+            labelText: 'Motivo del rechazo',
+            hintText: 'Ingresa el motivo...',
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rechazar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && motivoController.text.isNotEmpty) {
+      try {
+        final funcionarioRepo = Modular.get<FuncionarioRepository>();
+        await funcionarioRepo.rechazarInscripcion(id, motivoController.text);
+        if (mounted) {
+          AppWidgets.showStyledSnackBar(
+            context: context,
+            message: 'Inscripción rechazada',
+            isError: false,
+          );
+          setState(() {});
+        }
+      } catch (e) {
+        if (mounted) {
+          AppWidgets.showStyledSnackBar(
+            context: context,
+            message: 'Error al rechazar inscripción: $e',
+            isError: true,
+          );
+        }
+      }
+    }
   }
 }

@@ -8,6 +8,10 @@ import 'pages/usuarios_management_page.dart';
 import 'pages/roles_management_page.dart';
 import 'pages/permisos_management_page.dart';
 import 'pages/programas_management_page.dart';
+import 'pages/organizaciones_management_page.dart';
+import 'pages/proyectos_management_page.dart';
+import 'pages/tareas_management_page.dart';
+import 'pages/inscripciones_management_page.dart';
 
 class AdminModule extends Module {
   @override
@@ -19,7 +23,10 @@ class AdminModule extends Module {
   List<ModularRoute> get routes => [
         ChildRoute(
           '/',
-          child: (_, __) => const AdminDashboardPage(),
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const AdminDashboardPage(),
+          ),
         ),
         ChildRoute(
           '/usuarios',
@@ -54,6 +61,34 @@ class AdminModule extends Module {
           child: (_, __) => BlocProvider(
             create: (context) => AdminBloc(Modular.get<AdminRepository>()),
             child: const AptitudesManagementPage(),
+          ),
+        ),
+        ChildRoute(
+          '/organizaciones',
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const OrganizacionesManagementPage(),
+          ),
+        ),
+        ChildRoute(
+          '/proyectos',
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const ProyectosManagementPage(),
+          ),
+        ),
+        ChildRoute(
+          '/tareas',
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const TareasManagementPage(),
+          ),
+        ),
+        ChildRoute(
+          '/inscripciones',
+          child: (_, __) => BlocProvider(
+            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+            child: const InscripcionesManagementPage(),
           ),
         ),
       ];

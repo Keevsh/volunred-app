@@ -425,3 +425,330 @@ class DeleteCategoriaProyectoRequested extends AdminEvent {
   @override
   List<Object?> get props => [id];
 }
+
+// ==================== ORGANIZACIONES ====================
+
+class LoadOrganizacionesRequested extends AdminEvent {}
+
+class LoadOrganizacionByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadOrganizacionByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class CreateOrganizacionRequested extends AdminEvent {
+  final String nombreLegal;
+  final String? nombreCorto;
+  final String correo;
+  final String? telefono;
+  final String? direccion;
+  final String? ciudad;
+  final int? idCategoria;
+  final String? estado;
+
+  const CreateOrganizacionRequested({
+    required this.nombreLegal,
+    this.nombreCorto,
+    required this.correo,
+    this.telefono,
+    this.direccion,
+    this.ciudad,
+    this.idCategoria,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        nombreLegal,
+        nombreCorto,
+        correo,
+        telefono,
+        direccion,
+        ciudad,
+        idCategoria,
+        estado,
+      ];
+}
+
+class UpdateOrganizacionRequested extends AdminEvent {
+  final int id;
+  final String? nombreLegal;
+  final String? nombreCorto;
+  final String? correo;
+  final String? telefono;
+  final String? direccion;
+  final String? ciudad;
+  final int? idCategoria;
+  final String? estado;
+
+  const UpdateOrganizacionRequested({
+    required this.id,
+    this.nombreLegal,
+    this.nombreCorto,
+    this.correo,
+    this.telefono,
+    this.direccion,
+    this.ciudad,
+    this.idCategoria,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        nombreLegal,
+        nombreCorto,
+        correo,
+        telefono,
+        direccion,
+        ciudad,
+        idCategoria,
+        estado,
+      ];
+}
+
+class DeleteOrganizacionRequested extends AdminEvent {
+  final int id;
+
+  const DeleteOrganizacionRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== PROYECTOS ====================
+
+class LoadProyectosRequested extends AdminEvent {}
+
+class LoadProyectoByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadProyectoByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class CreateProyectoRequested extends AdminEvent {
+  final int categoriaProyectoId;
+  final int organizacionId;
+  final String nombre;
+  final String objetivo;
+  final String? ubicacion;
+  final DateTime? fechaInicio;
+  final DateTime? fechaFin;
+  final String? estado;
+
+  const CreateProyectoRequested({
+    required this.categoriaProyectoId,
+    required this.organizacionId,
+    required this.nombre,
+    required this.objetivo,
+    this.ubicacion,
+    this.fechaInicio,
+    this.fechaFin,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        categoriaProyectoId,
+        organizacionId,
+        nombre,
+        objetivo,
+        ubicacion,
+        fechaInicio,
+        fechaFin,
+        estado,
+      ];
+}
+
+class UpdateProyectoRequested extends AdminEvent {
+  final int id;
+  final int? categoriaProyectoId;
+  final int? organizacionId;
+  final String? nombre;
+  final String? objetivo;
+  final String? ubicacion;
+  final DateTime? fechaInicio;
+  final DateTime? fechaFin;
+  final String? estado;
+
+  const UpdateProyectoRequested({
+    required this.id,
+    this.categoriaProyectoId,
+    this.organizacionId,
+    this.nombre,
+    this.objetivo,
+    this.ubicacion,
+    this.fechaInicio,
+    this.fechaFin,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        categoriaProyectoId,
+        organizacionId,
+        nombre,
+        objetivo,
+        ubicacion,
+        fechaInicio,
+        fechaFin,
+        estado,
+      ];
+}
+
+class DeleteProyectoRequested extends AdminEvent {
+  final int id;
+
+  const DeleteProyectoRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== TAREAS ====================
+
+class LoadTareasRequested extends AdminEvent {}
+
+class LoadTareaByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadTareaByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class CreateTareaRequested extends AdminEvent {
+  final int proyectoId;
+  final String nombre;
+  final String? descripcion;
+  final String? prioridad;
+  final DateTime? fechaInicio;
+  final DateTime? fechaFin;
+  final String? estado;
+
+  const CreateTareaRequested({
+    required this.proyectoId,
+    required this.nombre,
+    this.descripcion,
+    this.prioridad,
+    this.fechaInicio,
+    this.fechaFin,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        proyectoId,
+        nombre,
+        descripcion,
+        prioridad,
+        fechaInicio,
+        fechaFin,
+        estado,
+      ];
+}
+
+class UpdateTareaRequested extends AdminEvent {
+  final int id;
+  final int? proyectoId;
+  final String? nombre;
+  final String? descripcion;
+  final String? prioridad;
+  final DateTime? fechaInicio;
+  final DateTime? fechaFin;
+  final String? estado;
+
+  const UpdateTareaRequested({
+    required this.id,
+    this.proyectoId,
+    this.nombre,
+    this.descripcion,
+    this.prioridad,
+    this.fechaInicio,
+    this.fechaFin,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        proyectoId,
+        nombre,
+        descripcion,
+        prioridad,
+        fechaInicio,
+        fechaFin,
+        estado,
+      ];
+}
+
+class DeleteTareaRequested extends AdminEvent {
+  final int id;
+
+  const DeleteTareaRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== INSCRIPCIONES ====================
+
+class LoadInscripcionesRequested extends AdminEvent {}
+
+class LoadInscripcionByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadInscripcionByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class CreateInscripcionRequested extends AdminEvent {
+  final int usuarioId;
+  final int organizacionId;
+  final DateTime? fechaRecepcion;
+  final String? estado;
+
+  const CreateInscripcionRequested({
+    required this.usuarioId,
+    required this.organizacionId,
+    this.fechaRecepcion,
+    this.estado,
+  });
+
+  @override
+  List<Object?> get props => [usuarioId, organizacionId, fechaRecepcion, estado];
+}
+
+class UpdateInscripcionRequested extends AdminEvent {
+  final int id;
+  final String? estado;
+  final String? motivoRechazo;
+
+  const UpdateInscripcionRequested({
+    required this.id,
+    this.estado,
+    this.motivoRechazo,
+  });
+
+  @override
+  List<Object?> get props => [id, estado, motivoRechazo];
+}
+
+class DeleteInscripcionRequested extends AdminEvent {
+  final int id;
+
+  const DeleteInscripcionRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}

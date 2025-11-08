@@ -32,6 +32,15 @@ class AuthRepository {
         jsonEncode(authResponse.usuario.toJson()),
       );
 
+      // Guardar perfiles si están disponibles
+      if (authResponse.perfilVoluntario != null) {
+        await StorageService.saveString(
+          ApiConfig.perfilVoluntarioKey,
+          jsonEncode(authResponse.perfilVoluntario!.toJson()),
+        );
+      }
+      // Nota: No hay storage key para perfilFuncionario aún, pero se puede agregar si es necesario
+
       return authResponse;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -46,6 +55,7 @@ class AuthRepository {
         data: request.toJson(),
       );
 
+      print('📥 Respuesta del login: ${response.data}');
       final authResponse = AuthResponse.fromJson(response.data);
 
       // Guardar token y usuario en storage
@@ -57,6 +67,19 @@ class AuthRepository {
         ApiConfig.usuarioKey,
         jsonEncode(authResponse.usuario.toJson()),
       );
+
+      // Guardar perfiles si están disponibles
+      if (authResponse.perfilVoluntario != null) {
+        print('💾 Guardando perfil de voluntario en storage');
+        await StorageService.saveString(
+          ApiConfig.perfilVoluntarioKey,
+          jsonEncode(authResponse.perfilVoluntario!.toJson()),
+        );
+      }
+      if (authResponse.perfilFuncionario != null) {
+        print('💾 Perfil de funcionario recibido: ${authResponse.perfilFuncionario!.idPerfilFuncionario}');
+        // Nota: No hay storage key para perfilFuncionario aún, pero se puede agregar si es necesario
+      }
 
       return authResponse;
     } on DioException catch (e) {

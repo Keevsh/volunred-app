@@ -4,6 +4,7 @@ import 'core/repositories/auth_repository.dart';
 import 'core/repositories/voluntario_repository.dart';
 import 'core/repositories/admin_repository.dart';
 import 'core/repositories/organizacion_repository.dart';
+import 'core/repositories/funcionario_repository.dart';
 import 'features/auth/auth_module.dart';
 import 'features/auth/pages/welcome_page.dart';
 import 'features/profile/profile_module.dart';
@@ -22,6 +23,7 @@ class AppModule extends Module {
         Bind.singleton((i) => VoluntarioRepository(i<DioClient>())),
         Bind.singleton((i) => AdminRepository(i<DioClient>())),
         Bind.singleton((i) => OrganizacionRepository(i<DioClient>())),
+        Bind.singleton((i) => FuncionarioRepository(i<DioClient>())),
       ];
 
   @override

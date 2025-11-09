@@ -1,29 +1,60 @@
 import 'package:equatable/equatable.dart';
 
+/// Modelo de Participación
+/// 
+/// Representa la relación entre un voluntario aprobado (inscripción) y un proyecto.
+/// Una participación asigna un voluntario a un proyecto con un rol específico.
+/// 
+/// Relaciones:
+/// - **Inscripción (N:1)**: Una participación pertenece a una inscripción aprobada.
+/// - **Proyecto (N:1)**: Una participación pertenece a un proyecto.
 class Participacion extends Equatable {
+  /// ID único de la participación
   final int idParticipacion;
-  final int perfilVolId;
+  
+  /// ID de la inscripción (voluntario aprobado) que participa
+  /// 
+  /// NOTA: La inscripción debe estar en estado APROBADO.
+  final int inscripcionId;
+  
+  /// ID del proyecto en el que participa
   final int proyectoId;
+  
+  /// Rol asignado al voluntario en el proyecto (opcional)
   final String? rolAsignado;
-  final int? horasComprometidasSemana;
+  
+  /// Horas comprometidas por semana (opcional)
+  final double? horasComprometidasSemana;
+  
+  /// Estado de la participación
+  /// Valores posibles: 'programada', 'en_progreso', 'completado', 'ausente'
   final String estado;
+  
+  /// Fecha de creación de la participación
   final DateTime creadoEn;
+  
+  /// Fecha de última actualización (opcional)
   final DateTime? actualizadoEn;
 
-  // Relaciones opcionales
-  final Map<String, dynamic>? perfilVoluntario;
+  // Relaciones opcionales (se incluyen cuando se hace join en la consulta)
+  
+  /// Datos de la inscripción (opcional, se incluye cuando se hace join)
+  /// Contiene información del usuario y la organización
+  final Map<String, dynamic>? inscripcion;
+  
+  /// Datos del proyecto (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? proyecto;
 
   const Participacion({
     required this.idParticipacion,
-    required this.perfilVolId,
+    required this.inscripcionId,
     required this.proyectoId,
     this.rolAsignado,
     this.horasComprometidasSemana,
     required this.estado,
     required this.creadoEn,
     this.actualizadoEn,
-    this.perfilVoluntario,
+    this.inscripcion,
     this.proyecto,
   });
 
@@ -65,17 +96,30 @@ class Participacion extends Equatable {
       }
     }
     
+    // Handle horas_comprometidas_semana - puede ser int o double
+    double? horasComprometidasSemana;
+    final horasValue = json['horas_comprometidas_semana'];
+    if (horasValue != null) {
+      if (horasValue is double) {
+        horasComprometidasSemana = horasValue;
+      } else if (horasValue is int) {
+        horasComprometidasSemana = horasValue.toDouble();
+      } else {
+        horasComprometidasSemana = double.tryParse(horasValue.toString());
+      }
+    }
+    
     return Participacion(
       idParticipacion: _getInt(json['id_participacion']) ?? 0,
-      perfilVolId: _getInt(json['perfil_vol_id']) ?? 0,
+      inscripcionId: _getInt(json['inscripcion_id']) ?? 0,
       proyectoId: _getInt(json['proyecto_id']) ?? 0,
       rolAsignado: _getString(json['rol_asignado']),
-      horasComprometidasSemana: _getInt(json['horas_comprometidas_semana']),
+      horasComprometidasSemana: horasComprometidasSemana,
       estado: _getString(json['estado']) ?? 'programada',
       creadoEn: creadoEn,
       actualizadoEn: actualizadoEn,
-      perfilVoluntario: json['perfilVoluntario'] is Map 
-          ? json['perfilVoluntario'] as Map<String, dynamic>? 
+      inscripcion: json['inscripcion'] is Map 
+          ? json['inscripcion'] as Map<String, dynamic>? 
           : null,
       proyecto: json['proyecto'] is Map 
           ? json['proyecto'] as Map<String, dynamic>? 
@@ -86,14 +130,14 @@ class Participacion extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id_participacion': idParticipacion,
-      'perfil_vol_id': perfilVolId,
+      'inscripcion_id': inscripcionId,
       'proyecto_id': proyectoId,
       if (rolAsignado != null) 'rol_asignado': rolAsignado,
       if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
       'estado': estado,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
-      if (perfilVoluntario != null) 'perfilVoluntario': perfilVoluntario,
+      if (inscripcion != null) 'inscripcion': inscripcion,
       if (proyecto != null) 'proyecto': proyecto,
     };
   }
@@ -101,7 +145,7 @@ class Participacion extends Equatable {
   @override
   List<Object?> get props => [
         idParticipacion,
-        perfilVolId,
+        inscripcionId,
         proyectoId,
         rolAsignado,
         horasComprometidasSemana,

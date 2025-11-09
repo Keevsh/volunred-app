@@ -1,22 +1,54 @@
 import 'package:equatable/equatable.dart';
 
+/// Modelo de Asignación de Tarea
+/// 
+/// Representa la asignación de una tarea específica a un voluntario aprobado.
+/// Permite asignar tareas individuales a voluntarios con información adicional.
+/// 
+/// Relaciones:
+/// - **Tarea (N:1)**: Una asignación pertenece a una tarea.
+/// - **Perfil Voluntario (N:1)**: Una asignación pertenece a un perfil de voluntario.
 class AsignacionTarea extends Equatable {
-  final int idAsignacionTarea;
+  /// ID único de la asignación
+  final int idAsignacion;
+  
+  /// ID de la tarea asignada
   final int tareaId;
+  
+  /// ID del perfil de voluntario al que se asigna la tarea
+  /// 
+  /// NOTA: El voluntario debe tener una inscripción APROBADA en la organización.
   final int perfilVolId;
+  
+  /// Título de la asignación (opcional)
   final String? titulo;
+  
+  /// Descripción de la asignación (opcional)
   final String? descripcion;
+  
+  /// Fecha de asignación (opcional)
   final DateTime? fechaAsignacion;
+  
+  /// Estado de la asignación
+  /// Valores posibles: 'activo', 'en_progreso', 'completada', 'cancelada'
   final String estado;
+  
+  /// Fecha de creación de la asignación
   final DateTime creadoEn;
+  
+  /// Fecha de última actualización (opcional)
   final DateTime? actualizadoEn;
 
-  // Relaciones opcionales
+  // Relaciones opcionales (se incluyen cuando se hace join en la consulta)
+  
+  /// Datos de la tarea (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? tarea;
+  
+  /// Datos del perfil de voluntario (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? perfilVoluntario;
 
   const AsignacionTarea({
-    required this.idAsignacionTarea,
+    required this.idAsignacion,
     required this.tareaId,
     required this.perfilVolId,
     this.titulo,
@@ -79,7 +111,7 @@ class AsignacionTarea extends Equatable {
     }
     
     return AsignacionTarea(
-      idAsignacionTarea: _getInt(json['id_asignacion_tarea']),
+      idAsignacion: _getInt(json['id_asignacion'] ?? json['id_asignacion_tarea']),
       tareaId: _getInt(json['tarea_id']),
       perfilVolId: _getInt(json['perfil_vol_id']),
       titulo: _getString(json['titulo']),
@@ -99,7 +131,7 @@ class AsignacionTarea extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
-      'id_asignacion_tarea': idAsignacionTarea,
+      'id_asignacion': idAsignacion,
       'tarea_id': tareaId,
       'perfil_vol_id': perfilVolId,
       if (titulo != null) 'titulo': titulo,
@@ -115,7 +147,7 @@ class AsignacionTarea extends Equatable {
 
   @override
   List<Object?> get props => [
-        idAsignacionTarea,
+        idAsignacion,
         tareaId,
         perfilVolId,
         titulo,

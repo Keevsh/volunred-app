@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
-import '../../../core/models/organizacion.dart';
+import '../../../core/models/categoria.dart';
 import '../../../core/theme/app_theme.dart';
 
 class CreateProyectoPage extends StatefulWidget {
@@ -19,10 +19,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
-  int? _categoriaId;
-  List<Map<String, dynamic>> _categorias = [];
+  List<int> _categoriasSeleccionadas = [];
+  List<Categoria> _categorias = [];
   bool _isLoading = false;
   bool _loadingCategorias = true;
+  String? _errorCategorias;
 
   @override
   void initState() {
@@ -40,8 +41,14 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
 
   Future<void> _loadCategorias() async {
     try {
+      setState(() {
+        _loadingCategorias = true;
+        _errorCategorias = null;
+      });
+      
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      final categorias = await funcionarioRepo.getCategoriasProyectos();
+      final categorias = await funcionarioRepo.getCategorias();
+      
       setState(() {
         _categorias = categorias;
         _loadingCategorias = false;
@@ -49,10 +56,15 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     } catch (e) {
       setState(() {
         _loadingCategorias = false;
+        _errorCategorias = 'Error cargando categorías: $e';
       });
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cargando categorías: $e')),
+          SnackBar(
+            content: Text(_errorCategorias!),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }
@@ -61,14 +73,16 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   Future<void> _selectDate(BuildContext context, bool isInicio) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _fechaInicio ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
+    
     if (picked != null) {
       setState(() {
         if (isInicio) {
           _fechaInicio = picked;
+          // Si la fecha de fin es anterior a la nueva fecha de inicio, resetearla
           if (_fechaFin != null && _fechaFin!.isBefore(picked)) {
             _fechaFin = null;
           }
@@ -79,14 +93,19 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     }
   }
 
+  void _toggleCategoria(int categoriaId) {
+    setState(() {
+      if (_categoriasSeleccionadas.contains(categoriaId)) {
+        _categoriasSeleccionadas.remove(categoriaId);
+      } else {
+        _categoriasSeleccionadas.add(categoriaId);
+      }
+    });
+  }
+
   Future<void> _handleCreate() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_categoriaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una categoría')),
-      );
-      return;
-    }
+    
     if (_fechaInicio == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor selecciona una fecha de inicio')),
@@ -102,7 +121,6 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       
       final data = {
-        'categoria_proyecto_id': _categoriaId,
         'nombre': _nombreController.text.trim(),
         'objetivo': _objetivoController.text.trim().isEmpty 
             ? null 
@@ -113,20 +131,28 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         'fecha_inicio': _fechaInicio!.toIso8601String().split('T')[0],
         if (_fechaFin != null) 'fecha_fin': _fechaFin!.toIso8601String().split('T')[0],
         'estado': 'activo',
+        if (_categoriasSeleccionadas.isNotEmpty) 
+          'categorias_ids': _categoriasSeleccionadas,
       };
 
       await funcionarioRepo.createProyecto(data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Proyecto creado exitosamente')),
+          SnackBar(
+            content: const Text('Proyecto creado exitosamente'),
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          ),
         );
         Modular.to.pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear proyecto: $e')),
+          SnackBar(
+            content: Text('Error al crear proyecto: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -146,6 +172,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Crear Proyecto'),
+        elevation: 0,
       ),
       body: _loadingCategorias
           ? const Center(child: CircularProgressIndicator())
@@ -156,43 +183,16 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Categoría
-                    DropdownButtonFormField<int>(
-                      value: _categoriaId,
-                      decoration: InputDecoration(
-                        labelText: 'Categoría *',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      items: _categorias.map((cat) {
-                        return DropdownMenuItem<int>(
-                          value: cat['id_categoria_proy'] as int,
-                          child: Text(cat['nombre'] as String),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _categoriaId = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Selecciona una categoría';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
                     // Nombre
                     TextFormField(
                       controller: _nombreController,
                       decoration: InputDecoration(
                         labelText: 'Nombre del Proyecto *',
+                        hintText: 'Ej: Reforestación Urbana 2025',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        prefixIcon: const Icon(Icons.title),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -208,9 +208,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                       controller: _objetivoController,
                       decoration: InputDecoration(
                         labelText: 'Objetivo',
+                        hintText: 'Descripción del objetivo del proyecto',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        prefixIcon: const Icon(Icons.description),
                       ),
                       maxLines: 3,
                     ),
@@ -221,9 +223,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                       controller: _ubicacionController,
                       decoration: InputDecoration(
                         labelText: 'Ubicación',
+                        hintText: 'Ej: Zona Sur, La Paz',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        prefixIcon: const Icon(Icons.location_on),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -237,7 +241,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          suffixIcon: const Icon(Icons.calendar_today),
+                          prefixIcon: const Icon(Icons.calendar_today),
                         ),
                         child: Text(
                           _fechaInicio != null
@@ -258,11 +262,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                       onTap: () => _selectDate(context, false),
                       child: InputDecorator(
                         decoration: InputDecoration(
-                          labelText: 'Fecha de Fin',
+                          labelText: 'Fecha de Fin (Opcional)',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          suffixIcon: const Icon(Icons.calendar_today),
+                          prefixIcon: const Icon(Icons.event),
                         ),
                         child: Text(
                           _fechaFin != null
@@ -276,6 +280,107 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Categorías
+                    Text(
+                      'Categorías (Opcional)',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Selecciona una o más categorías para clasificar tu proyecto',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    if (_errorCategorias != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorCategorias!,
+                                style: TextStyle(color: colorScheme.onErrorContainer),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _loadCategorias,
+                              child: const Text('Reintentar'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_categorias.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'No hay categorías disponibles',
+                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _categorias.map((categoria) {
+                          final isSelected = _categoriasSeleccionadas.contains(categoria.idCategoria);
+                          return FilterChip(
+                            selected: isSelected,
+                            label: Text(categoria.nombre),
+                            avatar: isSelected 
+                                ? Icon(
+                                    Icons.check_circle,
+                                    size: 18,
+                                    color: colorScheme.onPrimaryContainer,
+                                  )
+                                : null,
+                            onSelected: (_) => _toggleCategoria(categoria.idCategoria),
+                            selectedColor: colorScheme.primaryContainer,
+                            checkmarkColor: colorScheme.onPrimaryContainer,
+                            labelStyle: TextStyle(
+                              color: isSelected 
+                                  ? colorScheme.onPrimaryContainer
+                                  : colorScheme.onSurface,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    
+                    if (_categoriasSeleccionadas.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '${_categoriasSeleccionadas.length} categoría(s) seleccionada(s)',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 32),
 
                     // Botón crear
@@ -302,4 +407,3 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     );
   }
 }
-

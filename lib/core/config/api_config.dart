@@ -40,7 +40,8 @@ class ApiConfig {
 
   // Endpoints de categorías
   static const String categoriasOrganizaciones = '/configuracion/categorias-organizaciones';
-  static const String categoriasProyectos = '/informacion/categorias-proyectos';
+  static const String categoriasProyectos = '/informacion/categorias-proyectos'; // Legacy
+  static const String categorias = '/configuracion/categorias'; // Endpoint correcto para categorías de proyectos
   
   // Endpoints de organizaciones
   static const String organizaciones = '/configuracion/organizaciones';

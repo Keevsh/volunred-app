@@ -14,8 +14,11 @@ class Proyecto extends Equatable {
   /// ID único del proyecto
   final int idProyecto;
   
-  /// ID de la categoría del proyecto
-  final int categoriaProyectoId;
+  /// ID de la categoría del proyecto (legacy, mantener para compatibilidad)
+  /// 
+  /// NOTA: Los proyectos ahora pueden tener múltiples categorías.
+  /// Usar `categoriasProyectos` para obtener todas las categorías.
+  final int? categoriaProyectoId;
   
   /// ID de la organización a la que pertenece este proyecto
   /// 
@@ -60,10 +63,16 @@ class Proyecto extends Equatable {
   
   /// Lista de tareas del proyecto (opcional, se incluye cuando se hace join)
   final List<dynamic>? tareas;
+  
+  /// Lista de categorías del proyecto (opcional, se incluye cuando se hace join)
+  /// 
+  /// NOTA: Un proyecto puede tener múltiples categorías.
+  /// Al crear un proyecto, enviar `categorias_ids` como array de IDs.
+  final List<dynamic>? categoriasProyectos;
 
   const Proyecto({
     required this.idProyecto,
-    required this.categoriaProyectoId,
+    this.categoriaProyectoId,
     required this.organizacionId,
     required this.nombre,
     this.objetivo,
@@ -76,6 +85,7 @@ class Proyecto extends Equatable {
     this.categoriaProyecto,
     this.organizacion,
     this.tareas,
+    this.categoriasProyectos,
   });
 
   factory Proyecto.fromJson(Map<String, dynamic> json) {
@@ -139,9 +149,27 @@ class Proyecto extends Equatable {
         }
       }
       
+      // Manejar categoriasProyectos (puede venir como array)
+      List<dynamic>? categoriasProyectos;
+      if (json['categoriasProyectos'] != null && json['categoriasProyectos'] is List) {
+        categoriasProyectos = json['categoriasProyectos'] as List<dynamic>;
+      }
+      
+      // Obtener categoriaProyectoId si existe (legacy)
+      int? categoriaProyectoId;
+      if (json['categoria_proyecto_id'] != null) {
+        categoriaProyectoId = _getInt(json['categoria_proyecto_id']);
+      } else if (categoriasProyectos != null && categoriasProyectos.isNotEmpty) {
+        // Si hay categorías, usar la primera como fallback para compatibilidad
+        final primeraCategoria = categoriasProyectos.first;
+        if (primeraCategoria is Map) {
+          categoriaProyectoId = _getInt(primeraCategoria['categoria_id'] ?? primeraCategoria['id_categoria_proyecto']);
+        }
+      }
+      
       return Proyecto(
         idProyecto: _getInt(json['id_proyecto']),
-        categoriaProyectoId: _getInt(json['categoria_proyecto_id']),
+        categoriaProyectoId: categoriaProyectoId,
         organizacionId: _getInt(json['organizacion_id']),
         nombre: _getString(json['nombre']) ?? '',
         objetivo: _getString(json['objetivo']),
@@ -160,6 +188,7 @@ class Proyecto extends Equatable {
         tareas: json['tareas'] is List 
             ? json['tareas'] as List<dynamic>? 
             : null,
+        categoriasProyectos: categoriasProyectos,
       );
     } catch (e, stackTrace) {
       throw Exception('Error parsing Proyecto from JSON: $e\nJSON: $json\nStackTrace: $stackTrace');
@@ -169,7 +198,7 @@ class Proyecto extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id_proyecto': idProyecto,
-      'categoria_proyecto_id': categoriaProyectoId,
+      if (categoriaProyectoId != null) 'categoria_proyecto_id': categoriaProyectoId,
       'organizacion_id': organizacionId,
       'nombre': nombre,
       'objetivo': objetivo,
@@ -182,6 +211,7 @@ class Proyecto extends Equatable {
       if (categoriaProyecto != null) 'categoriaProyecto': categoriaProyecto,
       if (organizacion != null) 'organizacion': organizacion,
       if (tareas != null) 'tareas': tareas,
+      if (categoriasProyectos != null) 'categoriasProyectos': categoriasProyectos,
     };
   }
 

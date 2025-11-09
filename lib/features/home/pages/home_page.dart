@@ -9,6 +9,7 @@ import '../../../core/config/api_config.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
+import '../../../core/models/dashboard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -1157,9 +1158,9 @@ class _HomePageState extends State<HomePage> {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       final dashboard = await funcionarioRepo.getDashboard();
       return {
-        'proyectos': dashboard['total_proyectos'] ?? 0,
-        'inscripciones_pendientes': dashboard['inscripciones_pendientes'] ?? 0,
-        'voluntarios': 0,
+        'proyectos': dashboard.totalProyectos,
+        'inscripciones_pendientes': dashboard.inscripcionesPendientes,
+        'voluntarios': dashboard.totalParticipaciones,
       };
     } catch (e) {
       print('Error cargando estadísticas: $e');

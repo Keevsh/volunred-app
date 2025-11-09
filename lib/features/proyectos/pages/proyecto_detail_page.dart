@@ -139,6 +139,45 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                             const SizedBox(height: 24),
                           ],
 
+                          // Categorías
+                          if (_proyecto!.categoriasProyectos != null && 
+                              _proyecto!.categoriasProyectos!.isNotEmpty) ...[
+                            Text(
+                              'Categorías',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _proyecto!.categoriasProyectos!.map((catProy) {
+                                String categoriaNombre = 'Categoría';
+                                if (catProy is Map) {
+                                  if (catProy['categoria'] is Map) {
+                                    categoriaNombre = catProy['categoria']['nombre']?.toString() ?? 'Categoría';
+                                  } else {
+                                    categoriaNombre = catProy['nombre']?.toString() ?? 'Categoría';
+                                  }
+                                }
+                                return Chip(
+                                  label: Text(categoriaNombre),
+                                  avatar: Icon(
+                                    Icons.label,
+                                    size: 18,
+                                    color: colorScheme.primary,
+                                  ),
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  labelStyle: TextStyle(
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+
                           // Fechas
                           Row(
                             children: [

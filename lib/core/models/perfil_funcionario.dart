@@ -114,12 +114,15 @@ class PerfilFuncionario extends Equatable {
       // Obtener 'area' o 'departamento' (la API usa 'area')
       final areaValue = _getString(json['area']) ?? _getString(json['departamento']);
       
-      // Manejar estado: puede venir como string ('activo', 'inactivo') o como número (1, 0)
+      // Manejar estado: puede venir como string ('activo', 'inactivo'), boolean (true/false) o número (1, 0)
       String estadoValue = 'activo';
       final estadoJson = json['estado'];
       if (estadoJson != null) {
         if (estadoJson is String) {
           estadoValue = estadoJson;
+        } else if (estadoJson is bool) {
+          // Si es boolean, true = activo, false = inactivo
+          estadoValue = estadoJson ? 'activo' : 'inactivo';
         } else if (estadoJson is int) {
           // Si es número, 1 = activo, 0 = inactivo
           estadoValue = estadoJson == 1 ? 'activo' : 'inactivo';

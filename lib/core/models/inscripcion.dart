@@ -79,12 +79,16 @@ class Inscripcion extends Equatable {
         }
       }
       
+      // Manejar estado: normalizar a mayúsculas (PENDIENTE, APROBADO, RECHAZADO)
+      String estadoValue = _getString(json['estado']) ?? 'PENDIENTE';
+      estadoValue = estadoValue.toUpperCase();
+      
       return Inscripcion(
         idInscripcion: _getInt(json['id_inscripcion']),
         usuarioId: _getInt(json['usuario_id']),
         organizacionId: _getInt(json['organizacion_id']),
         fechaRecepcion: fechaRecepcion,
-        estado: _getString(json['estado']) ?? 'PENDIENTE',
+        estado: estadoValue,
         motivoRechazo: _getString(json['motivo_rechazo']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,

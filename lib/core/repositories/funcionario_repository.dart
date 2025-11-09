@@ -9,6 +9,8 @@ import '../models/asignacion_tarea.dart';
 import '../models/organizacion.dart';
 import '../models/perfil_funcionario.dart';
 import '../models/perfil_voluntario.dart';
+import '../models/dashboard.dart';
+import '../models/categoria.dart';
 import 'auth_repository.dart';
 import 'organizacion_repository.dart';
 
@@ -20,11 +22,13 @@ class FuncionarioRepository {
   // ==================== DASHBOARD ====================
 
   /// Obtener resumen del dashboard
-  Future<Map<String, dynamic>> getDashboard() async {
+  /// 
+  /// Retorna estadísticas generales: total de proyectos, tareas,
+  /// inscripciones pendientes y participaciones.
+  Future<Dashboard> getDashboard() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.funcionariosDashboard);
-      final data = response.data as Map<String, dynamic>;
-      return data['resumen'] as Map<String, dynamic>;
+      return Dashboard.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -243,12 +247,45 @@ class FuncionarioRepository {
   /// 
   /// Cuando se crea un proyecto, se establece la relación con la organización
   /// mediante el campo `organizacion_id` en la tabla `proyectos`.
+  /// 
+  /// Para asignar categorías al proyecto, enviar `categorias_ids` como array de números.
+  /// Ejemplo: `{'categorias_ids': [1, 2, 3]}`
+  /// 
+  /// NOTA: Si se envía `categoria_proyecto_id` (legacy), se convertirá a `categorias_ids`.
   Future<Proyecto> createProyecto(Map<String, dynamic> data) async {
     try {
       // Remover organizacion_id si existe, ya que se asigna automáticamente
       // desde el perfil del funcionario (la organización del funcionario)
       final cleanData = Map<String, dynamic>.from(data);
       cleanData.remove('organizacion_id');
+      
+      // Convertir categoria_proyecto_id legacy a categorias_ids si es necesario
+      if (cleanData.containsKey('categoria_proyecto_id') && 
+          !cleanData.containsKey('categorias_ids')) {
+        final categoriaId = cleanData.remove('categoria_proyecto_id');
+        if (categoriaId != null) {
+          cleanData['categorias_ids'] = [categoriaId];
+        }
+      }
+      
+      // Asegurar que categorias_ids sea un array de números
+      if (cleanData.containsKey('categorias_ids')) {
+        final categoriasIds = cleanData['categorias_ids'];
+        if (categoriasIds is List) {
+          cleanData['categorias_ids'] = categoriasIds
+              .map((id) => id is int ? id : int.tryParse(id.toString()))
+              .where((id) => id != null)
+              .toList();
+        } else if (categoriasIds != null) {
+          // Si es un solo número, convertirlo a array
+          final id = categoriasIds is int ? categoriasIds : int.tryParse(categoriasIds.toString());
+          if (id != null) {
+            cleanData['categorias_ids'] = [id];
+          } else {
+            cleanData.remove('categorias_ids');
+          }
+        }
+      }
       
       final response = await _dioClient.dio.post(
         ApiConfig.funcionariosProyectos,
@@ -261,11 +298,46 @@ class FuncionarioRepository {
   }
 
   /// Actualizar proyecto
+  /// 
+  /// Para actualizar las categorías del proyecto:
+  /// - Si se envía `categorias_ids`, se REEMPLAZAN todas las categorías existentes
+  /// - Si se envía `categorias_ids: []`, se eliminan todas las categorías
+  /// - Si NO se envía `categorias_ids`, las categorías existentes se mantienen
+  /// 
+  /// NOTA: No se puede cambiar el `organizacion_id` del proyecto.
   Future<Proyecto> updateProyecto(int id, Map<String, dynamic> data) async {
     try {
       // Remover organizacion_id si existe, no se puede cambiar
       final cleanData = Map<String, dynamic>.from(data);
       cleanData.remove('organizacion_id');
+      
+      // Convertir categoria_proyecto_id legacy a categorias_ids si es necesario
+      if (cleanData.containsKey('categoria_proyecto_id') && 
+          !cleanData.containsKey('categorias_ids')) {
+        final categoriaId = cleanData.remove('categoria_proyecto_id');
+        if (categoriaId != null) {
+          cleanData['categorias_ids'] = [categoriaId];
+        }
+      }
+      
+      // Asegurar que categorias_ids sea un array de números
+      if (cleanData.containsKey('categorias_ids')) {
+        final categoriasIds = cleanData['categorias_ids'];
+        if (categoriasIds is List) {
+          cleanData['categorias_ids'] = categoriasIds
+              .map((id) => id is int ? id : int.tryParse(id.toString()))
+              .where((id) => id != null)
+              .toList();
+        } else if (categoriasIds != null) {
+          // Si es un solo número, convertirlo a array
+          final id = categoriasIds is int ? categoriasIds : int.tryParse(categoriasIds.toString());
+          if (id != null) {
+            cleanData['categorias_ids'] = [id];
+          } else {
+            cleanData.remove('categorias_ids');
+          }
+        }
+      }
       
       final response = await _dioClient.dio.patch(
         ApiConfig.funcionariosProyecto(id),
@@ -653,14 +725,34 @@ class FuncionarioRepository {
 
   // ==================== CATEGORÍAS DE PROYECTOS ====================
 
-  /// Obtener categorías de proyectos
-  Future<List<Map<String, dynamic>>> getCategoriasProyectos() async {
+  /// Obtener todas las categorías disponibles
+  /// 
+  /// Retorna la lista de categorías que se pueden asignar a proyectos.
+  /// Las categorías permiten organizar y clasificar proyectos (relación Many-to-Many).
+  Future<List<Categoria>> getCategorias() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.categoriasProyectos);
+      final response = await _dioClient.dio.get(ApiConfig.categorias);
       final List<dynamic> data = response.data is List 
           ? response.data 
           : (response.data['categorias'] ?? []);
-      return data.map((item) => item as Map<String, dynamic>).toList();
+      return data.map((item) => Categoria.fromJson(item as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener categorías de proyectos (método legacy para compatibilidad)
+  /// 
+  /// @deprecated Usar getCategorias() en su lugar
+  Future<List<Map<String, dynamic>>> getCategoriasProyectos() async {
+    try {
+      final categorias = await getCategorias();
+      return categorias.map((categoria) => {
+        'id_categoria': categoria.idCategoria,
+        'nombre': categoria.nombre,
+        'descripcion': categoria.descripcion,
+        'id_categoria_proy': categoria.idCategoria, // Para compatibilidad con código antiguo
+      }).toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }

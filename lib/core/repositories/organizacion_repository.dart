@@ -10,8 +10,15 @@ class OrganizacionRepository {
   OrganizacionRepository(this._dioClient);
 
   // ==================== ORGANIZACIONES ====================
+  // NOTA: Relación 1:N con Proyectos
+  // Una organización puede tener muchos proyectos.
+  // Los proyectos se relacionan con la organización mediante `organizacion_id`.
 
   /// Obtener todas las organizaciones
+  /// 
+  /// NOTA: Cada organización puede tener muchos proyectos (relación 1:N).
+  /// Para obtener los proyectos de una organización específica,
+  /// consulta la tabla `proyectos` filtrando por `organizacion_id`.
   Future<List<Organizacion>> getOrganizaciones({
     int? page,
     int? limit,
@@ -36,6 +43,11 @@ class OrganizacionRepository {
   }
 
   /// Obtener organización por ID
+  /// 
+  /// NOTA: Una organización puede tener muchos proyectos.
+  /// Los proyectos no se incluyen directamente en este modelo,
+  /// pero puedes obtenerlos consultando la tabla `proyectos`
+  /// filtrando por `organizacion_id = id`.
   Future<Organizacion> getOrganizacionById(int id) async {
     try {
       final response = await _dioClient.dio.get('${ApiConfig.organizaciones}/$id');

@@ -1,13 +1,40 @@
 import 'package:equatable/equatable.dart';
 
+/// Modelo de Rol
+/// 
+/// Representa un rol en el sistema (Admin, Funcionario, Voluntario, etc.).
+/// 
+/// Los roles se relacionan con los programas (acciones) a través de la tabla intermedia `permisos`:
+/// - Un rol puede tener múltiples programas asignados (permisos)
+/// - Los programas son las acciones que el rol puede realizar
+/// - La relación se establece en la tabla `permisos` (id_rol, id_programa)
+/// 
+/// NOTA: La tabla `permisos` es la tabla intermedia entre `roles` y `programas`.
+/// NO existe una tabla `roles_permisos` - todo se maneja a través de `permisos`.
 class Rol extends Equatable {
+  /// ID único del rol
   final int idRol;
+  
+  /// Nombre del rol
   final String nombre;
+  
+  /// Descripción opcional del rol
   final String? descripcion;
+  
+  /// Estado del rol (activo/inactivo)
   final String estado;
+  
+  /// Fecha de creación del rol
   final DateTime? creadoEn;
+  
+  /// Lista de permisos (programas asignados) - opcional, se incluye cuando se hace join
+  /// Cada permiso representa un programa (acción) que el rol puede realizar
   final List<Map<String, dynamic>>? permisos;
+  
+  /// Cantidad de usuarios con este rol
   final int? cantidadUsuarios;
+  
+  /// Cantidad de permisos (programas) asignados a este rol
   final int? cantidadPermisos;
 
   const Rol({

@@ -214,13 +214,18 @@ class AdminRepository {
     }
   }
 
-  /// Obtener permisos de un rol
+  /// Obtener permisos de un rol (programas asignados al rol)
+  /// 
+  /// Consulta la tabla `permisos` para obtener todos los programas (acciones)
+  /// que tiene asignados un rol específico.
+  /// 
+  /// La tabla `permisos` es la tabla intermedia que relaciona roles con programas.
   Future<Map<String, dynamic>> getPermisosByRol(int idRol) async {
     try {
       // Primero obtener el rol
       final rol = await getRolById(idRol);
       
-      // Luego obtener los permisos
+      // Luego obtener los permisos (registros de la tabla permisos donde id_rol = idRol)
       final response = await _dioClient.dio.get(
         '${ApiConfig.adminRoles}/$idRol/permisos',
       );
@@ -258,8 +263,11 @@ class AdminRepository {
   }
 
   // ==================== PERMISOS ====================
+  // NOTA: La tabla `permisos` es la tabla intermedia entre `roles` y `programas`.
+  // Representa qué programas (acciones) tiene acceso cada rol.
+  // NO existe una tabla `roles_permisos` - todo se maneja a través de `permisos`.
 
-  /// Listar todos los permisos
+  /// Listar todos los permisos (relaciones rol-programa)
   Future<List<Permiso>> getPermisos() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.adminPermisos);
@@ -269,7 +277,12 @@ class AdminRepository {
     }
   }
 
-  /// Asignar programas a rol (crear permisos)
+  /// Asignar programas a rol (crear registros en la tabla permisos)
+  /// 
+  /// Cuando se asignan programas a un rol, se crean registros en la tabla `permisos`
+  /// que relacionan el rol con cada programa. Esto otorga al rol acceso a esas acciones.
+  /// 
+  /// La tabla `permisos` es la única tabla intermedia entre `roles` y `programas`.
   Future<Map<String, dynamic>> asignarPermisos(
       AsignarPermisosRequest request) async {
     try {
@@ -283,7 +296,10 @@ class AdminRepository {
     }
   }
 
-  /// Revocar permiso (eliminar)
+  /// Revocar permiso (eliminar registro de la tabla permisos)
+  /// 
+  /// Elimina un registro de la tabla `permisos`, revocando el acceso de un rol
+  /// a un programa específico.
   Future<void> deletePermiso(int id) async {
     try {
       await _dioClient.dio.delete('${ApiConfig.adminPermisos}/$id');
@@ -690,8 +706,15 @@ class AdminRepository {
   }
 
   // ==================== PROYECTOS ====================
+  // NOTA: Relación 1:N con Organización
+  // Una organización puede tener muchos proyectos.
+  // Los proyectos se relacionan con la organización mediante `organizacion_id`.
 
   /// Listar todos los proyectos
+  /// 
+  /// NOTA: Cada proyecto pertenece a una organización (relación 1:N).
+  /// Para obtener solo los proyectos de una organización específica,
+  /// filtra por `organizacionId`.
   Future<List<Proyecto>> getProyectos() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.proyectos);

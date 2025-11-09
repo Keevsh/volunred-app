@@ -153,9 +153,18 @@ class AsignarRolRequest {
   }
 }
 
-/// Asignar programas a rol (permisos)
+/// Asignar programas a rol (crear registros en la tabla permisos)
+/// 
+/// La tabla `permisos` es la tabla intermedia entre `roles` y `programas`.
+/// Cuando se asignan programas a un rol, se crean registros en `permisos`
+/// que relacionan el rol con cada programa, otorgando acceso a esas acciones.
+/// 
+/// NO existe una tabla `roles_permisos` - todo se maneja a través de `permisos`.
 class AsignarPermisosRequest {
+  /// ID del rol al que se le asignarán los programas
   final int idRol;
+  
+  /// Lista de IDs de programas (acciones) que se asignarán al rol
   final List<int> programas;
 
   AsignarPermisosRequest({

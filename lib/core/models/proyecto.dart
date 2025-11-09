@@ -1,21 +1,64 @@
 import 'package:equatable/equatable.dart';
 
+/// Modelo de Proyecto
+/// 
+/// Representa un proyecto en el sistema.
+/// 
+/// Relaciones:
+/// - **Organización (1:N)**: Un proyecto pertenece a una organización.
+///   Una organización puede tener muchos proyectos.
+///   La relación se establece mediante `organizacionId`.
+/// - **Categoría (N:1)**: Un proyecto pertenece a una categoría.
+/// - **Tareas (1:N)**: Un proyecto puede tener muchas tareas.
 class Proyecto extends Equatable {
+  /// ID único del proyecto
   final int idProyecto;
+  
+  /// ID de la categoría del proyecto
   final int categoriaProyectoId;
+  
+  /// ID de la organización a la que pertenece este proyecto
+  /// 
+  /// Relación 1:N: Una organización puede tener muchos proyectos,
+  /// pero un proyecto pertenece a una sola organización.
   final int organizacionId;
+  
+  /// Nombre del proyecto
   final String nombre;
+  
+  /// Objetivo del proyecto (opcional)
   final String? objetivo;
+  
+  /// Ubicación del proyecto (opcional)
   final String? ubicacion;
+  
+  /// Fecha de inicio del proyecto (opcional)
   final DateTime? fechaInicio;
+  
+  /// Fecha de finalización del proyecto (opcional)
   final DateTime? fechaFin;
+  
+  /// Estado del proyecto (activo/inactivo)
   final String estado;
+  
+  /// Fecha de creación del proyecto
   final DateTime creadoEn;
+  
+  /// Fecha de última actualización del proyecto (opcional)
   final DateTime? actualizadoEn;
 
-  // Relaciones opcionales
+  // Relaciones opcionales (se incluyen cuando se hace join en la consulta)
+  
+  /// Datos de la categoría del proyecto (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? categoriaProyecto;
+  
+  /// Datos de la organización a la que pertenece el proyecto (opcional, se incluye cuando se hace join)
+  /// 
+  /// NOTA: Una organización puede tener muchos proyectos.
+  /// La relación se establece mediante `organizacionId`.
   final Map<String, dynamic>? organizacion;
+  
+  /// Lista de tareas del proyecto (opcional, se incluye cuando se hace join)
   final List<dynamic>? tareas;
 
   const Proyecto({

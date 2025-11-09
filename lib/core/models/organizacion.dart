@@ -1,22 +1,67 @@
 import 'package:equatable/equatable.dart';
 
+/// Modelo de Organización
+/// 
+/// Representa una organización en el sistema.
+/// 
+/// Relaciones:
+/// - **Proyectos (1:N)**: Una organización puede tener muchos proyectos.
+///   Los proyectos se relacionan con la organización mediante `organizacion_id`.
+///   Para obtener los proyectos de una organización, consulta la tabla `proyectos`
+///   filtrando por `organizacion_id`.
+/// - **Categoría (N:1)**: Una organización pertenece a una categoría.
+/// - **Funcionarios (1:N)**: Una organización puede tener muchos funcionarios
+///   (a través de `perfiles_funcionarios`).
+/// - **Inscripciones (1:N)**: Una organización puede recibir muchas inscripciones
+///   de voluntarios (a través de `inscripciones`).
 class Organizacion extends Equatable {
+  /// ID único de la organización
   final int idOrganizacion;
+  
+  /// Nombre de la organización
   final String nombre;
+  
+  /// Descripción de la organización (opcional)
   final String? descripcion;
+  
+  /// Dirección de la organización (opcional)
   final String? direccion;
+  
+  /// Teléfono de la organización (opcional)
   final String? telefono;
+  
+  /// Email de la organización
   final String email;
+  
+  /// Sitio web de la organización (opcional)
   final String? sitioWeb;
+  
+  /// ID de la categoría de la organización
   final int idCategoriaOrganizacion;
+  
+  /// RUC de la organización (opcional)
   final String? ruc;
+  
+  /// Razón social de la organización (opcional)
   final String? razonSocial;
+  
+  /// Estado de la organización (activo/inactivo)
   final String estado;
+  
+  /// Fecha de creación de la organización
   final DateTime creadoEn;
+  
+  /// Fecha de última actualización de la organización (opcional)
   final DateTime? actualizadoEn;
   
-  // Relaciones opcionales
+  // Relaciones opcionales (se incluyen cuando se hace join en la consulta)
+  
+  /// Datos de la categoría de la organización (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? categoriaOrganizacion;
+  
+  // NOTA: Los proyectos de la organización no se incluyen directamente en este modelo
+  // porque es una relación 1:N. Para obtener los proyectos de una organización,
+  // consulta la tabla `proyectos` filtrando por `organizacion_id`.
 
   const Organizacion({
     required this.idOrganizacion,

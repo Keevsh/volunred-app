@@ -236,10 +236,17 @@ class FuncionarioRepository {
     }
   }
 
-  /// Crear proyecto (organizacion_id se asigna automáticamente)
+  /// Crear proyecto para la organización del funcionario
+  /// 
+  /// Relación 1:N: Una organización puede tener muchos proyectos.
+  /// El `organizacion_id` se asigna automáticamente desde el perfil del funcionario.
+  /// 
+  /// Cuando se crea un proyecto, se establece la relación con la organización
+  /// mediante el campo `organizacion_id` en la tabla `proyectos`.
   Future<Proyecto> createProyecto(Map<String, dynamic> data) async {
     try {
       // Remover organizacion_id si existe, ya que se asigna automáticamente
+      // desde el perfil del funcionario (la organización del funcionario)
       final cleanData = Map<String, dynamic>.from(data);
       cleanData.remove('organizacion_id');
       

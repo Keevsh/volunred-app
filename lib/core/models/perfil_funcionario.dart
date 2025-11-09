@@ -91,17 +91,25 @@ class PerfilFuncionario extends Equatable {
         throw Exception('id_perfil_funcionario cannot be 0');
       }
       
-      // Safely parse id_usuario
-      if (json['id_usuario'] == null) {
-        throw Exception('id_usuario is required but was null');
+      // Safely parse id_usuario (puede venir como id_usuario o usuario_id)
+      final idUsuarioValue = json['id_usuario'] ?? json['usuario_id'];
+      if (idUsuarioValue == null) {
+        throw Exception('id_usuario or usuario_id is required but was null');
       }
-      final idUsuario = _getInt(json['id_usuario']);
+      final idUsuario = _getInt(idUsuarioValue);
+      if (idUsuario == 0) {
+        throw Exception('id_usuario cannot be 0');
+      }
       
-      // Safely parse id_organizacion
-      if (json['id_organizacion'] == null) {
-        throw Exception('id_organizacion is required but was null');
+      // Safely parse id_organizacion (puede venir como id_organizacion o organizacion_id)
+      final idOrgValue = json['id_organizacion'] ?? json['organizacion_id'];
+      if (idOrgValue == null) {
+        throw Exception('id_organizacion or organizacion_id is required but was null');
       }
-      final idOrg = _getInt(json['id_organizacion']);
+      final idOrg = _getInt(idOrgValue);
+      if (idOrg == 0) {
+        throw Exception('id_organizacion cannot be 0');
+      }
       
       // Obtener 'area' o 'departamento' (la API usa 'area')
       final areaValue = _getString(json['area']) ?? _getString(json['departamento']);

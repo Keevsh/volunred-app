@@ -9,6 +9,8 @@ import '../models/asignacion_tarea.dart';
 import '../models/organizacion.dart';
 import '../models/perfil_funcionario.dart';
 import '../models/perfil_voluntario.dart';
+import 'auth_repository.dart';
+import 'organizacion_repository.dart';
 
 class FuncionarioRepository {
   final DioClient _dioClient;
@@ -31,12 +33,41 @@ class FuncionarioRepository {
   // ==================== MI ORGANIZACIÓN ====================
 
   /// Obtener información de mi organización
+  /// Primero intenta el endpoint específico, si falla, obtiene desde el perfil
   Future<Organizacion> getMiOrganizacion() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.funcionariosMiOrganizacion);
-      return Organizacion.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
+      // Intentar usar el endpoint específico primero
+      try {
+        final response = await _dioClient.dio.get(ApiConfig.funcionariosMiOrganizacion);
+        return Organizacion.fromJson(response.data as Map<String, dynamic>);
+      } on DioException catch (e) {
+        // Si el endpoint específico no existe (404), obtener desde el perfil
+        if (e.response?.statusCode == 404) {
+          print('⚠️ Endpoint específico de mi-organizacion no disponible (404), obteniendo desde perfil...');
+          
+          // Obtener el perfil del funcionario
+          final perfil = await getMiPerfil();
+          
+          // Si el perfil tiene la organización como objeto, usarla directamente
+          if (perfil.organizacion != null && perfil.organizacion is Map<String, dynamic>) {
+            try {
+              return Organizacion.fromJson(perfil.organizacion as Map<String, dynamic>);
+            } catch (e2) {
+              print('⚠️ Error parseando organización desde perfil: $e2');
+            }
+          }
+          
+          // Si no, obtener la organización por ID
+          final orgId = perfil.idOrganizacion;
+          final orgRepo = OrganizacionRepository(_dioClient);
+          return await orgRepo.getOrganizacionById(orgId);
+        }
+        // Si es otro error, re-lanzarlo
+        throw _handleError(e);
+      }
+    } catch (e) {
+      print('❌ Error en getMiOrganizacion: $e');
+      rethrow;
     }
   }
 
@@ -56,27 +87,142 @@ class FuncionarioRepository {
   // ==================== MI PERFIL ====================
 
   /// Obtener mi perfil completo
+  /// Intenta usar el endpoint específico, si no existe, obtiene el perfil por usuario_id
   Future<PerfilFuncionario> getMiPerfil() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.funcionariosMiPerfil);
-      return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
+      // Intentar usar el endpoint específico primero
+      try {
+        final response = await _dioClient.dio.get(ApiConfig.funcionariosMiPerfil);
+        return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
+      } on DioException catch (e) {
+        // Si el endpoint específico no existe (404), obtener desde el endpoint general
+        if (e.response?.statusCode == 404) {
+          print('⚠️ Endpoint específico /api/funcionarios/mi-perfil no disponible (404), obteniendo desde endpoint general...');
+          
+          // Obtener el usuario actual desde storage
+          try {
+            final authRepo = AuthRepository(_dioClient);
+            final usuario = await authRepo.getStoredUser();
+            
+            if (usuario != null) {
+              print('🔍 Buscando perfil para usuario_id: ${usuario.idUsuario}');
+              // Obtener el perfil por usuario_id usando el método del repositorio
+              final perfil = await getPerfilFuncionarioByUsuario(usuario.idUsuario);
+              if (perfil != null) {
+                print('✅ Perfil encontrado: ID=${perfil.idPerfilFuncionario}');
+                return perfil;
+              }
+            }
+            
+            // Si no encontramos por usuario_id, obtener todos y buscar
+            print('⚠️ No se encontró perfil por usuario_id, buscando en todos los perfiles...');
+            final response = await _dioClient.dio.get(ApiConfig.perfilesFuncionarios);
+            final List<dynamic> data = response.data is List 
+                ? response.data 
+                : [];
+            
+            // Buscar el perfil del usuario actual
+            if (usuario != null) {
+              for (var item in data) {
+                final perfil = PerfilFuncionario.fromJson(item as Map<String, dynamic>);
+                if (perfil.idUsuario == usuario.idUsuario) {
+                  print('✅ Perfil encontrado en lista: ID=${perfil.idPerfilFuncionario}');
+                  return perfil;
+                }
+              }
+            }
+            
+            // Si no encontramos, retornar el primero como fallback (temporal)
+            if (data.isNotEmpty) {
+              print('⚠️ Retornando primer perfil como fallback');
+              return PerfilFuncionario.fromJson(data.first as Map<String, dynamic>);
+            }
+            
+            throw Exception('No se encontró perfil de funcionario');
+          } catch (e2) {
+            print('❌ Error obteniendo perfil desde endpoint general: $e2');
+            throw Exception('No se pudo obtener el perfil de funcionario: $e2');
+          }
+        }
+        // Si es otro error, re-lanzarlo
+        throw _handleError(e);
+      }
+    } catch (e) {
+      print('❌ Error en getMiPerfil: $e');
+      rethrow;
     }
   }
 
   // ==================== PROYECTOS ====================
 
   /// Obtener todos los proyectos de mi organización
+  /// Usa el endpoint general de proyectos y filtra por organización del funcionario
   Future<List<Proyecto>> getProyectos() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.funcionariosProyectos);
-      final List<dynamic> data = response.data is List 
-          ? response.data 
-          : (response.data['proyectos'] ?? []);
-      return data.map((json) => Proyecto.fromJson(json as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
+      // Intentar usar el endpoint específico de funcionarios primero
+      try {
+        final response = await _dioClient.dio.get(ApiConfig.funcionariosProyectos);
+        final List<dynamic> data = response.data is List 
+            ? response.data 
+            : (response.data['proyectos'] ?? []);
+        return data.map((json) => Proyecto.fromJson(json as Map<String, dynamic>)).toList();
+      } on DioException catch (e) {
+        // Si el endpoint específico no existe (404), usar el endpoint general
+        if (e.response?.statusCode == 404) {
+          print('⚠️ Endpoint específico /api/funcionarios/proyectos no disponible (404), usando endpoint general /informacion/proyectos');
+          
+          // Obtener el organizacion_id del perfil del funcionario
+          int? organizacionId;
+          
+          try {
+            // Intentar obtener desde el perfil
+            final perfil = await getMiPerfil();
+            organizacionId = perfil.idOrganizacion;
+            print('✅ Organización ID obtenida desde perfil: $organizacionId');
+          } catch (e2) {
+            print('⚠️ No se pudo obtener perfil: $e2, intentando obtener organización directamente...');
+            try {
+              // Si no podemos obtener el perfil, intentar obtener la organización directamente
+              final org = await getMiOrganizacion();
+              organizacionId = org.idOrganizacion;
+              print('✅ Organización ID obtenida directamente: $organizacionId');
+            } catch (e3) {
+              print('❌ Error obteniendo organización: $e3');
+              // Si todo falla, retornar lista vacía
+              return [];
+            }
+          }
+          
+          // Si tenemos el organizacion_id, obtener todos los proyectos y filtrar
+          if (organizacionId != null) {
+            try {
+              final response = await _dioClient.dio.get(ApiConfig.proyectos);
+              final List<dynamic> data = response.data is List 
+                  ? response.data 
+                  : [];
+              
+              final proyectos = data
+                  .map((json) => Proyecto.fromJson(json as Map<String, dynamic>))
+                  .where((proyecto) => proyecto.organizacionId == organizacionId)
+                  .toList();
+              
+              print('✅ Proyectos encontrados para organización $organizacionId: ${proyectos.length}');
+              return proyectos;
+            } catch (e4) {
+              print('❌ Error obteniendo proyectos: $e4');
+              return [];
+            }
+          }
+          
+          return [];
+        }
+        // Si es otro error, re-lanzarlo
+        throw _handleError(e);
+      }
+    } catch (e) {
+      print('❌ Error en getProyectos: $e');
+      // Retornar lista vacía en caso de error para no romper la UI
+      return [];
     }
   }
 
@@ -446,6 +592,19 @@ class FuncionarioRepository {
       final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/$id');
       return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener perfil de funcionario por usuario_id
+  Future<PerfilFuncionario?> getPerfilFuncionarioByUsuario(int idUsuario) async {
+    try {
+      final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/$idUsuario');
+      return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null; // No tiene perfil de funcionario
+      }
       throw _handleError(e);
     }
   }

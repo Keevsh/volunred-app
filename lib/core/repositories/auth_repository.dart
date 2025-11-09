@@ -4,6 +4,7 @@ import '../config/api_config.dart';
 import '../models/dto/request_models.dart';
 import '../models/dto/response_models.dart';
 import '../models/usuario.dart';
+import '../models/perfil_funcionario.dart';
 import '../services/dio_client.dart';
 import '../services/storage_service.dart';
 
@@ -77,8 +78,29 @@ class AuthRepository {
         );
       }
       if (authResponse.perfilFuncionario != null) {
-        print('💾 Perfil de funcionario recibido: ${authResponse.perfilFuncionario!.idPerfilFuncionario}');
-        // Nota: No hay storage key para perfilFuncionario aún, pero se puede agregar si es necesario
+        print('💾 Guardando perfil de funcionario en storage: ${authResponse.perfilFuncionario!.idPerfilFuncionario}');
+        await StorageService.saveString(
+          ApiConfig.perfilFuncionarioKey,
+          jsonEncode(authResponse.perfilFuncionario!.toJson()),
+        );
+        await StorageService.saveString(
+          ApiConfig.tienePerfilFuncionarioKey,
+          'true',
+        );
+      } else if (authResponse.tienePerfilFuncionarioRaw) {
+        // Si el perfil existe en el backend pero no se pudo parsear, guardar el flag
+        print('💾 Perfil de funcionario existe en backend pero no se pudo parsear. Guardando flag.');
+        await StorageService.saveString(
+          ApiConfig.tienePerfilFuncionarioKey,
+          'true',
+        );
+      } else if (authResponse.esFuncionario) {
+        // Si es funcionario y no tiene perfil, guardar flag como false
+        print('💾 Funcionario sin perfil. Guardando flag.');
+        await StorageService.saveString(
+          ApiConfig.tienePerfilFuncionarioKey,
+          'false',
+        );
       }
 
       return authResponse;
@@ -115,6 +137,31 @@ class AuthRepository {
       return Usuario.fromJson(jsonDecode(userJson));
     }
     return null;
+  }
+
+  /// Obtener perfil de funcionario desde storage
+  Future<PerfilFuncionario?> getStoredPerfilFuncionario() async {
+    final perfilJson = await StorageService.getString(ApiConfig.perfilFuncionarioKey);
+    if (perfilJson != null) {
+      try {
+        return PerfilFuncionario.fromJson(jsonDecode(perfilJson));
+      } catch (e) {
+        print('⚠️ Error parseando perfilFuncionario desde storage: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Verificar si tiene perfil de funcionario (desde storage)
+  Future<bool> tienePerfilFuncionario() async {
+    final flag = await StorageService.getString(ApiConfig.tienePerfilFuncionarioKey);
+    if (flag != null) {
+      return flag == 'true';
+    }
+    // Si no hay flag, verificar si hay perfil guardado
+    final perfil = await getStoredPerfilFuncionario();
+    return perfil != null;
   }
 
   /// Manejo de errores

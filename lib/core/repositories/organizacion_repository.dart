@@ -158,7 +158,7 @@ class OrganizacionRepository {
   /// Obtener perfil de funcionario por usuario
   Future<PerfilFuncionario?> getPerfilFuncionarioByUsuario(int idUsuario) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/usuario/$idUsuario');
+      final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/$idUsuario');
       return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {

@@ -1,37 +1,55 @@
 import 'package:flutter/material.dart';
 
-/// Colores principales de la aplicación
+/// Colores principales de la aplicación - Estilo Red Social Moderno
 class AppColors {
-  // Colores primarios
-  static const Color primary = Color(0xFF0D4C3D);
-  static const Color primaryLight = Color(0xFF1A6B56);
-  static const Color primaryDark = Color(0xFF083329);
+  // Colores primarios - Más vibrantes y modernos
+  static const Color primary = Color(0xFF0066FF); // Azul moderno tipo Facebook/Instagram
+  static const Color primaryLight = Color(0xFF3399FF);
+  static const Color primaryDark = Color(0xFF0052CC);
   
-  // Gradientes principales
+  // Colores secundarios tipo red social
+  static const Color secondary = Color(0xFFFF0066); // Rosa/Magenta tipo Instagram
+  static const Color accent = Color(0xFF00CC99); // Verde/Teal moderno
+  
+  // Gradientes principales - Más vibrantes y modernos
   static const List<Color> gradientGreen = [
-    Color(0xFF4CAF50),
-    Color(0xFF81C784),
+    Color(0xFF00E676), // Verde brillante
+    Color(0xFF00C853),
   ];
   
   static const List<Color> gradientBlue = [
-    Color(0xFF42A5F5),
-    Color(0xFF64B5F6),
+    Color(0xFF0066FF), // Azul vibrante
+    Color(0xFF3399FF),
   ];
   
   static const List<Color> gradientOrange = [
-    Color(0xFFFF9800),
-    Color(0xFFFFB74D),
+    Color(0xFFFF6B35), // Naranja vibrante
+    Color(0xFFFF8C42),
   ];
   
   static const List<Color> gradientPurple = [
-    Color(0xFF9C27B0),
-    Color(0xFFBA68C8),
+    Color(0xFF9D4EDD), // Púrpura vibrante
+    Color(0xFFC77DFF),
   ];
   
-  // Gradiente principal de la app
+  static const List<Color> gradientPink = [
+    Color(0xFFFF0066), // Rosa vibrante
+    Color(0xFFFF3399),
+  ];
+  
+  // Gradiente principal de la app - Tipo Instagram/Facebook
   static const List<Color> primaryGradient = [
-    Color(0xFF0D4C3D),
-    Color(0xFF1A6B56),
+    Color(0xFF0066FF),
+    Color(0xFF00CC99),
+  ];
+  
+  // Gradientes para avatares (estilo Instagram Stories)
+  static const List<List<Color>> avatarGradients = [
+    [Color(0xFFFF0066), Color(0xFFFF3399)], // Rosa
+    [Color(0xFF0066FF), Color(0xFF3399FF)], // Azul
+    [Color(0xFF00E676), Color(0xFF00C853)], // Verde
+    [Color(0xFFFF6B35), Color(0xFFFF8C42)], // Naranja
+    [Color(0xFF9D4EDD), Color(0xFFC77DFF)], // Púrpura
   ];
   
   // Colores de fondo para cards
@@ -52,11 +70,17 @@ class AppColors {
   static const Color textSecondary = Color(0xFF757575);
   static const Color textLight = Color(0xFF9E9E9E);
   
-  // Colores de fondo
-  static const Color backgroundLight = Color(0xFFFAFAFA);
+  // Colores de fondo - Más limpios tipo red social
+  static const Color backgroundLight = Color(0xFFF8F9FA); // Fondo tipo Instagram
   static const Color backgroundWhite = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color cardBackground = Color(0xFFFAFAFA);
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  
+  // Colores para interacciones tipo red social
+  static const Color likeRed = Color(0xFFED4956); // Rojo tipo Instagram
+  static const Color commentBlue = Color(0xFF0066FF);
+  static const Color shareGreen = Color(0xFF00C853);
+  static const Color saveBlue = Color(0xFF2196F3);
   
   // Colores de información
   static const Color infoBackground = Color(0xFFE3F2FD);

@@ -116,7 +116,7 @@ class VoluntarioRepository {
   Future<PerfilVoluntario?> getPerfilByUsuario(int usuarioId) async {
     try {
       final response = await _dioClient.dio.get(
-        '${ApiConfig.perfilesVoluntarios}/usuario/$usuarioId',
+        '${ApiConfig.perfilesVoluntarios}/$usuarioId',
       );
       return PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

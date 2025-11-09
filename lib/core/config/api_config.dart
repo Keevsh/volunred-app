@@ -65,7 +65,7 @@ class ApiConfig {
   
   // ==================== ENDPOINTS ESPECÍFICOS DE FUNCIONARIOS ====================
   // Base path para endpoints de funcionarios (filtran automáticamente por organización)
-  static const String funcionariosBase = '/api/funcionarios';
+  static const String funcionariosBase = '/funcionarios';
   
   // Dashboard y Organización
   static const String funcionariosDashboard = '$funcionariosBase/dashboard';
@@ -106,4 +106,6 @@ class ApiConfig {
   static const String accessTokenKey = 'access_token';
   static const String usuarioKey = 'usuario';
   static const String perfilVoluntarioKey = 'perfil_voluntario';
+  static const String perfilFuncionarioKey = 'perfil_funcionario';
+  static const String tienePerfilFuncionarioKey = 'tiene_perfil_funcionario'; // Flag simple
 }

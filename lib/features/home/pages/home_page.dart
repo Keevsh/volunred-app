@@ -4,9 +4,12 @@ import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/organizacion_repository.dart';
 import '../../../core/services/profile_check_service.dart';
+import '../../../core/services/storage_service.dart';
+import '../../../core/config/api_config.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
+import '../../../core/widgets/social_components.dart';
 import '../../../core/theme/theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -44,18 +47,33 @@ class _HomePageState extends State<HomePage> {
       // Admin no necesita perfil, puede estar aquí
       if (!usuario.isAdmin) {
         try {
-          final profileRoute = await ProfileCheckService.checkProfile(usuario);
-          if (profileRoute != null && mounted) {
-            // El usuario no tiene el perfil requerido, redirigir a crear perfil
-            print('📋 Usuario en home pero no tiene perfil, redirigiendo a: $profileRoute');
-            Future.microtask(() {
-              Modular.to.navigate(profileRoute);
-            });
-            return;
+          // Primero verificar desde storage (más rápido y confiable)
+          if (usuario.isFuncionario) {
+            final tienePerfil = await authRepo.tienePerfilFuncionario();
+            if (!tienePerfil && mounted) {
+              print('📋 Funcionario en home pero no tiene perfil guardado, redirigiendo a crear organización');
+              Future.microtask(() {
+                Modular.to.navigate('/profile/create-organizacion');
+              });
+              return;
+            }
+          } else if (usuario.isVoluntario) {
+            // Para voluntarios, verificar desde storage también
+            final perfilVolJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+            if (perfilVolJson == null && mounted) {
+              print('📋 Voluntario en home pero no tiene perfil guardado, redirigiendo a crear perfil');
+              Future.microtask(() {
+                Modular.to.navigate('/profile/create');
+              });
+              return;
+            }
           }
+          
+          // Si llegamos aquí, el usuario tiene perfil o es admin
+          print('✅ Usuario tiene perfil o es admin, continuando en home');
         } catch (e) {
           print('❌ Error verificando perfil en home: $e');
-          // Continuar mostrando el home aunque haya error
+          // Continuar mostrando el home aunque haya error (mejor UX)
         }
       }
     }
@@ -181,66 +199,231 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ========== VISTA HOME ==========
+  // ========== VISTA HOME - ESTILO RED SOCIAL ==========
   Widget _buildHomeView() {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 200,
-          floating: false,
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppColors.primaryGradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppStyles.spacingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        '¡Hola, $_userName!',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: AppStyles.fontSizeHeader,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppStyles.spacingSmall),
-                      const Text(
-                        'Bienvenido a VolunRed',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: AppStyles.fontSizeBody,
-                        ),
-                      ),
-                    ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _loadUserData();
+        setState(() {});
+      },
+      child: CustomScrollView(
+        slivers: [
+          // AppBar estilo Instagram/Facebook
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            elevation: 0,
+            backgroundColor: AppColors.backgroundWhite,
+            title: Row(
+              children: [
+                Text(
+                  'VolunRed',
+                  style: const TextStyle(
+                    fontSize: AppStyles.fontSizeTitle,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
                   ),
                 ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.add_box_outlined, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.favorite_border, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send_outlined, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: AppColors.borderLight,
               ),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(AppStyles.spacingLarge),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildStatsSection(),
-              const SizedBox(height: AppStyles.spacingLarge),
-              _buildQuickActionsSection(),
-              const SizedBox(height: AppStyles.spacingLarge),
-              _buildRecentActivitiesSection(),
-            ]),
+          
+          // Sección de historias/stories
+          SliverToBoxAdapter(
+            child: SocialComponents.storiesSection(
+              stories: [
+                {
+                  'userName': 'Cruz Roja',
+                  'userAvatar': null,
+                  'isViewed': false,
+                  'onTap': () {},
+                },
+                {
+                  'userName': 'ONG Verde',
+                  'userAvatar': null,
+                  'isViewed': true,
+                  'onTap': () {},
+                },
+              ],
+              onAddStory: () {
+                // Crear nueva historia
+              },
+            ),
+          ),
+          
+          // Feed de actividades
+          SliverPadding(
+            padding: EdgeInsets.zero,
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildFeedItem(index);
+                },
+                childCount: 10, // Número de items en el feed
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildFeedItem(int index) {
+    // Simular diferentes tipos de contenido en el feed
+    if (index == 0) {
+      return _buildProjectFeedCard();
+    } else if (index == 1) {
+      return _buildActivityFeedCard();
+    } else {
+      return _buildGenericFeedCard(index);
+    }
+  }
+  
+  Widget _buildProjectFeedCard() {
+    return FutureBuilder<List<Proyecto>>(
+      future: _loadProyectosOrganizacion(),
+      builder: (context, proyectosSnapshot) {
+        if (proyectosSnapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+        }
+        
+        if (proyectosSnapshot.hasError || proyectosSnapshot.data == null || proyectosSnapshot.data!.isEmpty) {
+          return Container(
+            margin: const EdgeInsets.all(AppStyles.spacingMedium),
+            padding: const EdgeInsets.all(AppStyles.spacingLarge),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundWhite,
+              borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+            ),
+            child: Column(
+              children: [
+                SocialComponents.circleAvatar(name: 'VolunRed', size: 60),
+                const SizedBox(height: AppStyles.spacingMedium),
+                const Text(
+                  'Explora proyectos de voluntariado',
+                  style: TextStyle(
+                    fontSize: AppStyles.fontSizeBody,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppStyles.spacingSmall),
+                const Text(
+                  'Descubre nuevas oportunidades de ayudar',
+                  style: TextStyle(
+                    fontSize: AppStyles.fontSizeSmall,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        
+        final proyecto = proyectosSnapshot.data!.first;
+        
+        // Cargar la organización en paralelo
+        return FutureBuilder<Organizacion?>(
+          future: _loadOrganizacion(),
+          builder: (context, orgSnapshot) {
+            String orgName;
+            if (orgSnapshot.data != null) {
+              orgName = orgSnapshot.data!.nombre;
+            } else if (proyecto.organizacion != null && proyecto.organizacion is Map<String, dynamic>) {
+              final orgMap = proyecto.organizacion as Map<String, dynamic>;
+              orgName = orgMap['nombre']?.toString() ?? 'Organización';
+            } else {
+              orgName = 'Organización';
+            }
+            
+            return SocialComponents.projectPostCard(
+              projectName: proyecto.nombre,
+              organizationName: orgName,
+              organizationAvatar: null,
+              imageUrl: null,
+              description: proyecto.objetivo,
+              location: proyecto.ubicacion,
+              date: proyecto.fechaInicio != null 
+                  ? '${proyecto.fechaInicio!.day}/${proyecto.fechaInicio!.month}/${proyecto.fechaInicio!.year}'
+                  : null,
+              volunteersCount: 0,
+              onTap: () {},
+              onLike: () {},
+              onApply: () {
+                Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}');
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+  
+  Widget _buildActivityFeedCard() {
+    return SocialComponents.postCard(
+      userName: 'VolunRed',
+      userAvatar: null,
+      timeAgo: 'Hace 2 horas',
+      description: '🌟 ¡Nuevas oportunidades de voluntariado disponibles! Descubre proyectos increíbles y ayuda a hacer la diferencia en tu comunidad.',
+      likesCount: 24,
+      commentsCount: 5,
+      isLiked: false,
+      onLike: () {},
+      onComment: () {},
+      onShare: () {},
+      customContent: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-      ],
+        child: const Center(
+          child: Icon(
+            Icons.volunteer_activism,
+            size: 64,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildGenericFeedCard(int index) {
+    return SocialComponents.postCard(
+      userName: 'Organización ${index + 1}',
+      userAvatar: null,
+      timeAgo: 'Hace ${index + 1} horas',
+      description: 'Únete a nuestro proyecto de voluntariado y ayuda a crear un impacto positivo en la comunidad. Cada pequeño esfuerzo cuenta.',
+      likesCount: (index + 1) * 5,
+      commentsCount: index + 1,
+      isLiked: index % 2 == 0,
+      onLike: () {},
+      onComment: () {},
+      onShare: () {},
     );
   }
 
@@ -741,67 +924,275 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ========== VISTAS FUNCIONARIO ==========
+  // ========== VISTAS FUNCIONARIO - ESTILO RED SOCIAL ==========
 
   Widget _buildFuncionarioHomeView() {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 200,
-          floating: false,
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.orange.shade400, Colors.orange.shade600],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppStyles.spacingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        '¡Hola, $_userName!',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: AppStyles.fontSizeHeader,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppStyles.spacingSmall),
-                      const Text(
-                        'Panel de Gestión de Organización',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: AppStyles.fontSizeBody,
-                        ),
-                      ),
-                    ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _loadUserData();
+        setState(() {});
+      },
+      child: CustomScrollView(
+        slivers: [
+          // AppBar estilo Instagram/Facebook
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            elevation: 0,
+            backgroundColor: AppColors.backgroundWhite,
+            title: Row(
+              children: [
+                Text(
+                  'Mi Organización',
+                  style: const TextStyle(
+                    fontSize: AppStyles.fontSizeTitle,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
                   ),
                 ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.add_box_outlined, color: AppColors.textPrimary),
+                  onPressed: () {
+                    Modular.to.pushNamed('/proyectos/create');
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: AppColors.borderLight,
               ),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(AppStyles.spacingLarge),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildFuncionarioStatsSection(),
-              const SizedBox(height: AppStyles.spacingLarge),
-              _buildFuncionarioQuickActionsSection(),
-              const SizedBox(height: AppStyles.spacingLarge),
-              _buildFuncionarioOrganizationInfo(),
-            ]),
+          
+          // Información de organización tipo perfil
+          SliverToBoxAdapter(
+            child: _buildFuncionarioOrganizationCard(),
           ),
-        ),
-      ],
+          
+          // Sección de estadísticas tipo stories
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: AppStyles.spacingMedium),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundWhite,
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppColors.borderLight,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: _buildFuncionarioStatsSection(),
+            ),
+          ),
+          
+          // Feed de proyectos
+          SliverPadding(
+            padding: EdgeInsets.zero,
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildFuncionarioProjectFeedItem(index);
+                },
+                childCount: 10, // Ajustar según necesidad
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildFuncionarioOrganizationCard() {
+    return FutureBuilder<Organizacion?>(
+      future: _loadOrganizacion(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+        }
+        
+        if (snapshot.hasError || snapshot.data == null) {
+          return Container(
+            margin: const EdgeInsets.all(AppStyles.spacingMedium),
+            padding: const EdgeInsets.all(AppStyles.spacingLarge),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundWhite,
+              borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+            ),
+            child: Column(
+              children: [
+                SocialComponents.gradientAvatar(name: _userName, size: 80),
+                const SizedBox(height: AppStyles.spacingMedium),
+                const Text(
+                  'No tienes organización',
+                  style: TextStyle(
+                    fontSize: AppStyles.fontSizeBody,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppStyles.spacingSmall),
+                ElevatedButton(
+                  onPressed: () => Modular.to.pushNamed('/profile/create-organizacion'),
+                  child: const Text('Crear Organización'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        final org = snapshot.data!;
+        return Container(
+          margin: const EdgeInsets.all(AppStyles.spacingMedium),
+          padding: const EdgeInsets.all(AppStyles.spacingLarge),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundWhite,
+            borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+          ),
+          child: Column(
+            children: [
+              SocialComponents.gradientAvatar(
+                name: org.nombre,
+                size: 100,
+              ),
+              const SizedBox(height: AppStyles.spacingMedium),
+              Text(
+                org.nombre,
+                style: const TextStyle(
+                  fontSize: AppStyles.fontSizeTitle,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (org.email.isNotEmpty) ...[
+                const SizedBox(height: AppStyles.spacingSmall),
+                Text(
+                  org.email,
+                  style: const TextStyle(
+                    fontSize: AppStyles.fontSizeBody,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+              if (org.direccion != null && org.direccion!.isNotEmpty) ...[
+                const SizedBox(height: AppStyles.spacingSmall),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.location_on, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        org.direccion!,
+                        style: const TextStyle(
+                          fontSize: AppStyles.fontSizeSmall,
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildFuncionarioProjectFeedItem(int index) {
+    return FutureBuilder<List<Proyecto>>(
+      future: _loadProyectosOrganizacion(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && index == 0) {
+          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+        }
+        
+        if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+          if (index == 0) {
+            return Container(
+              margin: const EdgeInsets.all(AppStyles.spacingMedium),
+              padding: const EdgeInsets.all(AppStyles.spacingLarge),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundWhite,
+                borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.folder_outlined, size: 64, color: AppColors.textSecondary),
+                  const SizedBox(height: AppStyles.spacingMedium),
+                  const Text(
+                    'No tienes proyectos aún',
+                    style: TextStyle(
+                      fontSize: AppStyles.fontSizeBody,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: AppStyles.spacingSmall),
+                  ElevatedButton.icon(
+                    onPressed: () => Modular.to.pushNamed('/proyectos/create'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Crear Proyecto'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+        
+        if (index >= snapshot.data!.length) {
+          return const SizedBox.shrink();
+        }
+        
+        final proyecto = snapshot.data![index];
+        
+        // Cargar la organización para obtener el nombre
+        return FutureBuilder<Organizacion?>(
+          future: _loadOrganizacion(),
+          builder: (context, orgSnapshot) {
+            String orgName;
+            if (orgSnapshot.data != null) {
+              orgName = orgSnapshot.data!.nombre;
+            } else if (proyecto.organizacion != null && proyecto.organizacion is Map<String, dynamic>) {
+              final orgMap = proyecto.organizacion as Map<String, dynamic>;
+              orgName = orgMap['nombre']?.toString() ?? 'Mi Organización';
+            } else {
+              orgName = 'Mi Organización';
+            }
+            
+            return SocialComponents.projectPostCard(
+              projectName: proyecto.nombre,
+              organizationName: orgName,
+              organizationAvatar: null,
+              imageUrl: null,
+              description: proyecto.objetivo,
+              location: proyecto.ubicacion,
+              date: proyecto.fechaInicio != null 
+                  ? '${proyecto.fechaInicio!.day}/${proyecto.fechaInicio!.month}/${proyecto.fechaInicio!.year}'
+                  : null,
+              volunteersCount: 0,
+              onTap: () {
+                Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}');
+              },
+              onLike: () {},
+              onApply: () {
+                Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}');
+              },
+            );
+          },
+        );
+      },
     );
   }
 
@@ -812,72 +1203,81 @@ class _HomePageState extends State<HomePage> {
         final stats = snapshot.data ?? {
           'proyectos': 0,
           'inscripciones_pendientes': 0,
+          'voluntarios': 0,
         };
         
         return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
-              child: AppWidgets.gradientCard(
-                gradientColors: AppColors.gradientBlue,
-                child: Column(
-                  children: [
-                    AppWidgets.decorativeIcon(
-                      icon: Icons.folder,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: AppStyles.spacingSmall),
-                    Text(
-                      '${stats['proyectos']}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'Proyectos',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: AppStyles.fontSizeSmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildStatItemCompact(
+              count: '${stats['proyectos'] ?? 0}',
+              label: 'Proyectos',
+              icon: Icons.folder,
+              gradient: AppColors.gradientBlue,
             ),
-            const SizedBox(width: AppStyles.spacingMedium),
-            Expanded(
-              child: AppWidgets.gradientCard(
-                gradientColors: AppColors.gradientGreen,
-                child: Column(
-                  children: [
-                    AppWidgets.decorativeIcon(
-                      icon: Icons.person_add,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: AppStyles.spacingSmall),
-                    Text(
-                      '${stats['inscripciones_pendientes']}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'Pendientes',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: AppStyles.fontSizeSmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildStatItemCompact(
+              count: '${stats['inscripciones_pendientes'] ?? 0}',
+              label: 'Pendientes',
+              icon: Icons.person_add,
+              gradient: AppColors.gradientOrange,
+            ),
+            _buildStatItemCompact(
+              count: '${stats['voluntarios'] ?? 0}',
+              label: 'Voluntarios',
+              icon: Icons.people,
+              gradient: AppColors.gradientGreen,
             ),
           ],
         );
       },
+    );
+  }
+  
+  Widget _buildStatItemCompact({
+    required String count,
+    required String label,
+    required IconData icon,
+    required List<Color> gradient,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: gradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: gradient[0].withOpacity(0.3),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: Colors.white, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          count,
+          style: const TextStyle(
+            fontSize: AppStyles.fontSizeLarge,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: AppStyles.fontSizeSmall,
+            color: AppColors.textSecondary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -1132,11 +1532,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<Proyecto>> _loadProyectosOrganizacion() async {
     try {
-      final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      // Los endpoints de funcionarios ya filtran automáticamente por organización
-      return await funcionarioRepo.getProyectos();
+      // Si somos funcionarios, usar el repositorio de funcionarios
+      if (_isFuncionario) {
+        final funcionarioRepo = Modular.get<FuncionarioRepository>();
+        return await funcionarioRepo.getProyectos();
+      }
+      
+      // Si somos voluntarios, obtener proyectos de la organización a la que pertenecen
+      // (esto se implementará más adelante)
+      return [];
     } catch (e) {
       print('Error cargando proyectos: $e');
+      // En caso de error, retornar lista vacía para no romper la UI
       return [];
     }
   }

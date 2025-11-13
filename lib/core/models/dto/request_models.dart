@@ -61,19 +61,24 @@ class CreatePerfilVoluntarioRequest {
   final String? bio;
   final String? disponibilidad;
   final String estado;
+  final String? fotoPerfil;
 
   CreatePerfilVoluntarioRequest({
     required this.usuarioId,
     this.bio,
     this.disponibilidad,
     this.estado = 'activo',
+    this.fotoPerfil,
   });
 
   Map<String, dynamic> toJson() {
-    // El backend no espera estos campos en la creación
-    // El perfil se crea automáticamente o se actualiza después
-    // Por ahora, enviamos un body vacío o solo campos permitidos
-    return {};
+    return {
+      'usuario_id': usuarioId,
+      if (bio != null && bio!.isNotEmpty) 'bio': bio,
+      if (disponibilidad != null && disponibilidad!.isNotEmpty) 'disponibilidad': disponibilidad,
+      if (estado.isNotEmpty) 'estado': estado,
+      if (fotoPerfil != null && fotoPerfil!.isNotEmpty) 'foto_perfil': fotoPerfil,
+    };
   }
 }
 

@@ -24,6 +24,7 @@ class ApiConfig {
   // Endpoints de aptitudes
   static const String aptitudes = '/configuracion/aptitudes';
   static const String aptitudesVoluntario = '/configuracion/aptitudes-voluntario';
+  static String aptitudesVoluntarioByVoluntario(int perfilVolId) => '/configuracion/aptitudes-voluntario/voluntario/$perfilVolId';
 
   // Endpoints de experiencias
   static const String experienciasVoluntario = '/perfiles/experiencias-voluntario';
@@ -51,14 +52,23 @@ class ApiConfig {
   
   // Endpoints de información (proyectos, tareas, inscripciones, etc.)
   static const String proyectos = '/informacion/proyectos';
+  static String proyecto(int id) => '$proyectos/$id';
   static const String tareas = '/informacion/tareas';
+  static String tarea(int id) => '$tareas/$id';
   static const String inscripciones = '/informacion/inscripciones';
+  static String inscripcion(int id) => '$inscripciones/$id';
   static const String participaciones = '/informacion/participaciones';
+  static String participacion(int id) => '$participaciones/$id';
   static const String calificacionesProyectos = '/informacion/calificaciones-proyectos';
+  static String calificacionProyecto(int id) => '$calificacionesProyectos/$id';
   static const String asignacionesTareas = '/informacion/asignaciones-tareas';
+  static String asignacionTarea(int id) => '$asignacionesTareas/$id';
   static const String evidencias = '/informacion/evidencias';
   static const String archivosDigitales = '/informacion/archivos-digitales';
   static const String opiniones = '/informacion/opiniones';
+  static String opinion(int id) => '$opiniones/$id';
+  static String opinionesByProyecto(int proyectoId) => '$opiniones/proyecto/$proyectoId';
+  static String opinionesByVoluntario(int perfilVolId) => '$opiniones/voluntario/$perfilVolId';
   
   // Endpoints de bitácoras
   static const String bitacorasOperaciones = '/administracion/bitacoras-operaciones';

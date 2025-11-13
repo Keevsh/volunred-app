@@ -136,7 +136,7 @@ class AuthResponse {
       }
       
       // Solo redirigir si realmente no hay perfil en la respuesta
-      return '/profile/create-organizacion'; // Necesita crear organización/perfil
+      return '/profile/funcionario-options'; // Necesita elegir opción de organización
     }
 
     return null;

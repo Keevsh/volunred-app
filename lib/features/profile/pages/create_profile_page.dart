@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/models/dto/request_models.dart';
+import '../../../core/models/perfil_voluntario.dart';
 import '../../../core/repositories/auth_repository.dart';
+import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/image_utils.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -35,6 +40,11 @@ class _CreateProfilePageState extends State<CreateProfilePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  bool _isEditing = false;
+  PerfilVoluntario? _perfilExistente;
+  String? _fotoPerfilBase64;
+  final ImagePicker _imagePicker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +57,41 @@ class _CreateProfilePageState extends State<CreateProfilePage>
       curve: Curves.easeInOut,
     );
     _animationController.forward();
+    _loadPerfilExistente();
+  }
+
+  Future<void> _loadPerfilExistente() async {
+    try {
+      final voluntarioRepo = Modular.get<VoluntarioRepository>();
+      final authRepo = Modular.get<AuthRepository>();
+      final usuario = await authRepo.getStoredUser();
+      
+      if (usuario != null) {
+        final perfil = await voluntarioRepo.getPerfilByUsuario(usuario.idUsuario);
+        if (perfil != null) {
+          setState(() {
+            _perfilExistente = perfil;
+            _isEditing = true;
+            // Cargar datos existentes en los campos
+            _bioController.text = perfil.bio ?? '';
+            _fotoPerfilBase64 = perfil.fotoPerfil;
+            if (perfil.disponibilidad != null && perfil.disponibilidad!.isNotEmpty) {
+              // Intentar parsear la disponibilidad
+              final disponibilidadList = perfil.disponibilidad!.split(',').map((e) => e.trim()).toList();
+              for (var disp in disponibilidadList) {
+                if (_disponibilidadOptions.contains(disp)) {
+                  _selectedDisponibilidad.add(disp);
+                } else {
+                  _disponibilidadController.text = perfil.disponibilidad!;
+                }
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error cargando perfil existente: $e');
+    }
   }
 
   @override
@@ -77,14 +122,45 @@ class _CreateProfilePageState extends State<CreateProfilePage>
 
     print('📝 Disponibilidad final: $disponibilidad');
     print('📝 Bio: ${_bioController.text.trim()}');
+    print('📝 Modo: ${_isEditing ? "EDITANDO" : "CREANDO"}');
 
+    // Si estamos editando, actualizar el perfil
+    if (_isEditing && _perfilExistente != null) {
+      try {
+        final voluntarioRepo = Modular.get<VoluntarioRepository>();
+        final datosActualizacion = <String, dynamic>{
+          'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+          'disponibilidad': disponibilidad.isEmpty ? null : disponibilidad,
+          if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) 'foto_perfil': _fotoPerfilBase64,
+        };
+        
+        // Remover valores null
+        datosActualizacion.removeWhere((key, value) => value == null);
+        
+        await voluntarioRepo.updatePerfil(
+          _perfilExistente!.idPerfilVoluntario,
+          datosActualizacion,
+        );
+        
+        _showSnackBar('Perfil actualizado exitosamente', isError: false);
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Modular.to.pop();
+        });
+      } catch (e) {
+        _showSnackBar('Error al actualizar perfil: $e');
+      }
+      return;
+    }
+
+    // Si no estamos editando, crear nuevo perfil
     BlocProvider.of<ProfileBloc>(context).add(
       CreatePerfilRequested(
         CreatePerfilVoluntarioRequest(
           usuarioId: usuario.idUsuario,
-          bio: _bioController.text.trim(),
+          bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
           disponibilidad: disponibilidad.isEmpty ? null : disponibilidad,
           estado: 'activo',
+          fotoPerfil: _fotoPerfilBase64,
         ),
       ),
     );
@@ -181,21 +257,21 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Crear tu Perfil',
-                      style: TextStyle(
+                      _isEditing ? 'Editar tu Perfil' : 'Crear tu Perfil',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'Cuéntanos sobre ti',
-                      style: TextStyle(
+                      _isEditing ? 'Actualiza tu información' : 'Cuéntanos sobre ti',
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
@@ -254,6 +330,101 @@ class _CreateProfilePageState extends State<CreateProfilePage>
     );
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        try {
+          final base64 = await ImageUtils.convertXFileToBase64(image);
+          setState(() {
+            _fotoPerfilBase64 = base64;
+          });
+        } catch (e) {
+          _showSnackBar('Error al procesar la imagen: $e');
+        }
+      }
+    } catch (e) {
+      _showSnackBar('Error al seleccionar imagen: $e');
+    }
+  }
+
+  Widget _buildFotoPerfilSelector() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            '📷 Foto de Perfil',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Stack(
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFE5E5EA),
+                    width: 3,
+                  ),
+                ),
+                child: ClipOval(
+                  child: _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
+                      ? ImageBase64Widget(
+                          base64String: _fotoPerfilBase64!,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Color(0xFF86868B),
+                          ),
+                        ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF007AFF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    onPressed: _pickImage,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _pickImage,
+            child: const Text('Cambiar foto'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFormContent(bool isLoading, ColorScheme colorScheme) {
     return Form(
       key: _formKey,
@@ -262,6 +433,8 @@ class _CreateProfilePageState extends State<CreateProfilePage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildFotoPerfilSelector(),
+            const SizedBox(height: 32),
             const Text(
               '📝 Biografía',
               style: TextStyle(
@@ -399,11 +572,11 @@ class _CreateProfilePageState extends State<CreateProfilePage>
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: colorScheme.primary,
+                minimumSize: const Size(double.infinity, 50),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                minimumSize: const Size(double.infinity, 50),
               ),
               child: isLoading
                   ? const SizedBox(
@@ -414,12 +587,12 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Row(
+                  : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Continuar',
-                          style: TextStyle(
+                          _isEditing ? 'Actualizar Perfil' : 'Continuar',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

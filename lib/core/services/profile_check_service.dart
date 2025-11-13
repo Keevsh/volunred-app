@@ -44,13 +44,13 @@ class ProfileCheckService {
           print('✅ Usuario funcionario tiene perfil: ${perfil.idPerfilFuncionario}');
           return null; // Tiene perfil, puede ir al home
         } else {
-          print('⚠️ Usuario funcionario NO tiene perfil - necesita crear organización');
-          return '/profile/create-organizacion'; // Necesita crear organización
+          print('⚠️ Usuario funcionario NO tiene perfil - necesita configurar organización');
+          return '/profile/funcionario-options'; // Necesita elegir opción de organización
         }
       } catch (e) {
         print('❌ Error verificando perfil de funcionario: $e');
         // Si hay error, asumimos que no tiene perfil
-        return '/profile/create-organizacion';
+        return '/profile/funcionario-options';
       }
     }
 

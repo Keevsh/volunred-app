@@ -48,6 +48,9 @@ class Organizacion extends Equatable {
   /// Estado de la organización (activo/inactivo)
   final String estado;
   
+  /// Logo de la organización en formato base64 (opcional)
+  final String? logo;
+  
   /// Fecha de creación de la organización
   final DateTime creadoEn;
   
@@ -75,6 +78,7 @@ class Organizacion extends Equatable {
     this.ruc,
     this.razonSocial,
     required this.estado,
+    this.logo,
     required this.creadoEn,
     this.actualizadoEn,
     this.categoriaOrganizacion,
@@ -156,6 +160,7 @@ class Organizacion extends Equatable {
         ruc: _getString(json['ruc']),
         razonSocial: _getString(json['razon_social']) ?? _getString(json['nombre_legal']),
         estado: _getString(json['estado']) ?? 'activo',
+        logo: _getString(json['logo']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
         categoriaOrganizacion: json['categoria_organizacion'] is Map 
@@ -180,6 +185,7 @@ class Organizacion extends Equatable {
       if (ruc != null) 'ruc': ruc,
       if (razonSocial != null) 'razon_social': razonSocial,
       'estado': estado,
+      if (logo != null) 'logo': logo,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
       if (categoriaOrganizacion != null) 'categoria_organizacion': categoriaOrganizacion,
@@ -199,6 +205,7 @@ class Organizacion extends Equatable {
         ruc,
         razonSocial,
         estado,
+        logo,
         creadoEn,
         actualizadoEn,
       ];

@@ -12,6 +12,7 @@ import 'features/home/home_module.dart';
 import 'features/experiencias/experiencias_module.dart';
 import 'features/admin/admin_module.dart';
 import 'features/proyectos/proyectos_module.dart';
+import 'features/voluntario/voluntario_module.dart';
 
 class AppModule extends Module {
   @override
@@ -36,5 +37,6 @@ class AppModule extends Module {
         ModuleRoute('/experiencias', module: ExperienciasModule()),
         ModuleRoute('/admin', module: AdminModule()),
         ModuleRoute('/proyectos', module: ProyectosModule()),
+        ModuleRoute('/voluntario', module: VoluntarioModule()),
       ];
 }

@@ -860,12 +860,35 @@ class AdminRepository {
   /// Crear inscripción
   Future<Inscripcion> createInscripcion(Map<String, dynamic> data) async {
     try {
+      // Normalizar el estado a minúsculas si está presente (el backend espera: pendiente, aprobado, rechazado)
+      final normalizedData = Map<String, dynamic>.from(data);
+      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String).toLowerCase();
+      } else if (!normalizedData.containsKey('estado')) {
+        normalizedData['estado'] = 'pendiente';
+      }
+      
       final response = await _dioClient.dio.post(
         ApiConfig.inscripciones,
-        data: data,
+        data: normalizedData,
       );
       return Inscripcion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      // Proporcionar mensajes de error más descriptivos para errores 500
+      if (e.response?.statusCode == 500) {
+        final errorData = e.response?.data;
+        String errorMessage = 'Error del servidor al crear la inscripción';
+        
+        if (errorData is Map<String, dynamic>) {
+          if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'] as String;
+          } else if (errorData.containsKey('error')) {
+            errorMessage = errorData['error'] as String;
+          }
+        }
+        
+        throw Exception(errorMessage);
+      }
       throw _handleError(e);
     }
   }

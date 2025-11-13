@@ -3,6 +3,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/organizacion_repository.dart';
+import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/services/profile_check_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/config/api_config.dart';
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
             final tienePerfil = await authRepo.tienePerfilFuncionario();
             if (!tienePerfil && mounted) {
               Future.microtask(() {
-                Modular.to.navigate('/profile/create-organizacion');
+                Modular.to.navigate('/profile/funcionario-options');
               });
               return;
             }
@@ -180,28 +181,118 @@ class _HomePageState extends State<HomePage> {
           SliverAppBar(
             floating: true,
             pinned: true,
-            title: Text('VolunRed', style: theme.textTheme.titleLarge),
+            expandedHeight: 100,
+            backgroundColor: colorScheme.primary,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'VolunRed',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+            ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: () {},
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () {
+                  Modular.to.pushNamed('/voluntario/proyectos');
+                },
               ),
               IconButton(
-                icon: const Icon(Icons.favorite_outline),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.send_outlined),
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
                 onPressed: () {},
               ),
             ],
           ),
           
+          // Carrusel de Organizaciones
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Organizaciones',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Modular.to.pushNamed('/voluntario/organizaciones');
+                        },
+                        child: const Text('Ver todas'),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 140,
+                  child: FutureBuilder<List<Organizacion>>(
+                    future: _loadOrganizaciones(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      final organizaciones = snapshot.data!;
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: organizaciones.length,
+                        itemBuilder: (context, index) {
+                          final org = organizaciones[index];
+                          return _buildOrganizacionCarouselCard(org, theme, colorScheme);
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+          
+          // Título de Proyectos
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Proyectos Destacados',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Modular.to.pushNamed('/voluntario/proyectos');
+                    },
+                    child: const Text('Ver todos'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
           // Lista de proyectos
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: FutureBuilder<List<Proyecto>>(
-              future: _loadProyectosOrganizacion(),
+              future: _loadProyectosVoluntario(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SliverFillRemaining(
@@ -234,6 +325,13 @@ class _HomePageState extends State<HomePage> {
                               ),
                               textAlign: TextAlign.center,
                             ),
+                            const SizedBox(height: 16),
+                            FilledButton(
+                              onPressed: () {
+                                Modular.to.pushNamed('/voluntario/proyectos');
+                              },
+                              child: const Text('Ver Todos los Proyectos'),
+                            ),
                           ],
                         ),
                       ),
@@ -245,7 +343,10 @@ class _HomePageState extends State<HomePage> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final proyecto = snapshot.data![index];
-                      return _buildProyectoCard(proyecto, theme, colorScheme);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildProyectoCardWithImage(proyecto, theme, colorScheme),
+                      );
                     },
                     childCount: snapshot.data!.length,
                   ),
@@ -254,6 +355,249 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+  
+  // Tarjeta de organización para el carrusel
+  Widget _buildOrganizacionCarouselCard(Organizacion org, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: () {
+            Modular.to.pushNamed('/voluntario/organizaciones/${org.idOrganizacion}');
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagen placeholder
+              Container(
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Icon(
+                  Icons.business,
+                  size: 48,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+              // Información
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      org.nombre,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (org.descripcion != null && org.descripcion!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        org.descripcion!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  // Tarjeta de proyecto con imagen
+  Widget _buildProyectoCardWithImage(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+    // Obtener nombre de organización
+    String organizacionNombre = 'Organización';
+    if (proyecto.organizacion != null && proyecto.organizacion is Map) {
+      final orgMap = proyecto.organizacion as Map;
+      organizacionNombre = orgMap['nombre']?.toString() ?? 
+                          orgMap['nombre_legal']?.toString() ?? 
+                          orgMap['nombre_corto']?.toString() ?? 
+                          'Organización';
+    }
+    
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagen placeholder
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      Icons.volunteer_activism,
+                      size: 64,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  // Badge de categoría si existe
+                  if (proyecto.categoriasProyectos != null && proyecto.categoriasProyectos!.isNotEmpty)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          (() {
+                            if (proyecto.categoriasProyectos!.first is Map) {
+                              final m = proyecto.categoriasProyectos!.first as Map;
+                              return m['categoria']?['nombre']?.toString() ??
+                                     m['nombre']?.toString() ??
+                                     'Proyecto';
+                            }
+                            return 'Proyecto';
+                          })(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Contenido
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nombre del proyecto
+                  Text(
+                    proyecto.nombre,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  // Organización
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.business,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          organizacionNombre,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Objetivo
+                  if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
+                    Text(
+                      proyecto.objetivo!,
+                      style: theme.textTheme.bodyMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 12),
+                  // Info adicional
+                  Row(
+                    children: [
+                      if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
+                        Icon(Icons.location_on, size: 16, color: colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            proyecto.ubicacion!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      if (proyecto.fechaInicio != null) ...[
+                        Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${proyecto.fechaInicio!.day}/${proyecto.fechaInicio!.month}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Botón de acción
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
+                      icon: const Icon(Icons.arrow_forward, size: 18),
+                      label: const Text('Ver proyecto'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -340,7 +684,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   FilledButton.icon(
-                    onPressed: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+                    onPressed: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
                     icon: const Icon(Icons.arrow_forward, size: 18),
                     label: const Text('Ver proyecto'),
                     style: FilledButton.styleFrom(
@@ -988,42 +1332,85 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // ========== VISTA ACTIVIDADES ==========
+  // ========== VISTA ACTIVIDADES VOLUNTARIO ==========
   Widget _buildActivitiesView() {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Actividades'),
       ),
-      body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(24),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.explore_outlined,
-                  size: 64,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Explora actividades',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Próximamente',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Explorar Organizaciones
+          Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: colorScheme.primaryContainer,
+                child: Icon(Icons.business, color: colorScheme.onPrimaryContainer),
+              ),
+              title: const Text('Explorar Organizaciones'),
+              subtitle: const Text('Descubre organizaciones y únete'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Modular.to.pushNamed('/voluntario/organizaciones');
+              },
             ),
           ),
-        ),
+          const SizedBox(height: 12),
+          
+          // Explorar Proyectos
+          Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: colorScheme.secondaryContainer,
+                child: Icon(Icons.work_outline, color: colorScheme.onSecondaryContainer),
+              ),
+              title: const Text('Explorar Proyectos'),
+              subtitle: const Text('Encuentra proyectos de voluntariado'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Modular.to.pushNamed('/voluntario/proyectos');
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Mis Participaciones
+          Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: colorScheme.tertiaryContainer,
+                child: Icon(Icons.handshake_outlined, color: colorScheme.onTertiaryContainer),
+              ),
+              title: const Text('Mis Participaciones'),
+              subtitle: const Text('Ver proyectos en los que participas'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Modular.to.pushNamed('/voluntario/participaciones');
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Experiencias
+          Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: colorScheme.primaryContainer,
+                child: Icon(Icons.history_edu, color: colorScheme.onPrimaryContainer),
+              ),
+              title: const Text('Mis Experiencias'),
+              subtitle: const Text('Gestiona tus experiencias de voluntariado'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Modular.to.pushNamed('/experiencias');
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1139,6 +1526,36 @@ class _HomePageState extends State<HomePage> {
       return [];
     } catch (e) {
       print('Error cargando proyectos: $e');
+      return [];
+    }
+  }
+
+  Future<List<Proyecto>> _loadProyectosVoluntario() async {
+    try {
+      if (!_isFuncionario && !_isAdmin) {
+        final voluntarioRepo = Modular.get<VoluntarioRepository>();
+        final proyectos = await voluntarioRepo.getProyectos();
+        // Mostrar solo los primeros 6 proyectos
+        return proyectos.take(6).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error cargando proyectos: $e');
+      return [];
+    }
+  }
+  
+  Future<List<Organizacion>> _loadOrganizaciones() async {
+    try {
+      if (!_isFuncionario && !_isAdmin) {
+        final voluntarioRepo = Modular.get<VoluntarioRepository>();
+        final organizaciones = await voluntarioRepo.getOrganizaciones();
+        // Mostrar solo las primeras 10 organizaciones para el carrusel
+        return organizaciones.take(10).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error cargando organizaciones: $e');
       return [];
     }
   }

@@ -9,6 +9,7 @@ class PerfilFuncionario extends Equatable {
   final String? departamento; // Mantenido para compatibilidad
   final DateTime? fechaIngreso; // Campo requerido por la API
   final String estado;
+  final String? fotoPerfil; // Foto de perfil en formato base64
   final DateTime creadoEn;
   final DateTime? actualizadoEn;
   
@@ -25,6 +26,7 @@ class PerfilFuncionario extends Equatable {
     this.departamento,
     this.fechaIngreso,
     required this.estado,
+    this.fotoPerfil,
     required this.creadoEn,
     this.actualizadoEn,
     this.usuario,
@@ -140,6 +142,7 @@ class PerfilFuncionario extends Equatable {
         departamento: _getString(json['departamento']), // Mantenido para compatibilidad
         fechaIngreso: fechaIngreso,
         estado: estadoValue,
+        fotoPerfil: _getString(json['foto_perfil']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
         usuario: json['usuario'] is Map 
@@ -164,6 +167,7 @@ class PerfilFuncionario extends Equatable {
       if (departamento != null && area == null) 'departamento': departamento, // Solo si no hay 'area'
       if (fechaIngreso != null) 'fecha_ingreso': fechaIngreso!.toIso8601String().split('T')[0], // Formato YYYY-MM-DD
       'estado': estado,
+      if (fotoPerfil != null) 'foto_perfil': fotoPerfil,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
       if (usuario != null) 'usuario': usuario,
@@ -181,6 +185,7 @@ class PerfilFuncionario extends Equatable {
         departamento,
         fechaIngreso,
         estado,
+        fotoPerfil,
         creadoEn,
         actualizadoEn,
       ];

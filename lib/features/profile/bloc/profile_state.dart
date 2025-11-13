@@ -15,11 +15,12 @@ class ProfileLoading extends ProfileState {}
 
 class AptitudesLoaded extends ProfileState {
   final List<Aptitud> aptitudes;
+  final List<Aptitud> aptitudesAsignadas;
 
-  const AptitudesLoaded(this.aptitudes);
+  const AptitudesLoaded(this.aptitudes, {this.aptitudesAsignadas = const []});
 
   @override
-  List<Object?> get props => [aptitudes];
+  List<Object?> get props => [aptitudes, aptitudesAsignadas];
 }
 
 class PerfilCreated extends ProfileState {

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:volunred_app/core/models/aptitud.dart';
 import '../../../core/repositories/voluntario_repository.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
@@ -19,8 +20,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(ProfileLoading());
 
     try {
+      // Cargar todas las aptitudes disponibles
       final aptitudes = await voluntarioRepository.getAptitudes();
-      emit(AptitudesLoaded(aptitudes));
+      
+      // Si hay un perfilVolId, cargar también las aptitudes ya asignadas
+      List<Aptitud> aptitudesAsignadas = [];
+      if (event.perfilVolId != null) {
+        try {
+          aptitudesAsignadas = await voluntarioRepository.getAptitudesByVoluntario(event.perfilVolId!);
+        } catch (e) {
+          // Si hay error al obtener las aptitudes asignadas, continuar sin ellas
+          print('⚠️ No se pudieron cargar las aptitudes asignadas: $e');
+        }
+      }
+      
+      emit(AptitudesLoaded(aptitudes, aptitudesAsignadas: aptitudesAsignadas));
     } catch (e) {
       emit(ProfileError(e.toString()));
     }

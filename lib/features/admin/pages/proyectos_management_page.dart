@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/organizacion.dart';
+import '../../../core/utils/image_utils.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -377,6 +380,8 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     int? selectedCategoriaId;
     int? selectedOrganizacionId;
     String? selectedEstado = 'activo';
+    String? imagenBase64;
+    final ImagePicker _imagePicker = ImagePicker();
 
     final bloc = context.read<AdminBloc>();
     showDialog(
@@ -560,6 +565,13 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                           ],
                           onChanged: (value) => setDialogState(() => selectedEstado = value),
                         ),
+                        const SizedBox(height: 16),
+                        _buildImageSelector(
+                          context,
+                          imagenBase64,
+                          (image) => setDialogState(() => imagenBase64 = image),
+                          _imagePicker,
+                        ),
                       ],
                     ),
                   ),
@@ -586,6 +598,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                                   fechaInicio: fechaInicio,
                                   fechaFin: fechaFin,
                                   estado: selectedEstado,
+                                  imagen: imagenBase64,
                                 ),
                               );
                           Navigator.pop(dialogContext);
@@ -840,6 +853,110 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildImageSelector(
+    BuildContext context,
+    String? imagenBase64,
+    Function(String?) onImageSelected,
+    ImagePicker imagePicker,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Imagen del Proyecto (opcional)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            try {
+              final XFile? image = await imagePicker.pickImage(
+                source: ImageSource.gallery,
+                maxWidth: 1024,
+                maxHeight: 1024,
+                imageQuality: 85,
+              );
+
+              if (image != null) {
+                try {
+                  final base64 = await ImageUtils.convertXFileToBase64(image);
+                  onImageSelected(base64);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al procesar la imagen: $e')),
+                    );
+                  }
+                }
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al seleccionar imagen: $e')),
+                );
+              }
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            height: 150,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFE5E5EA),
+                width: 1,
+              ),
+            ),
+            child: imagenBase64 != null && imagenBase64.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: ImageBase64Widget(
+                      base64String: imagenBase64,
+                      width: double.infinity,
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Agregar imagen',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        if (imagenBase64 != null && imagenBase64.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: TextButton.icon(
+              onPressed: () => onImageSelected(null),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('Eliminar imagen'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+            ),
+          ),
+      ],
     );
   }
 

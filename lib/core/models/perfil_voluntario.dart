@@ -6,6 +6,7 @@ class PerfilVoluntario extends Equatable {
   final String? disponibilidad;
   final String estado;
   final int usuarioId;
+  final String? fotoPerfil; // Foto de perfil en formato base64
   final DateTime? creadoEn;
   
   // Campos adicionales que pueden venir en las respuestas
@@ -19,6 +20,7 @@ class PerfilVoluntario extends Equatable {
     this.disponibilidad,
     required this.estado,
     required this.usuarioId,
+    this.fotoPerfil,
     this.creadoEn,
     this.usuario,
     this.organizacion,
@@ -36,14 +38,43 @@ class PerfilVoluntario extends Equatable {
       }
     }
 
+    // Manejar estado que puede venir como String, int, o bool
+    String estadoValue = 'activo';
+    final estadoJson = json['estado'];
+    if (estadoJson != null) {
+      if (estadoJson is String) {
+        estadoValue = estadoJson;
+      } else if (estadoJson is int) {
+        // 1 = activo, 0 = inactivo
+        estadoValue = estadoJson == 1 ? 'activo' : 'inactivo';
+      } else if (estadoJson is bool) {
+        estadoValue = estadoJson ? 'activo' : 'inactivo';
+      }
+    }
+
+    // Manejar bio que puede ser null o String
+    String? bioValue;
+    if (json['bio'] != null) {
+      if (json['bio'] is String) {
+        bioValue = json['bio'] as String;
+      } else {
+        bioValue = json['bio'].toString();
+      }
+    }
+
     return PerfilVoluntario(
-      idPerfilVoluntario: json['id_perfil_voluntario'] as int,
-      bio: json['bio'] as String?,
+      idPerfilVoluntario: json['id_perfil_voluntario'] is int
+          ? json['id_perfil_voluntario'] as int
+          : int.tryParse(json['id_perfil_voluntario'].toString()) ?? 0,
+      bio: bioValue,
       disponibilidad: disponibilidadValue,
-      estado: json['estado'] as String? ?? 'activo',
-      usuarioId: json['usuario_id'] as int,
+      estado: estadoValue,
+      usuarioId: json['usuario_id'] is int
+          ? json['usuario_id'] as int
+          : int.tryParse(json['usuario_id'].toString()) ?? 0,
+      fotoPerfil: json['foto_perfil'] != null ? json['foto_perfil'].toString() : null,
       creadoEn: json['creado_en'] != null
-          ? DateTime.parse(json['creado_en'] as String)
+          ? DateTime.tryParse(json['creado_en'].toString())
           : null,
       usuario: json['usuario'] is Map 
           ? json['usuario'] as Map<String, dynamic>? 
@@ -64,6 +95,7 @@ class PerfilVoluntario extends Equatable {
       'disponibilidad': disponibilidad,
       'estado': estado,
       'usuario_id': usuarioId,
+      if (fotoPerfil != null) 'foto_perfil': fotoPerfil,
       'creado_en': creadoEn?.toIso8601String(),
     };
   }
@@ -75,6 +107,7 @@ class PerfilVoluntario extends Equatable {
         disponibilidad,
         estado,
         usuarioId,
+        fotoPerfil,
         creadoEn,
         usuario,
         organizacion,

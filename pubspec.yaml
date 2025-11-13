@@ -45,6 +45,9 @@ dependencies:
   # HTTP & API
   dio: ^5.4.0
   
+  # Image Picker
+  image_picker: ^1.0.4
+  
   # Local Storage
   shared_preferences: ^2.2.2
   

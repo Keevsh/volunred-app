@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:volunred_app/core/models/perfil_funcionario.dart';
+import '../../../core/models/organizacion.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/organizacion_repository.dart';
+import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/theme/app_widgets.dart';
+import '../../../core/utils/image_utils.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 
 class CreateOrganizacionPage extends StatefulWidget {
   const CreateOrganizacionPage({super.key});
@@ -40,10 +45,65 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
   final _formKey2 = GlobalKey<FormState>();
   final _formKey3 = GlobalKey<FormState>();
 
+  bool _isEditing = false;
+  Organizacion? _organizacionExistente;
+  PerfilFuncionario? _perfilFuncionarioExistente;
+  String? _logoBase64;
+  String? _fotoPerfilBase64;
+  final ImagePicker _imagePicker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
     _loadCategorias();
+    _loadOrganizacionExistente();
+  }
+
+  Future<void> _loadOrganizacionExistente() async {
+    try {
+      final authRepo = Modular.get<AuthRepository>();
+      final usuario = await authRepo.getStoredUser();
+      
+      if (usuario != null && usuario.isFuncionario) {
+        final funcionarioRepo = Modular.get<FuncionarioRepository>();
+        try {
+          final organizacion = await funcionarioRepo.getMiOrganizacion();
+          final perfil = await funcionarioRepo.getMiPerfil();
+          
+          setState(() {
+            _organizacionExistente = organizacion;
+            _perfilFuncionarioExistente = perfil;
+            _isEditing = true;
+            
+            // Cargar datos existentes en los campos
+            _nombreOrgController.text = organizacion.nombre;
+            _descripcionController.text = organizacion.descripcion ?? '';
+            _direccionController.text = organizacion.direccion ?? '';
+            _telefonoOrgController.text = organizacion.telefono ?? '';
+            _emailOrgController.text = organizacion.email;
+            _sitioWebController.text = organizacion.sitioWeb ?? '';
+            _rucController.text = organizacion.ruc ?? '';
+            _razonSocialController.text = organizacion.razonSocial ?? organizacion.nombre;
+            _categoriaSeleccionada = organizacion.idCategoriaOrganizacion;
+            _logoBase64 = organizacion.logo;
+            
+            // Cargar datos del perfil de funcionario
+            if (perfil.cargo != null) {
+              _cargoController.text = perfil.cargo!;
+            }
+            if (perfil.departamento != null) {
+              _departamentoController.text = perfil.departamento!;
+            }
+            _fotoPerfilBase64 = perfil.fotoPerfil;
+          });
+        } catch (e) {
+          print('⚠️ No se pudo cargar la organización existente: $e');
+          // Si no hay organización, continuar en modo creación
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error verificando organización existente: $e');
+    }
   }
 
   @override
@@ -135,6 +195,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
     try {
       final authRepo = Modular.get<AuthRepository>();
       final orgRepo = Modular.get<OrganizacionRepository>();
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
       
       // Obtener usuario actual
       final usuario = await authRepo.getStoredUser();
@@ -142,59 +203,134 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         throw Exception('Usuario no encontrado');
       }
 
-      // 1. Crear organización
-      // Mapear campos al formato esperado por la API
-      // Nota: id_categoria_organizacion no se puede enviar en la creación, debe asignarse después con una actualización
-      final orgData = {
-        'nombre_legal': _razonSocialController.text.trim(), // Requerido: nombre legal de la organización
-        if (_nombreOrgController.text.trim().isNotEmpty)
-          'nombre_corto': _nombreOrgController.text.trim(), // Opcional: nombre común/corto
-        'correo': _emailOrgController.text.trim(), // Requerido: correo electrónico
-        if (_direccionController.text.trim().isNotEmpty)
-          'direccion': _direccionController.text.trim(), // Opcional: dirección
-        if (_telefonoOrgController.text.trim().isNotEmpty)
-          'telefono': _telefonoOrgController.text.trim(), // Opcional: teléfono
-        'estado': 'activo', // Estado por defecto
-      };
+      Organizacion organizacion;
       
-      print('📦 Creando organización: $orgData');
-      final organizacion = await orgRepo.createOrganizacion(orgData);
-      print('✅ Organización creada: ${organizacion.nombre.isNotEmpty ? organizacion.nombre : organizacion.razonSocial ?? "Organización"}');
-      
-      // Nota: La categoría no se puede asignar durante la creación ni inmediatamente después
-      // La categoría deberá ser asignada posteriormente por un administrador o mediante otro proceso
-      if (_categoriaSeleccionada != null) {
-        print('ℹ️ Categoría seleccionada: $_categoriaSeleccionada (se asignará posteriormente)');
+      // Si estamos editando, actualizar la organización existente
+      if (_isEditing && _organizacionExistente != null) {
+        print('📝 Actualizando organización existente...');
+        final orgData = {
+          'nombre_legal': _razonSocialController.text.trim(),
+          if (_nombreOrgController.text.trim().isNotEmpty)
+            'nombre_corto': _nombreOrgController.text.trim(),
+          'correo': _emailOrgController.text.trim(),
+          if (_direccionController.text.trim().isNotEmpty)
+            'direccion': _direccionController.text.trim(),
+          if (_telefonoOrgController.text.trim().isNotEmpty)
+            'telefono': _telefonoOrgController.text.trim(),
+          if (_sitioWebController.text.trim().isNotEmpty)
+            'sitio_web': _sitioWebController.text.trim(),
+          if (_rucController.text.trim().isNotEmpty)
+            'ruc': _rucController.text.trim(),
+          if (_descripcionController.text.trim().isNotEmpty)
+            'descripcion': _descripcionController.text.trim(),
+          if (_categoriaSeleccionada != null)
+            'id_categoria_organizacion': _categoriaSeleccionada,
+          if (_logoBase64 != null && _logoBase64!.isNotEmpty) 'logo': _logoBase64,
+        };
+        
+        organizacion = await orgRepo.updateOrganizacion(
+          _organizacionExistente!.idOrganizacion,
+          orgData,
+        );
+        print('✅ Organización actualizada: ${organizacion.nombre}');
+      } else {
+        // Crear nueva organización
+        final orgData = {
+          'nombre_legal': _razonSocialController.text.trim(),
+          if (_nombreOrgController.text.trim().isNotEmpty)
+            'nombre_corto': _nombreOrgController.text.trim(),
+          'correo': _emailOrgController.text.trim(),
+          if (_direccionController.text.trim().isNotEmpty)
+            'direccion': _direccionController.text.trim(),
+          if (_telefonoOrgController.text.trim().isNotEmpty)
+            'telefono': _telefonoOrgController.text.trim(),
+          if (_sitioWebController.text.trim().isNotEmpty)
+            'sitio_web': _sitioWebController.text.trim(),
+          if (_rucController.text.trim().isNotEmpty)
+            'ruc': _rucController.text.trim(),
+          if (_descripcionController.text.trim().isNotEmpty)
+            'descripcion': _descripcionController.text.trim(),
+          'estado': 'activo',
+          if (_logoBase64 != null && _logoBase64!.isNotEmpty) 'logo': _logoBase64,
+        };
+        
+        print('📦 Creando organización: $orgData');
+        organizacion = await orgRepo.createOrganizacion(orgData);
+        print('✅ Organización creada: ${organizacion.nombre}');
+        
+        // Si hay categoría seleccionada, actualizar la organización
+        if (_categoriaSeleccionada != null) {
+          try {
+            organizacion = await orgRepo.updateOrganizacion(
+              organizacion.idOrganizacion,
+              {'id_categoria_organizacion': _categoriaSeleccionada},
+            );
+            print('✅ Categoría asignada a la organización');
+          } catch (e) {
+            print('⚠️ No se pudo asignar la categoría: $e');
+          }
+        }
       }
 
-      // 2. Crear perfil de funcionario con todos los datos requeridos
-      print('👤 Creando perfil de funcionario...');
+      // 2. Actualizar o crear perfil de funcionario
+      print('👤 ${_isEditing && _perfilFuncionarioExistente != null ? "Actualizando" : "Creando"} perfil de funcionario...');
       PerfilFuncionario? perfil;
       
       try {
-        final perfilData = <String, dynamic>{
-          'usuario_id': usuario.idUsuario, // Requerido por el backend
-          'organizacion_id': organizacion.idOrganizacion, // Requerido por el backend
-          'fecha_ingreso': DateTime.now().toIso8601String().split('T')[0], // Formato YYYY-MM-DD
-          'estado': 'activo',
-        };
-        
-        // Agregar cargo si se proporcionó
-        if (_cargoController.text.trim().isNotEmpty) {
-          perfilData['cargo'] = _cargoController.text.trim();
+        // Si estamos editando y ya existe el perfil, actualizarlo
+        if (_isEditing && _perfilFuncionarioExistente != null) {
+          final perfilData = <String, dynamic>{};
+          
+          // Solo actualizar campos que cambiaron
+          if (_cargoController.text.trim().isNotEmpty) {
+            perfilData['cargo'] = _cargoController.text.trim();
+          }
+          
+          if (_departamentoController.text.trim().isNotEmpty) {
+            perfilData['area'] = _departamentoController.text.trim();
+          }
+          
+          if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) {
+            perfilData['foto_perfil'] = _fotoPerfilBase64;
+          }
+          
+          if (perfilData.isNotEmpty) {
+            print('📤 Actualizando perfil de funcionario: $perfilData');
+            perfil = await funcionarioRepo.updatePerfilFuncionario(
+              _perfilFuncionarioExistente!.idPerfilFuncionario,
+              perfilData,
+            );
+            print('✅ Perfil de funcionario actualizado: ${perfil.idPerfilFuncionario}');
+          } else {
+            perfil = _perfilFuncionarioExistente;
+          }
+        } else {
+          // Crear nuevo perfil de funcionario
+          final perfilData = <String, dynamic>{
+            'usuario_id': usuario.idUsuario,
+            'organizacion_id': organizacion.idOrganizacion,
+            'fecha_ingreso': DateTime.now().toIso8601String().split('T')[0],
+            'estado': 'activo',
+          };
+          
+          if (_cargoController.text.trim().isNotEmpty) {
+            perfilData['cargo'] = _cargoController.text.trim();
+          }
+          
+          if (_departamentoController.text.trim().isNotEmpty) {
+            perfilData['area'] = _departamentoController.text.trim();
+          }
+          
+          if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) {
+            perfilData['foto_perfil'] = _fotoPerfilBase64;
+          }
+          
+          print('📤 Creando perfil de funcionario: $perfilData');
+          perfil = await orgRepo.createPerfilFuncionario(perfilData);
+          print('✅ Perfil de funcionario creado: ${perfil.idPerfilFuncionario}');
         }
-        
-        // Agregar area (departamento se mapea a area según la API)
-        if (_departamentoController.text.trim().isNotEmpty) {
-          perfilData['area'] = _departamentoController.text.trim();
-        }
-        
-        print('📤 Datos del perfil de funcionario: $perfilData');
-        
-        perfil = await orgRepo.createPerfilFuncionario(perfilData);
-        print('✅ Perfil de funcionario creado exitosamente: ${perfil.idPerfilFuncionario}');
       } catch (e) {
-        print('⚠️ Error al crear perfil de funcionario: $e');
+        print('⚠️ Error al ${_isEditing && _perfilFuncionarioExistente != null ? "actualizar" : "crear"} perfil de funcionario: $e');
         // Intentar obtener el perfil si ya existe
         try {
           final perfilExistente = await orgRepo.getPerfilFuncionarioByUsuario(usuario.idUsuario);
@@ -238,7 +374,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       if (mounted) {
         AppWidgets.showStyledSnackBar(
           context: context,
-          message: '¡Organización creada exitosamente!',
+          message: _isEditing 
+              ? '¡Organización actualizada exitosamente!' 
+              : '¡Organización creada exitosamente!',
           isError: false,
         );
 
@@ -303,10 +441,10 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             icon: const Icon(Icons.arrow_back_rounded),
             color: const Color(0xFF007AFF),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Solicitar Organización',
-              style: TextStyle(
+              _isEditing ? 'Editar Organización' : 'Solicitar Organización',
+              style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1D1D1F),
@@ -367,6 +505,8 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                 color: Color(0xFF86868B),
               ),
             ),
+            const SizedBox(height: 24),
+            _buildLogoSelector(),
             const SizedBox(height: 24),
             
             _buildTextField(
@@ -577,6 +717,8 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               ),
             ),
             const SizedBox(height: 24),
+            _buildFotoPerfilSelector(),
+            const SizedBox(height: 24),
             
             _buildTextField(
               controller: _cargoController,
@@ -621,6 +763,206 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _pickLogo() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        try {
+          final base64 = await ImageUtils.convertXFileToBase64(image);
+          setState(() {
+            _logoBase64 = base64;
+          });
+        } catch (e) {
+          AppWidgets.showStyledSnackBar(
+            context: context,
+            message: 'Error al procesar la imagen: $e',
+            isError: true,
+          );
+        }
+      }
+    } catch (e) {
+      AppWidgets.showStyledSnackBar(
+        context: context,
+        message: 'Error al seleccionar imagen: $e',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _pickFotoPerfil() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        try {
+          final base64 = await ImageUtils.convertXFileToBase64(image);
+          setState(() {
+            _fotoPerfilBase64 = base64;
+          });
+        } catch (e) {
+          AppWidgets.showStyledSnackBar(
+            context: context,
+            message: 'Error al procesar la imagen: $e',
+            isError: true,
+          );
+        }
+      }
+    } catch (e) {
+      AppWidgets.showStyledSnackBar(
+        context: context,
+        message: 'Error al seleccionar imagen: $e',
+        isError: true,
+      );
+    }
+  }
+
+  Widget _buildLogoSelector() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            '🏢 Logo de la Organización',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: _pickLogo,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFE5E5EA),
+                  width: 2,
+                ),
+              ),
+              child: _logoBase64 != null && _logoBase64!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: ImageBase64Widget(
+                        base64String: _logoBase64!,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.business,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Agregar logo',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _pickLogo,
+            child: const Text('Cambiar logo'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFotoPerfilSelector() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            '📷 Foto de Perfil',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Stack(
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFE5E5EA),
+                    width: 3,
+                  ),
+                ),
+                child: ClipOval(
+                  child: _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
+                      ? ImageBase64Widget(
+                          base64String: _fotoPerfilBase64!,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Color(0xFF86868B),
+                          ),
+                        ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF007AFF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    onPressed: _pickFotoPerfil,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _pickFotoPerfil,
+            child: const Text('Cambiar foto'),
+          ),
+        ],
       ),
     );
   }
@@ -740,7 +1082,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                         strokeWidth: 2,
                       ),
                     )
-                  : Text(_currentStep == 2 ? 'Crear Organización' : 'Continuar'),
+                  : Text(_currentStep == 2 
+                      ? (_isEditing ? 'Actualizar Organización' : 'Crear Organización') 
+                      : 'Continuar'),
             ),
           ),
         ],

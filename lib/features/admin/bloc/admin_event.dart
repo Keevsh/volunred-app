@@ -541,6 +541,7 @@ class CreateProyectoRequested extends AdminEvent {
   final DateTime? fechaInicio;
   final DateTime? fechaFin;
   final String? estado;
+  final String? imagen;
 
   const CreateProyectoRequested({
     required this.categoriaProyectoId,
@@ -551,6 +552,7 @@ class CreateProyectoRequested extends AdminEvent {
     this.fechaInicio,
     this.fechaFin,
     this.estado,
+    this.imagen,
   });
 
   @override
@@ -563,6 +565,7 @@ class CreateProyectoRequested extends AdminEvent {
         fechaInicio,
         fechaFin,
         estado,
+        imagen,
       ];
 }
 

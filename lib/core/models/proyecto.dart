@@ -44,6 +44,9 @@ class Proyecto extends Equatable {
   /// Estado del proyecto (activo/inactivo)
   final String estado;
   
+  /// Imagen representativa del proyecto en formato base64 (opcional)
+  final String? imagen;
+  
   /// Fecha de creación del proyecto
   final DateTime creadoEn;
   
@@ -80,6 +83,7 @@ class Proyecto extends Equatable {
     this.fechaInicio,
     this.fechaFin,
     required this.estado,
+    this.imagen,
     required this.creadoEn,
     this.actualizadoEn,
     this.categoriaProyecto,
@@ -177,6 +181,7 @@ class Proyecto extends Equatable {
         fechaInicio: fechaInicio,
         fechaFin: fechaFin,
         estado: _getString(json['estado']) ?? 'activo',
+        imagen: _getString(json['imagen']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
         categoriaProyecto: json['categoriaProyecto'] is Map 
@@ -206,6 +211,7 @@ class Proyecto extends Equatable {
       if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toIso8601String().split('T')[0],
       if (fechaFin != null) 'fecha_fin': fechaFin!.toIso8601String().split('T')[0],
       'estado': estado,
+      if (imagen != null) 'imagen': imagen,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
       if (categoriaProyecto != null) 'categoriaProyecto': categoriaProyecto,
@@ -226,6 +232,7 @@ class Proyecto extends Equatable {
         fechaInicio,
         fechaFin,
         estado,
+        imagen,
         creadoEn,
         actualizadoEn,
       ];

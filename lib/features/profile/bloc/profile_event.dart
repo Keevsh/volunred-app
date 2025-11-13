@@ -8,7 +8,14 @@ abstract class ProfileEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadAptitudesRequested extends ProfileEvent {}
+class LoadAptitudesRequested extends ProfileEvent {
+  final int? perfilVolId;
+
+  const LoadAptitudesRequested({this.perfilVolId});
+
+  @override
+  List<Object?> get props => [perfilVolId];
+}
 
 class CreatePerfilRequested extends ProfileEvent {
   final CreatePerfilVoluntarioRequest request;

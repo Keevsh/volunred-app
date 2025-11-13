@@ -6,6 +6,7 @@ import 'pages/create_profile_page.dart';
 import 'pages/create_funcionario_profile_page.dart';
 import 'pages/select_aptitudes_page.dart';
 import 'pages/create_organizacion_page.dart';
+import 'pages/funcionario_options_page.dart';
 
 class ProfileModule extends Module {
   @override
@@ -29,6 +30,10 @@ class ProfileModule extends Module {
         ChildRoute(
           '/create-organizacion',
           child: (_, __) => const CreateOrganizacionPage(),
+        ),
+        ChildRoute(
+          '/funcionario-options',
+          child: (_, __) => const FuncionarioOptionsPage(),
         ),
         ChildRoute(
           '/aptitudes',

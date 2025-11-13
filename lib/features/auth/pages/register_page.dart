@@ -5,7 +5,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/models/dto/request_models.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/repositories/admin_repository.dart';
-import '../../../core/repositories/auth_repository.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -19,6 +18,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _pageController = PageController();
   final _nombresController = TextEditingController();
   final _apellidosController = TextEditingController();
   final _emailController = TextEditingController();
@@ -32,9 +32,11 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   int _currentStep = 0;
+  bool _isLoading = false;
 
   @override
   void dispose() {
+    _pageController.dispose();
     _nombresController.dispose();
     _apellidosController.dispose();
     _emailController.dispose();
@@ -62,6 +64,8 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
+      setState(() => _isLoading = true);
+
       BlocProvider.of<AuthBloc>(context).add(
         AuthRegisterRequested(
           RegisterRequest(
@@ -79,305 +83,507 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  void _nextStep() {
+    if (_validateStep(_currentStep)) {
+      if (_currentStep < 2) {
+        setState(() => _currentStep++);
+        _pageController.animateToPage(
+          _currentStep,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _handleRegister();
+      }
+    }
+  }
+
+  void _previousStep() {
+    if (_currentStep > 0) {
+      setState(() => _currentStep--);
+      _pageController.animateToPage(
+        _currentStep,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Modular.to.navigate('/');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Paso ${_currentStep + 1} de 3'),
-      ),
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) async {
-          if (state is AuthAuthenticated) {
-            if (state.usuario.idRol == null && _tipoUsuario != null) {
-              final idRol = _tipoUsuario == TipoUsuario.funcionario ? 2 : 3;
-              try {
-                final adminRepo = Modular.get<AdminRepository>();
-                await adminRepo.asignarRol(
-                  AsignarRolRequest(
-                    idUsuario: state.usuario.idUsuario,
-                    idRol: idRol,
-                  ),
-                );
+      backgroundColor: const Color(0xFFF5F5F7),
+      body: SafeArea(
+        child: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            if (state is AuthAuthenticated) {
+              setState(() => _isLoading = false);
+              if (state.usuario.idRol == null && _tipoUsuario != null) {
+                final idRol = _tipoUsuario == TipoUsuario.funcionario ? 2 : 3;
+                try {
+                  final adminRepo = Modular.get<AdminRepository>();
+                  await adminRepo.asignarRol(
+                    AsignarRolRequest(
+                      idUsuario: state.usuario.idUsuario,
+                      idRol: idRol,
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('¡Registro exitoso!')),
+                  );
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    Modular.to.navigate(idRol == 2 
+                        ? '/profile/funcionario-options' 
+                        : '/profile/create');
+                  });
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              } else if (state.usuario.idRol != null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('¡Registro exitoso!')),
                 );
                 Future.delayed(const Duration(milliseconds: 500), () {
-                  Modular.to.navigate(idRol == 2 
-                      ? '/profile/create-organizacion' 
-                      : '/profile/create');
+                  if (state.usuario.idRol == 2) {
+                    Modular.to.navigate('/profile/funcionario-options');
+                  } else if (state.usuario.idRol == 3) {
+                    Modular.to.navigate('/profile/create');
+                  } else {
+                    Modular.to.navigate('/home');
+                  }
                 });
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
               }
-            } else if (state.usuario.idRol != null) {
+            } else if (state is AuthError) {
+              setState(() => _isLoading = false);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('¡Registro exitoso!')),
+                SnackBar(content: Text(state.message)),
               );
-              Future.delayed(const Duration(milliseconds: 500), () {
-                if (state.usuario.idRol == 2) {
-                  Modular.to.navigate('/profile/create-organizacion');
-                } else if (state.usuario.idRol == 3) {
-                  Modular.to.navigate('/profile/create');
-                } else {
-                  Modular.to.navigate('/home');
-                }
-              });
             }
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is AuthLoading;
-
-          return Stepper(
-            currentStep: _currentStep,
-            onStepContinue: () {
-              if (_validateStep(_currentStep)) {
-                if (_currentStep < 2) {
-                  setState(() => _currentStep++);
-                } else {
-                  _handleRegister();
-                }
-              }
-            },
-            onStepCancel: () {
-              if (_currentStep > 0) {
-                setState(() => _currentStep--);
-              } else {
-                Modular.to.navigate('/');
-              }
-            },
-            controlsBuilder: (context, details) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Row(
-                  children: [
-                    if (details.stepIndex > 0)
-                      OutlinedButton(
-                        onPressed: details.onStepCancel,
-                        child: const Text('Atrás'),
-                      ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: isLoading ? null : details.onStepContinue,
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(_currentStep == 2 ? 'Registrarse' : 'Continuar'),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            steps: [
-              // Paso 1: Tipo de cuenta
-              Step(
-                title: const Text('Tipo de cuenta'),
-                content: Form(
-                  key: _formKey,
-                  child: Column(
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                _buildHeader(colorScheme),
+                _buildProgressIndicator(colorScheme),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      _buildAccountTypeCard(
-                        context,
-                        TipoUsuario.voluntario,
-                        'Voluntario',
-                        'Participa en proyectos de voluntariado',
-                        Icons.volunteer_activism,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildAccountTypeCard(
-                        context,
-                        TipoUsuario.funcionario,
-                        'Funcionario',
-                        'Gestiona proyectos para tu organización',
-                        Icons.business_center,
-                      ),
+                      _buildStep1(colorScheme),
+                      _buildStep2(colorScheme),
+                      _buildStep3(colorScheme),
                     ],
                   ),
                 ),
-                isActive: _currentStep >= 0,
-                state: _currentStep > 0 
-                    ? StepState.complete 
-                    : (_tipoUsuario != null ? StepState.complete : StepState.indexed),
+                _buildNavigation(colorScheme),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      color: Colors.white,
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _currentStep == 0 ? () => Modular.to.navigate('/') : _previousStep,
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: const Color(0xFF007AFF),
+          ),
+          Expanded(
+            child: Text(
+              'Crear Cuenta',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1D1D1F),
               ),
-              
-              // Paso 2: Información personal
-              Step(
-                title: const Text('Información personal'),
-                content: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nombresController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombres',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Campo requerido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _apellidosController,
-                      decoration: const InputDecoration(
-                        labelText: 'Apellidos',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Campo requerido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo electrónico',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Campo requerido';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Email inválido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _sexo,
-                      decoration: const InputDecoration(
-                        labelText: 'Sexo (opcional)',
-                        prefixIcon: Icon(Icons.wc),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'M', child: Text('Masculino')),
-                        DropdownMenuItem(value: 'F', child: Text('Femenino')),
-                        DropdownMenuItem(value: 'O', child: Text('Otro')),
-                      ],
-                      onChanged: (value) => setState(() => _sexo = value),
-                    ),
-                  ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      color: Colors.white,
+      child: Row(
+        children: [
+          for (int i = 0; i < 3; i++) ...[
+            Expanded(
+              child: Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: i <= _currentStep 
+                      ? const Color(0xFF007AFF)
+                      : const Color(0xFFE5E5EA),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                isActive: _currentStep >= 1,
-                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
               ),
-              
-              // Paso 3: Credenciales
-              Step(
-                title: const Text('Credenciales'),
-                content: Column(
-                  children: [
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword 
-                                ? Icons.visibility_outlined 
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Campo requerido';
-                        }
-                        if (value.length < 6) {
-                          return 'Mínimo 6 caracteres';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      decoration: InputDecoration(
-                        labelText: 'Confirmar contraseña',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword 
-                                ? Icons.visibility_outlined 
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Campo requerido';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Las contraseñas no coinciden';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _telefonoController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Teléfono (opcional)',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _ciController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'CI (opcional)',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                    ),
-                  ],
+            ),
+            if (i < 2) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep1(ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Paso 1: Tipo de Cuenta',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1D1D1F),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Selecciona el tipo de cuenta que mejor se adapte a ti',
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xFF86868B),
+            ),
+          ),
+          const SizedBox(height: 32),
+          _buildAccountTypeCard(
+            context,
+            TipoUsuario.voluntario,
+            'Voluntario',
+            'Participa en proyectos de voluntariado y ayuda a tu comunidad',
+            Icons.volunteer_activism,
+            const Color(0xFF34C759),
+          ),
+          const SizedBox(height: 16),
+          _buildAccountTypeCard(
+            context,
+            TipoUsuario.funcionario,
+            'Funcionario',
+            'Gestiona proyectos y coordina voluntarios para tu organización',
+            Icons.business_center,
+            const Color(0xFF007AFF),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2(ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Paso 2: Información Personal',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1D1D1F),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Cuéntanos sobre ti',
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF86868B),
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildTextField(
+              controller: _nombresController,
+              label: 'Nombres',
+              hint: 'Ingresa tus nombres',
+              icon: Icons.person_outline,
+              textCapitalization: TextCapitalization.words,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo requerido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _apellidosController,
+              label: 'Apellidos',
+              hint: 'Ingresa tus apellidos',
+              icon: Icons.person_outline,
+              textCapitalization: TextCapitalization.words,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo requerido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _emailController,
+              label: 'Correo electrónico',
+              hint: 'ejemplo@correo.com',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo requerido';
+                }
+                if (!value.contains('@')) {
+                  return 'Email inválido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E5EA)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: DropdownButtonFormField<String>(
+                value: _sexo,
+                decoration: const InputDecoration(
+                  labelText: 'Sexo (opcional)',
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.wc, color: Color(0xFF86868B)),
                 ),
-                isActive: _currentStep >= 2,
-                state: StepState.indexed,
+                items: const [
+                  DropdownMenuItem(value: 'M', child: Text('Masculino')),
+                  DropdownMenuItem(value: 'F', child: Text('Femenino')),
+                  DropdownMenuItem(value: 'O', child: Text('Otro')),
+                ],
+                onChanged: (value) => setState(() => _sexo = value),
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep3(ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Paso 3: Credenciales',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1D1D1F),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Crea una contraseña segura',
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF86868B),
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildTextField(
+              controller: _passwordController,
+              label: 'Contraseña',
+              hint: 'Mínimo 6 caracteres',
+              icon: Icons.lock_outlined,
+              obscureText: _obscurePassword,
+              suffixIcon: _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              onSuffixIconPressed: () {
+                setState(() => _obscurePassword = !_obscurePassword);
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo requerido';
+                }
+                if (value.length < 6) {
+                  return 'Mínimo 6 caracteres';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _confirmPasswordController,
+              label: 'Confirmar contraseña',
+              hint: 'Repite tu contraseña',
+              icon: Icons.lock_outlined,
+              obscureText: _obscureConfirmPassword,
+              suffixIcon: _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              onSuffixIconPressed: () {
+                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo requerido';
+                }
+                if (value != _passwordController.text) {
+                  return 'Las contraseñas no coinciden';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _telefonoController,
+              label: 'Teléfono (opcional)',
+              hint: '78945612',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _ciController,
+              label: 'CI (opcional)',
+              hint: '12345678',
+              icon: Icons.badge_outlined,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool obscureText = false,
+    IconData? suffixIcon,
+    VoidCallback? onSuffixIconPressed,
+    TextInputType? keyboardType,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        textCapitalization: textCapitalization,
+        inputFormatters: inputFormatters,
+        validator: validator,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          hintStyle: const TextStyle(color: Color(0xFFC7C7CC)),
+          prefixIcon: Icon(icon, color: const Color(0xFF86868B)),
+          suffixIcon: suffixIcon != null
+              ? IconButton(
+                  icon: Icon(suffixIcon, color: const Color(0xFF86868B)),
+                  onPressed: onSuffixIconPressed,
+                )
+              : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+          ),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavigation(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (_currentStep > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _previousStep,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: Color(0xFF007AFF)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Atrás'),
+              ),
+            ),
+          if (_currentStep > 0) const SizedBox(width: 12),
+          Expanded(
+            flex: _currentStep == 0 ? 1 : 2,
+            child: FilledButton(
+              onPressed: _isLoading ? null : _nextStep,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: const Color(0xFF007AFF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isLoading 
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(_currentStep == 2 ? 'Registrarse' : 'Continuar'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -418,68 +624,90 @@ class _RegisterPageState extends State<RegisterPage> {
     String title,
     String subtitle,
     IconData icon,
+    Color accentColor,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isSelected = _tipoUsuario == tipo;
 
-    return Card(
-      elevation: isSelected ? 2 : 0,
-      color: isSelected ? colorScheme.primaryContainer : null,
-      child: InkWell(
-        onTap: () => setState(() => _tipoUsuario = tipo),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isSelected 
-                      ? colorScheme.primary 
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? accentColor : const Color(0xFFE5E5EA),
+          width: isSelected ? 2 : 1,
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: accentColor.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-                child: Icon(
-                  icon,
-                  color: isSelected 
-                      ? colorScheme.onPrimary 
-                      : colorScheme.onSurfaceVariant,
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _tipoUsuario = tipo),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? accentColor.withOpacity(0.1)
+                        : const Color(0xFFF5F5F7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? accentColor : const Color(0xFF86868B),
+                    size: 32,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected 
-                            ? colorScheme.onPrimaryContainer 
-                            : null,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? accentColor : const Color(0xFF1D1D1F),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected 
-                            ? colorScheme.onPrimaryContainer 
-                            : colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF86868B),
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      shape: BoxShape.circle,
                     ),
-                  ],
-                ),
-              ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  color: colorScheme.primary,
-                ),
-            ],
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

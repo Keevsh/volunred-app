@@ -20,8 +20,18 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
   @override
   void initState() {
     super.initState();
-    // Cargar aptitudes al iniciar
-    BlocProvider.of<ProfileBloc>(context).add(LoadAptitudesRequested());
+    _loadAptitudes();
+  }
+
+  Future<void> _loadAptitudes() async {
+    // Obtener el perfil del usuario para cargar sus aptitudes asignadas
+    final voluntarioRepo = Modular.get<VoluntarioRepository>();
+    final perfil = await voluntarioRepo.getStoredPerfil();
+    
+    // Cargar aptitudes disponibles y las ya asignadas si hay perfil
+    BlocProvider.of<ProfileBloc>(context).add(
+      LoadAptitudesRequested(perfilVolId: perfil?.idPerfilVoluntario),
+    );
   }
 
   Future<void> _handleAsignarAptitudes() async {
@@ -77,6 +87,17 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
           }
 
           if (state is AptitudesLoaded) {
+            // Si hay aptitudes asignadas y el estado está vacío, inicializar con las asignadas
+            if (_selectedAptitudes.isEmpty && state.aptitudesAsignadas.isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {
+                  _selectedAptitudes.addAll(
+                    state.aptitudesAsignadas.map((a) => a.idAptitud),
+                  );
+                });
+              });
+            }
+            
             return Column(
               children: [
                 Expanded(
@@ -87,10 +108,14 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
                       final aptitud = state.aptitudes[index];
                       final isSelected =
                           _selectedAptitudes.contains(aptitud.idAptitud);
+                      // Verificar si esta aptitud está asignada al perfil
+                      final isAssigned = state.aptitudesAsignadas
+                          .any((a) => a.idAptitud == aptitud.idAptitud);
 
                       return _AptitudCard(
                         aptitud: aptitud,
                         isSelected: isSelected,
+                        isAssigned: isAssigned,
                         onTap: () {
                           setState(() {
                             if (isSelected) {
@@ -144,11 +169,13 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
 class _AptitudCard extends StatelessWidget {
   final Aptitud aptitud;
   final bool isSelected;
+  final bool isAssigned;
   final VoidCallback onTap;
 
   const _AptitudCard({
     required this.aptitud,
     required this.isSelected,
+    this.isAssigned = false,
     required this.onTap,
   });
 
@@ -156,21 +183,49 @@ class _AptitudCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: isSelected ? 4 : 1,
-      color: isSelected ? Colors.blue[50] : null,
+      color: isSelected 
+          ? Colors.blue[50] 
+          : isAssigned 
+              ? Colors.green[50] 
+              : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        title: Text(
-          aptitud.nombre,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                aptitud.nombre,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+            if (isAssigned && !isSelected)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Ya asignada',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.green[800],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
         ),
         subtitle: aptitud.descripcion != null
             ? Text(aptitud.descripcion!)
             : null,
         trailing: isSelected
             ? const Icon(Icons.check_circle, color: Colors.blue)
-            : const Icon(Icons.circle_outlined),
+            : isAssigned
+                ? Icon(Icons.check_circle_outline, color: Colors.green[700])
+                : const Icon(Icons.circle_outlined),
         onTap: onTap,
       ),
     );

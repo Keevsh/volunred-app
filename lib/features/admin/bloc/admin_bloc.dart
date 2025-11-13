@@ -843,6 +843,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         if (event.fechaFin != null)
           'fecha_fin': event.fechaFin!.toIso8601String().split('T')[0],
         'estado': event.estado ?? 'activo',
+        if (event.imagen != null && event.imagen!.isNotEmpty) 'imagen': event.imagen,
       };
       final proyecto = await adminRepository.createProyecto(data);
       emit(ProyectoCreated(proyecto));

@@ -240,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                     future: _loadOrganizaciones(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return _buildOrganizacionesSkeleton();
                       }
                       
                       if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
@@ -296,9 +296,7 @@ class _HomePageState extends State<HomePage> {
               future: _loadProyectosVoluntario(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
+                  return _buildProyectosSkeleton();
                 }
                 
                 if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
@@ -1488,6 +1486,138 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ========== SKELETONS ==========
+  Widget _buildOrganizacionesSkeleton() {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 5, // Mostrar 5 skeletons
+      itemBuilder: (context, index) {
+        return Container(
+          width: 120,
+          margin: const EdgeInsets.only(right: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Skeleton para el círculo
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[300],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Skeleton para el texto
+              Container(
+                height: 12,
+                width: 80,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                height: 10,
+                width: 60,
+                color: Colors.grey[300],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProyectosSkeleton() {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Skeleton para la imagen
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Skeleton para el título
+                    Container(
+                      height: 20,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 8),
+                    // Skeleton para la organización
+                    Container(
+                      height: 16,
+                      width: 150,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 12),
+                    // Skeleton para la descripción
+                    Container(
+                      height: 14,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 14,
+                      width: 200,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 12),
+                    // Skeleton para la info adicional
+                    Row(
+                      children: [
+                        Container(
+                          height: 12,
+                          width: 80,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(width: 16),
+                        Container(
+                          height: 12,
+                          width: 60,
+                          color: Colors.grey[300],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Skeleton para el botón
+                    Container(
+                      height: 40,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+        childCount: 3, // Mostrar 3 skeletons de proyectos
       ),
     );
   }

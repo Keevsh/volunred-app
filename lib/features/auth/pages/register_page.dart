@@ -247,381 +247,191 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildStep1() {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                // Logo o icono principal
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF007AFF),
-                          const Color(0xFF0051D5),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF007AFF).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.volunteer_activism_rounded,
-                      color: Colors.white,
-                      size: 40,
-                    ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          // Logo o icono principal
+          Center(
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF007AFF),
+                    const Color(0xFF0051D5),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF007AFF).withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Únete a nuestra comunidad',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1D1D1F),
-                    letterSpacing: -0.8,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Conecta con organizaciones y participa en proyectos que marcan la diferencia',
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: Color(0xFF86868B),
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                // Formulario principal
-                _buildTextField(
-                  controller: _nombresController,
-                  label: 'Nombre',
-                  hint: 'Tu nombre',
-                  icon: Icons.person_outline_rounded,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Campo requerido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _apellidosController,
-                  label: 'Apellido',
-                  hint: 'Tu apellido',
-                  icon: Icons.person_outline_rounded,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Campo requerido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Correo electrónico',
-                  hint: 'tu@correo.com',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Campo requerido';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Email inválido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _passwordController,
-                  label: 'Contraseña',
-                  hint: 'Mínimo 6 caracteres',
-                  icon: Icons.lock_outline_rounded,
-                  obscureText: _obscurePassword,
-                  suffixIcon: _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Campo requerido';
-                    }
-                    if (value.length < 6) {
-                      return 'Mínimo 6 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _confirmPasswordController,
-                  label: 'Confirmar contraseña',
-                  hint: 'Repite tu contraseña',
-                  icon: Icons.lock_outline_rounded,
-                  obscureText: _obscureConfirmPassword,
-                  suffixIcon: _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Campo requerido';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Las contraseñas no coinciden';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-                // Términos y condiciones
-                Center(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                        height: 1.4,
-                      ),
-                      children: const [
-                        TextSpan(text: 'Al continuar, aceptas nuestros '),
-                        TextSpan(
-                          text: 'Términos de Servicio',
-                          style: TextStyle(
-                            color: Color(0xFF007AFF),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextSpan(text: ' y '),
-                        TextSpan(
-                          text: 'Política de Privacidad',
-                          style: TextStyle(
-                            color: Color(0xFF007AFF),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24), // Espacio adicional para el teclado
-              ],
-            ),
-          ),
-        ),
-        // Botón de continuar fijo en la parte inferior
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: FilledButton(
-                  onPressed: _isLoading ? null : _nextStep,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading 
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Continuar',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Divider con "o"
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.grey[300])),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'o',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.grey[300])),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Opción secundaria: Solicitar cuenta de organización
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    setState(() => _isFuncionario = true);
-                    _nextStep();
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    foregroundColor: const Color(0xFF007AFF),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  child: const Text('Solicitar cuenta de organización'),
-                ),
+              child: const Icon(
+                Icons.volunteer_activism_rounded,
+                color: Colors.white,
+                size: 40,
               ),
-            ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep2() {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    _isFuncionario ? 'Información adicional' : 'Completa tu perfil',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1D1D1F),
-                      letterSpacing: -0.8,
+          const SizedBox(height: 32),
+          const Text(
+            'Únete a nuestra comunidad',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1D1D1F),
+              letterSpacing: -0.8,
+              height: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Conecta con organizaciones y participa en proyectos que marcan la diferencia',
+            style: TextStyle(
+              fontSize: 17,
+              color: Color(0xFF86868B),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 48),
+          // Formulario principal
+          _buildTextField(
+            controller: _nombresController,
+            label: 'Nombre',
+            hint: 'Tu nombre',
+            icon: Icons.person_outline_rounded,
+            textCapitalization: TextCapitalization.words,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Campo requerido';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _apellidosController,
+            label: 'Apellido',
+            hint: 'Tu apellido',
+            icon: Icons.person_outline_rounded,
+            textCapitalization: TextCapitalization.words,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Campo requerido';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _emailController,
+            label: 'Correo electrónico',
+            hint: 'tu@correo.com',
+            icon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Campo requerido';
+              }
+              if (!value.contains('@')) {
+                return 'Email inválido';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _passwordController,
+            label: 'Contraseña',
+            hint: 'Mínimo 6 caracteres',
+            icon: Icons.lock_outline_rounded,
+            obscureText: _obscurePassword,
+            suffixIcon: _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            onSuffixIconPressed: () {
+              setState(() => _obscurePassword = !_obscurePassword);
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Campo requerido';
+              }
+              if (value.length < 6) {
+                return 'Mínimo 6 caracteres';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _confirmPasswordController,
+            label: 'Confirmar contraseña',
+            hint: 'Repite tu contraseña',
+            icon: Icons.lock_outline_rounded,
+            obscureText: _obscureConfirmPassword,
+            suffixIcon: _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            onSuffixIconPressed: () {
+              setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Campo requerido';
+              }
+              if (value != _passwordController.text) {
+                return 'Las contraseñas no coinciden';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 32),
+          // Términos y condiciones
+          Center(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                  height: 1.4,
+                ),
+                children: const [
+                  TextSpan(text: 'Al continuar, aceptas nuestros '),
+                  TextSpan(
+                    text: 'Términos de Servicio',
+                    style: TextStyle(
+                      color: Color(0xFF007AFF),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isFuncionario 
-                        ? 'Información adicional para tu cuenta de organización'
-                        : 'Algunos datos opcionales para conocerte mejor',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      color: Color(0xFF86868B),
-                      height: 1.4,
+                  TextSpan(text: ' y '),
+                  TextSpan(
+                    text: 'Política de Privacidad',
+                    style: TextStyle(
+                      color: Color(0xFF007AFF),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: DropdownButtonFormField<String>(
-                      value: _sexo,
-                      decoration: const InputDecoration(
-                        labelText: 'Sexo (opcional)',
-                        border: InputBorder.none,
-                        prefixIcon: Icon(Icons.wc_rounded, color: Color(0xFF86868B)),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'M', child: Text('Masculino')),
-                        DropdownMenuItem(value: 'F', child: Text('Femenino')),
-                        DropdownMenuItem(value: 'O', child: Text('Otro')),
-                      ],
-                      onChanged: (value) => setState(() => _sexo = value),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _telefonoController,
-                    label: 'Teléfono (opcional)',
-                    hint: '78945612',
-                    icon: Icons.phone_outlined,
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _ciController,
-                    label: 'CI (opcional)',
-                    hint: '12345678',
-                    icon: Icons.badge_outlined,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  ),
-                  const SizedBox(height: 24), // Espacio adicional para el teclado
                 ],
               ),
             ),
           ),
-        ),
-        // Botón de registro fijo en la parte inferior
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: SizedBox(
+          const SizedBox(height: 32),
+          // Botón principal de registro
+          SizedBox(
             width: double.infinity,
             height: 56,
             child: FilledButton(
-              onPressed: _isLoading ? null : _handleRegister,
+              onPressed: _isLoading ? null : _nextStep,
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF007AFF),
                 foregroundColor: Colors.white,
@@ -640,7 +450,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     )
                   : const Text(
-                      'Crear cuenta',
+                      'Continuar',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
@@ -649,8 +459,146 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
             ),
           ),
+          const SizedBox(height: 24), // Espacio adicional para el teclado
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            Text(
+              _isFuncionario ? 'Información adicional' : 'Completa tu perfil',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1D1D1F),
+                letterSpacing: -0.8,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isFuncionario 
+                  ? 'Información adicional para tu cuenta de organización'
+                  : 'Algunos datos opcionales para conocerte mejor',
+              style: const TextStyle(
+                fontSize: 17,
+                color: Color(0xFF86868B),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 32),
+            DropdownMenu<String>(
+              initialSelection: _sexo,
+              label: const Text('Sexo (opcional)'),
+              leadingIcon: const Icon(Icons.wc_rounded),
+              dropdownMenuEntries: const [
+                DropdownMenuEntry(value: 'M', label: 'Masculino'),
+                DropdownMenuEntry(value: 'F', label: 'Femenino'),
+                DropdownMenuEntry(value: 'O', label: 'Otro'),
+              ],
+              onSelected: (value) => setState(() => _sexo = value),
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _telefonoController,
+              label: 'Teléfono (opcional)',
+              hint: '78945612',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _ciController,
+              label: 'CI (opcional)',
+              hint: '12345678',
+              icon: Icons.badge_outlined,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
+            const SizedBox(height: 32),
+            // Divider con "o"
+            Row(
+              children: [
+                Expanded(child: Divider(color: Colors.grey[300])),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'o',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Expanded(child: Divider(color: Colors.grey[300])),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Opción: Solicitar cuenta de organización
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() => _isFuncionario = true);
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  foregroundColor: const Color(0xFF007AFF),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                child: const Text('Solicitar cuenta de organización'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Botón de registro
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: FilledButton(
+                onPressed: _isLoading ? null : _handleRegister,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF007AFF),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading 
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Crear cuenta',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 24), // Espacio adicional para el teclado
+          ],
         ),
-      ],
+      ),
     );
   }
 

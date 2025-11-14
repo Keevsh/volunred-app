@@ -538,7 +538,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _direccionController,
               label: 'Dirección',
-              hint: 'Av. Principal 123, Ciudad',
+              hint: 'Dirección completa',
               icon: Icons.location_on,
               required: true,
             ),
@@ -547,7 +547,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _telefonoOrgController,
               label: 'Teléfono',
-              hint: '02-2345678',
+              hint: 'Número de teléfono',
               icon: Icons.phone,
               keyboardType: TextInputType.phone,
             ),
@@ -556,7 +556,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _emailOrgController,
               label: 'Email de Contacto',
-              hint: 'contacto@organizacion.org',
+              hint: 'email@ejemplo.com',
               icon: Icons.email,
               keyboardType: TextInputType.emailAddress,
               required: true,
@@ -566,7 +566,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _sitioWebController,
               label: 'Sitio Web (opcional)',
-              hint: 'https://organizacion.org',
+              hint: 'https://www.ejemplo.com',
               icon: Icons.language,
               keyboardType: TextInputType.url,
             ),
@@ -605,7 +605,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _rucController,
               label: 'RUC',
-              hint: '1234567890001',
+              hint: 'Número de RUC',
               icon: Icons.badge,
               keyboardType: TextInputType.number,
               maxLength: 13,
@@ -625,7 +625,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _razonSocialController,
               label: 'Razón Social',
-              hint: 'Fundación Ayuda Social',
+              hint: 'Nombre legal de la organización',
               icon: Icons.article,
               required: true,
             ),
@@ -730,7 +730,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _cargoController,
               label: 'Tu Cargo',
-              hint: 'Ej: Director de Proyectos',
+              hint: 'Tu cargo en la organización',
               icon: Icons.work,
               required: true,
             ),
@@ -739,7 +739,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _buildTextField(
               controller: _departamentoController,
               label: 'Departamento',
-              hint: 'Ej: Gestión de Voluntariado',
+              hint: 'Departamento al que perteneces',
               icon: Icons.corporate_fare,
               required: true,
             ),

@@ -168,19 +168,24 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                             )
                           : RefreshIndicator(
                               onRefresh: _loadData,
-                              child: ListView.builder(
+                              child: GridView.builder(
                                 padding: const EdgeInsets.all(16),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 0.8,
+                                ),
                                 itemCount: _proyectosFiltrados.length,
                                 itemBuilder: (context, index) {
                                   final proyecto = _proyectosFiltrados[index];
                                   return Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
                                     child: InkWell(
                                       onTap: () {
                                         Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.all(16),
+                                        padding: const EdgeInsets.all(12),
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
@@ -189,50 +194,64 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                                 Expanded(
                                                   child: Text(
                                                     proyecto.nombre,
-                                                    style: theme.textTheme.titleMedium?.copyWith(
+                                                    style: theme.textTheme.titleSmall?.copyWith(
                                                       fontWeight: FontWeight.bold,
                                                     ),
-                                                  ),
-                                                ),
-                                                Chip(
-                                                  label: Text(proyecto.estado.toUpperCase()),
-                                                  backgroundColor: proyecto.estado == 'activo'
-                                                      ? colorScheme.primaryContainer
-                                                      : colorScheme.errorContainer,
-                                                  labelStyle: TextStyle(
-                                                    color: proyecto.estado == 'activo'
-                                                        ? colorScheme.onPrimaryContainer
-                                                        : colorScheme.onErrorContainer,
-                                                    fontSize: 12,
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Chip(
+                                              label: Text(
+                                                proyecto.estado.toUpperCase(),
+                                                style: const TextStyle(fontSize: 10),
+                                              ),
+                                              backgroundColor: proyecto.estado == 'activo'
+                                                  ? colorScheme.primaryContainer
+                                                  : colorScheme.errorContainer,
+                                              labelStyle: TextStyle(
+                                                color: proyecto.estado == 'activo'
+                                                    ? colorScheme.onPrimaryContainer
+                                                    : colorScheme.onErrorContainer,
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                             ),
                                             if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty) ...[
                                               const SizedBox(height: 8),
                                               Text(
                                                 proyecto.objetivo!,
-                                                style: theme.textTheme.bodyMedium,
-                                                maxLines: 2,
+                                                style: theme.textTheme.bodySmall,
+                                                maxLines: 3,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
                                             if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 4),
                                               Row(
                                                 children: [
-                                                  Icon(Icons.location_on, size: 16, color: colorScheme.onSurfaceVariant),
-                                                  const SizedBox(width: 4),
-                                                  Text(proyecto.ubicacion!, style: theme.textTheme.bodySmall),
+                                                  Icon(Icons.location_on, size: 14, color: colorScheme.onSurfaceVariant),
+                                                  const SizedBox(width: 2),
+                                                  Expanded(
+                                                    child: Text(
+                                                      proyecto.ubicacion!,
+                                                      style: theme.textTheme.bodySmall,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ],
                                             if (proyecto.categoriasProyectos != null && proyecto.categoriasProyectos!.isNotEmpty) ...[
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 4),
                                               Wrap(
-                                                spacing: 4,
-                                                runSpacing: 4,
-                                                children: proyecto.categoriasProyectos!.take(3).map((catProy) {
+                                                spacing: 2,
+                                                runSpacing: 2,
+                                                children: proyecto.categoriasProyectos!.take(2).map((catProy) {
                                                   String nombre = 'Categoría';
                                                   if (catProy is Map) {
                                                     if (catProy['categoria'] is Map) {
@@ -240,8 +259,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                                     }
                                                   }
                                                   return Chip(
-                                                    label: Text(nombre, style: const TextStyle(fontSize: 11)),
+                                                    label: Text(nombre, style: const TextStyle(fontSize: 9)),
                                                     backgroundColor: colorScheme.surfaceContainerHighest,
+                                                    padding: EdgeInsets.zero,
+                                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                                   );
                                                 }).toList(),
                                               ),

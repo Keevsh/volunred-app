@@ -501,74 +501,22 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 16),
               // Opción secundaria: Solicitar cuenta de organización
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFFE5E5EA),
-                    width: 1,
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      setState(() => _isFuncionario = true);
-                      _nextStep();
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF007AFF).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.business_rounded,
-                              color: Color(0xFF007AFF),
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Solicitar cuenta de organización',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1D1D1F),
-                                    letterSpacing: -0.4,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Gestiona proyectos y coordina voluntarios',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: Colors.grey[400],
-                          ),
-                        ],
-                      ),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    setState(() => _isFuncionario = true);
+                    _nextStep();
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    foregroundColor: const Color(0xFF007AFF),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.4,
                     ),
                   ),
+                  child: const Text('Solicitar cuenta de organización'),
                 ),
               ),
             ],

@@ -109,7 +109,7 @@ class Inscripcion extends Equatable {
       'id_inscripcion': idInscripcion,
       'usuario_id': usuarioId,
       'organizacion_id': organizacionId,
-      'fecha_recepcion': fechaRecepcion.toIso8601String().split('T')[0],
+      'fecha_recepcion': fechaRecepcion.toUtc().toIso8601String(),
       'estado': estado,
       if (motivoRechazo != null) 'motivo_rechazo': motivoRechazo,
       'creado_en': creadoEn.toIso8601String(),

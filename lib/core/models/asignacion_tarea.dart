@@ -136,7 +136,7 @@ class AsignacionTarea extends Equatable {
       'perfil_vol_id': perfilVolId,
       if (titulo != null) 'titulo': titulo,
       if (descripcion != null) 'descripcion': descripcion,
-      if (fechaAsignacion != null) 'fecha_asignacion': fechaAsignacion!.toIso8601String().split('T')[0],
+                  if (fechaAsignacion != null) 'fecha_asignacion': fechaAsignacion!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
       'estado': estado,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),

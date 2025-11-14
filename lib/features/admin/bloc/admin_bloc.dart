@@ -839,12 +839,24 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         'objetivo': event.objetivo,
         if (event.ubicacion != null) 'ubicacion': event.ubicacion,
         if (event.fechaInicio != null)
-          'fecha_inicio': event.fechaInicio!.toIso8601String().split('T')[0],
+          'fecha_inicio': event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         if (event.fechaFin != null)
-          'fecha_fin': event.fechaFin!.toIso8601String().split('T')[0],
+          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         'estado': event.estado ?? 'activo',
         if (event.imagen != null && event.imagen!.isNotEmpty) 'imagen': event.imagen,
       };
+
+      print('🚀 [ADMIN] Enviando datos al backend para crear proyecto:');
+      print('📦 [ADMIN] Data: $data');
+      if (event.fechaInicio != null) {
+        print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
+        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+      if (event.fechaFin != null) {
+        print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
+        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+
       final proyecto = await adminRepository.createProyecto(data);
       emit(ProyectoCreated(proyecto));
     } catch (e) {
@@ -866,10 +878,21 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       if (event.objetivo != null) data['objetivo'] = event.objetivo;
       if (event.ubicacion != null) data['ubicacion'] = event.ubicacion;
       if (event.fechaInicio != null)
-        data['fecha_inicio'] = event.fechaInicio!.toIso8601String().split('T')[0];
+        data['fecha_inicio'] = event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
       if (event.fechaFin != null)
-        data['fecha_fin'] = event.fechaFin!.toIso8601String().split('T')[0];
+        data['fecha_fin'] = event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
       if (event.estado != null) data['estado'] = event.estado;
+
+      print('🚀 [ADMIN] Enviando datos al backend para actualizar proyecto (ID: ${event.id}):');
+      print('📦 [ADMIN] Data: $data');
+      if (event.fechaInicio != null) {
+        print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
+        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+      if (event.fechaFin != null) {
+        print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
+        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
 
       final proyecto = await adminRepository.updateProyecto(event.id, data);
       emit(ProyectoUpdated(proyecto));
@@ -931,11 +954,23 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         if (event.descripcion != null) 'descripcion': event.descripcion,
         if (event.prioridad != null) 'prioridad': event.prioridad,
         if (event.fechaInicio != null)
-          'fecha_inicio': event.fechaInicio!.toIso8601String().split('T')[0],
+          'fecha_inicio': event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         if (event.fechaFin != null)
-          'fecha_fin': event.fechaFin!.toIso8601String().split('T')[0],
+          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         'estado': event.estado ?? 'activo',
       };
+
+      print('🚀 [ADMIN] Enviando datos al backend para crear tarea:');
+      print('📦 [ADMIN] Data: $data');
+      if (event.fechaInicio != null) {
+        print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
+        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+      if (event.fechaFin != null) {
+        print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
+        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+
       final tarea = await adminRepository.createTarea(data);
       emit(TareaCreated(tarea));
     } catch (e) {
@@ -955,10 +990,21 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       if (event.descripcion != null) data['descripcion'] = event.descripcion;
       if (event.prioridad != null) data['prioridad'] = event.prioridad;
       if (event.fechaInicio != null)
-        data['fecha_inicio'] = event.fechaInicio!.toIso8601String().split('T')[0];
+        data['fecha_inicio'] = event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
       if (event.fechaFin != null)
-        data['fecha_fin'] = event.fechaFin!.toIso8601String().split('T')[0];
+        data['fecha_fin'] = event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
       if (event.estado != null) data['estado'] = event.estado;
+
+      print('🚀 [ADMIN] Enviando datos al backend para actualizar tarea (ID: ${event.id}):');
+      print('📦 [ADMIN] Data: $data');
+      if (event.fechaInicio != null) {
+        print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
+        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
+      if (event.fechaFin != null) {
+        print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
+        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      }
 
       final tarea = await adminRepository.updateTarea(event.id, data);
       emit(TareaUpdated(tarea));
@@ -1017,9 +1063,15 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final data = <String, dynamic>{
         'usuario_id': event.usuarioId,
         'organizacion_id': event.organizacionId,
-        'fecha_recepcion': (event.fechaRecepcion ?? DateTime.now()).toIso8601String().split('T')[0],
+        'fecha_recepcion': (event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         'estado': event.estado ?? 'activo',
       };
+
+      print('🚀 [ADMIN] Enviando datos al backend para crear inscripción:');
+      print('📦 [ADMIN] Data: $data');
+      print('📅 [ADMIN] Fecha recepción original: ${event.fechaRecepcion ?? DateTime.now()}');
+      print('📅 [ADMIN] Fecha recepción formateada: ${(event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+
       final inscripcion = await adminRepository.createInscripcion(data);
       emit(InscripcionCreated(inscripcion));
     } catch (e) {

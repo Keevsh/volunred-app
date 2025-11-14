@@ -254,10 +254,26 @@ class FuncionarioRepository {
   /// NOTA: Si se envía `categoria_proyecto_id` (legacy), se convertirá a `categorias_ids`.
   Future<Proyecto> createProyecto(Map<String, dynamic> data) async {
     try {
+      print('🚀 [REPO] Iniciando creación de proyecto...');
+      print('📦 [REPO] Datos originales recibidos: $data');
+      
       // Remover organizacion_id si existe, ya que se asigna automáticamente
       // desde el perfil del funcionario (la organización del funcionario)
       final cleanData = Map<String, dynamic>.from(data);
       cleanData.remove('organizacion_id');
+      
+      // Agregar organizacion_id desde el perfil si no está presente
+      if (!cleanData.containsKey('organizacion_id')) {
+        try {
+          final miOrganizacion = await getMiOrganizacion();
+          cleanData['organizacion_id'] = miOrganizacion.idOrganizacion;
+          print('📦 [REPO] Agregando organizacion_id desde perfil: ${miOrganizacion.idOrganizacion}');
+        } catch (e) {
+          print('❌ [REPO] Error obteniendo organización para proyecto: $e');
+          // Si no se puede obtener, continuar sin organizacion_id
+          // El backend debería asignarlo automáticamente
+        }
+      }
       
       // Convertir categoria_proyecto_id legacy a categorias_ids si es necesario
       if (cleanData.containsKey('categoria_proyecto_id') && 
@@ -287,12 +303,27 @@ class FuncionarioRepository {
         }
       }
       
+      print('📦 [REPO] Datos limpios a enviar al backend: $cleanData');
+      print('🔍 [REPO] Tipos de datos:');
+      cleanData.forEach((key, value) {
+        print('   $key: ${value.runtimeType} = $value');
+      });
+      
       final response = await _dioClient.dio.post(
-        ApiConfig.funcionariosProyectos,
+        ApiConfig.proyectos,
         data: cleanData,
       );
+      
+      print('✅ [REPO] Proyecto creado exitosamente');
+      print('📦 [REPO] Respuesta del backend: ${response.data}');
+      
       return Proyecto.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      print('❌ [REPO] Error creando proyecto: ${e.message}');
+      if (e.response != null) {
+        print('🔍 [REPO] Error Response Status: ${e.response!.statusCode}');
+        print('🔍 [REPO] Error Response Data: ${e.response!.data}');
+      }
       throw _handleError(e);
     }
   }

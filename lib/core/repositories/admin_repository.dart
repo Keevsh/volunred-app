@@ -740,12 +740,28 @@ class AdminRepository {
   /// Crear proyecto
   Future<Proyecto> createProyecto(Map<String, dynamic> data) async {
     try {
+      print('🚀 [ADMIN REPO] Iniciando creación de proyecto...');
+      print('📦 [ADMIN REPO] Datos originales recibidos: $data');
+      print('🔍 [ADMIN REPO] Tipos de datos:');
+      data.forEach((key, value) {
+        print('   $key: ${value.runtimeType} = $value');
+      });
+      
       final response = await _dioClient.dio.post(
         ApiConfig.proyectos,
         data: data,
       );
+      
+      print('✅ [ADMIN REPO] Proyecto creado exitosamente');
+      print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
+      
       return Proyecto.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      print('❌ [ADMIN REPO] Error creando proyecto: ${e.message}');
+      if (e.response != null) {
+        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
+      }
       throw _handleError(e);
     }
   }
@@ -800,12 +816,28 @@ class AdminRepository {
   /// Crear tarea
   Future<Tarea> createTarea(Map<String, dynamic> data) async {
     try {
+      print('🚀 [ADMIN REPO] Iniciando creación de tarea...');
+      print('📦 [ADMIN REPO] Datos originales recibidos: $data');
+      print('🔍 [ADMIN REPO] Tipos de datos:');
+      data.forEach((key, value) {
+        print('   $key: ${value.runtimeType} = $value');
+      });
+      
       final response = await _dioClient.dio.post(
         ApiConfig.tareas,
         data: data,
       );
+      
+      print('✅ [ADMIN REPO] Tarea creada exitosamente');
+      print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
+      
       return Tarea.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      print('❌ [ADMIN REPO] Error creando tarea: ${e.message}');
+      if (e.response != null) {
+        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
+      }
       throw _handleError(e);
     }
   }
@@ -860,6 +892,9 @@ class AdminRepository {
   /// Crear inscripción
   Future<Inscripcion> createInscripcion(Map<String, dynamic> data) async {
     try {
+      print('🚀 [ADMIN REPO] Iniciando creación de inscripción...');
+      print('📦 [ADMIN REPO] Datos originales recibidos: $data');
+      
       // Normalizar el estado a minúsculas si está presente (el backend espera: pendiente, aprobado, rechazado)
       final normalizedData = Map<String, dynamic>.from(data);
       if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
@@ -868,10 +903,20 @@ class AdminRepository {
         normalizedData['estado'] = 'pendiente';
       }
       
+      print('📦 [ADMIN REPO] Datos normalizados: $normalizedData');
+      print('🔍 [ADMIN REPO] Tipos de datos:');
+      normalizedData.forEach((key, value) {
+        print('   $key: ${value.runtimeType} = $value');
+      });
+      
       final response = await _dioClient.dio.post(
         ApiConfig.inscripciones,
         data: normalizedData,
       );
+      
+      print('✅ [ADMIN REPO] Inscripción creada exitosamente');
+      print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
+      
       return Inscripcion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       // Proporcionar mensajes de error más descriptivos para errores 500
@@ -887,7 +932,13 @@ class AdminRepository {
           }
         }
         
+        print('❌ [ADMIN REPO] Error 500 del servidor: $errorMessage');
         throw Exception(errorMessage);
+      }
+      print('❌ [ADMIN REPO] Error creando inscripción: ${e.message}');
+      if (e.response != null) {
+        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
       }
       throw _handleError(e);
     }

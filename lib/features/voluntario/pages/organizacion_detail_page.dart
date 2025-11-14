@@ -4,6 +4,7 @@ import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/proyecto.dart';
+import 'dart:convert';
 
 class OrganizacionDetailPage extends StatefulWidget {
   final int organizacionId;
@@ -100,12 +101,21 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
         // No existe inscripción, continuar con la creación
       }
 
-      await _repository.createInscripcion({
+      final data = {
         'usuario_id': perfil.usuarioId,
         'organizacion_id': widget.organizacionId,
-        'fecha_recepcion': DateTime.now().toIso8601String().split('T')[0],
+        'fecha_recepcion': DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         'estado': 'pendiente', // El backend espera minúsculas
-      });
+      };
+
+      print('🚀 [VOLUNTARIO] Enviando datos al backend para crear inscripción:');
+      print('📦 [VOLUNTARIO] Data: $data');
+      print('👤 Usuario ID: ${perfil.usuarioId}');
+      print('🏢 Organización ID: ${widget.organizacionId}');
+      print('📅 Fecha recepción original: ${DateTime.now()}');
+      print('📅 Fecha recepción formateada: ${DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+
+      await _repository.createInscripcion(data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -428,6 +438,10 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                   children: proyectos.map((proyecto) {
                                     return Card(
                                       margin: const EdgeInsets.only(bottom: 12),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                       child: InkWell(
                                         onTap: () {
                                           Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
@@ -441,26 +455,62 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                                 width: 60,
                                                 height: 60,
                                                 decoration: BoxDecoration(
-                                                  color: colorScheme.primaryContainer,
                                                   borderRadius: BorderRadius.circular(12),
+                                                  image: proyecto.imagen != null && proyecto.imagen!.isNotEmpty
+                                                      ? DecorationImage(
+                                                          image: proyecto.imagen!.startsWith('http')
+                                                              ? NetworkImage(proyecto.imagen!)
+                                                              : MemoryImage(base64Decode(proyecto.imagen!.split(',').last)),
+                                                          fit: BoxFit.cover,
+                                                        )
+                                                      : null,
                                                 ),
-                                                child: Icon(
-                                                  Icons.volunteer_activism,
-                                                  color: colorScheme.onPrimaryContainer,
-                                                ),
+                                                child: proyecto.imagen != null && proyecto.imagen!.isNotEmpty
+                                                    ? null
+                                                    : Container(
+                                                        decoration: BoxDecoration(
+                                                          color: colorScheme.primaryContainer,
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons.volunteer_activism,
+                                                          color: colorScheme.onPrimaryContainer,
+                                                        ),
+                                                      ),
                                               ),
                                               const SizedBox(width: 12),
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(
-                                                      proyecto.nombre,
-                                                      style: theme.textTheme.titleMedium?.copyWith(
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            proyecto.nombre,
+                                                            style: theme.textTheme.titleMedium?.copyWith(
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                        if (proyecto.estado == 'activo')
+                                                          Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                            decoration: BoxDecoration(
+                                                              color: colorScheme.primaryContainer,
+                                                              borderRadius: BorderRadius.circular(8),
+                                                            ),
+                                                            child: Text(
+                                                              'Activo',
+                                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                                color: colorScheme.onPrimaryContainer,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                      ],
                                                     ),
                                                     if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty) ...[
                                                       const SizedBox(height: 4),
@@ -471,6 +521,29 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                                         ),
                                                         maxLines: 2,
                                                         overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                    if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
+                                                      const SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons.location_on,
+                                                            size: 14,
+                                                            color: colorScheme.onSurfaceVariant,
+                                                          ),
+                                                          const SizedBox(width: 2),
+                                                          Expanded(
+                                                            child: Text(
+                                                              proyecto.ubicacion!,
+                                                              style: theme.textTheme.bodySmall?.copyWith(
+                                                                color: colorScheme.onSurfaceVariant,
+                                                              ),
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ],
                                                   ],

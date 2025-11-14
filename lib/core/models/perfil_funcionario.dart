@@ -165,7 +165,7 @@ class PerfilFuncionario extends Equatable {
       if (cargo != null) 'cargo': cargo,
       if (area != null) 'area': area, // La API espera 'area'
       if (departamento != null && area == null) 'departamento': departamento, // Solo si no hay 'area'
-      if (fechaIngreso != null) 'fecha_ingreso': fechaIngreso!.toIso8601String().split('T')[0], // Formato YYYY-MM-DD
+      if (fechaIngreso != null) 'fecha_ingreso': fechaIngreso!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
       'estado': estado,
       if (fotoPerfil != null) 'foto_perfil': fotoPerfil,
       'creado_en': creadoEn.toIso8601String(),

@@ -254,7 +254,14 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           if (_logoBase64 != null && _logoBase64!.isNotEmpty) 'logo': _logoBase64,
         };
         
-        print('📦 Creando organización: $orgData');
+        print('🚀 [ORGANIZACIÓN] Enviando datos al backend para crear organización:');
+        print('📦 [ORGANIZACIÓN] Data: $orgData');
+        print('🏢 Nombre legal: ${_razonSocialController.text.trim()}');
+        print('📧 Correo: ${_emailOrgController.text.trim()}');
+        if (_categoriaSeleccionada != null) {
+          print('🏷️ Categoría seleccionada: $_categoriaSeleccionada');
+        }
+
         organizacion = await orgRepo.createOrganizacion(orgData);
         print('✅ Organización creada: ${organizacion.nombre}');
         
@@ -309,7 +316,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           final perfilData = <String, dynamic>{
             'usuario_id': usuario.idUsuario,
             'organizacion_id': organizacion.idOrganizacion,
-            'fecha_ingreso': DateTime.now().toIso8601String().split('T')[0],
+            'fecha_ingreso': DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
             'estado': 'activo',
           };
           

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
+import 'dart:io';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/categoria.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/config/api_config.dart';
 
 class CreateProyectoPage extends StatefulWidget {
   const CreateProyectoPage({super.key});
@@ -24,6 +27,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   bool _isLoading = false;
   bool _loadingCategorias = true;
   String? _errorCategorias;
+  
+  // Variables para la imagen
+  final ImagePicker _imagePicker = ImagePicker();
+  XFile? _selectedImage;
+  String? _imageBase64;
 
   @override
   void initState() {
@@ -103,6 +111,99 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     });
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = pickedFile;
+        });
+        
+        // Convertir imagen a base64
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = base64Encode(bytes);
+        final mimeType = _getMimeType(pickedFile.path);
+        
+        setState(() {
+          _imageBase64 = 'data:$mimeType;base64,$base64String';
+        });
+        
+        print('📸 Imagen seleccionada: ${pickedFile.name}');
+        print('📊 Tamaño: ${bytes.length} bytes');
+        print('🔄 Base64 generado (primeros 50 chars): ${_imageBase64!.substring(0, 50)}...');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al seleccionar imagen: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  String _getMimeType(String path) {
+    final extension = path.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg'; // fallback
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+      _imageBase64 = null;
+    });
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Seleccionar imagen'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galería'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Cámara'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleCreate() async {
     if (!_formKey.currentState!.validate()) return;
     
@@ -128,12 +229,27 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         'ubicacion': _ubicacionController.text.trim().isEmpty 
             ? null 
             : _ubicacionController.text.trim(),
-        'fecha_inicio': _fechaInicio!.toIso8601String().split('T')[0],
-        if (_fechaFin != null) 'fecha_fin': _fechaFin!.toIso8601String().split('T')[0],
+        'fecha_inicio': _fechaInicio!.toUtc().toIso8601String(),
+        if (_fechaFin != null) 'fecha_fin': _fechaFin!.toUtc().toIso8601String(),
         'estado': 'activo',
         if (_categoriasSeleccionadas.isNotEmpty) 
           'categorias_ids': _categoriasSeleccionadas,
+        if (_imageBase64 != null) 'imagen': _imageBase64,
       };
+
+      print('🚀 Enviando datos al backend para crear proyecto:');
+      print('📦 Data: $data');
+      print('🔍 Tipos de datos en el mapa:');
+      data.forEach((key, value) {
+        print('   $key: ${value.runtimeType} = $value');
+      });
+      print('📅 Fecha inicio formateada: ${_fechaInicio!.toUtc().toIso8601String()}');
+      if (_fechaFin != null) {
+        print('📅 Fecha fin formateada: ${_fechaFin!.toUtc().toIso8601String()}');
+      }
+      print('📋 Categorías seleccionadas: $_categoriasSeleccionadas');
+      print('🌐 Endpoint: ${ApiConfig.proyectos}');
+      print('🔄 Enviando petición HTTP POST...');
 
       await funcionarioRepo.createProyecto(data);
 
@@ -230,6 +346,106 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         prefixIcon: const Icon(Icons.location_on),
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Imagen del proyecto
+                    Text(
+                      'Imagen del Proyecto (Opcional)',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Agrega una imagen representativa de tu proyecto',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    if (_selectedImage != null) ...[
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.outline,
+                            width: 1,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(_selectedImage!.path),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _showImageSourceDialog,
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Cambiar imagen'),
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: _removeImage,
+                            icon: Icon(
+                              Icons.delete,
+                              color: colorScheme.error,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: colorScheme.errorContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      InkWell(
+                        onTap: _showImageSourceDialog,
+                        child: Container(
+                          height: 120,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colorScheme.outline.withOpacity(0.3),
+                              width: 1,
+                            ),
+                            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_photo_alternate,
+                                size: 48,
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Seleccionar imagen',
+                                style: TextStyle(
+                                  color: colorScheme.onSurface.withOpacity(0.7),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // Fecha de inicio

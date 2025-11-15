@@ -44,12 +44,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     CreatePerfilRequested event,
     Emitter<ProfileState> emit,
   ) async {
+    print('🔄 Iniciando creación de perfil...');
     emit(ProfileLoading());
 
     try {
+      print('📤 Enviando request al repositorio: ${event.request.toJson()}');
       final perfil = await voluntarioRepository.createPerfil(event.request);
+      print('✅ Perfil creado exitosamente: ${perfil.toJson()}');
       emit(PerfilCreated(perfil));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Error en _onCreatePerfilRequested: $e');
+      print('❌ StackTrace: $stackTrace');
       emit(ProfileError(e.toString()));
     }
   }

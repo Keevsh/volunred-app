@@ -8,6 +8,8 @@ import '../../../core/config/api_config.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
+import '../../../core/models/perfil_voluntario.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -25,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   bool _isFuncionario = false;
   int _selectedProjectTab = 0;
   bool _isProfileLoading = true;
+  PerfilVoluntario? _perfilVoluntario;
 
   @override
   void initState() {
@@ -61,6 +64,8 @@ class _HomePageState extends State<HomePage> {
               });
               return;
             }
+            // Cargar el perfil del voluntario para mostrar en la vista
+            await _loadPerfilVoluntario();
           }
         } catch (e) {
           print('❌ Error verificando perfil en home: $e');
@@ -70,6 +75,20 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isProfileLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadPerfilVoluntario() async {
+    try {
+      final perfilVolJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+      if (perfilVolJson != null) {
+        final perfilMap = jsonDecode(perfilVolJson) as Map<String, dynamic>;
+        setState(() {
+          _perfilVoluntario = PerfilVoluntario.fromJson(perfilMap);
+        });
+      }
+    } catch (e) {
+      print('❌ Error cargando perfil del voluntario: $e');
     }
   }
 
@@ -422,7 +441,13 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: (index) async {
+          setState(() => _currentIndex = index);
+          // Recargar perfil cuando se selecciona la pestaña del perfil
+          if (index == 3 && !_isAdmin) {
+            await _loadPerfilVoluntario();
+          }
+        },
         destinations: _isFuncionario
             ? const [
                 NavigationDestination(
@@ -2474,18 +2499,24 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: colorScheme.surface,
-                            child: Text(
-                              _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                              style: TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ),
+                          child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
+                              ? CircularImageBase64Widget(
+                                  base64String: _perfilVoluntario!.fotoPerfil!,
+                                  size: 120,
+                                  backgroundColor: colorScheme.surface,
+                                )
+                              : CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor: colorScheme.surface,
+                                  child: Text(
+                                    _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
+                                    style: TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
                         ),
                         Positioned(
                           bottom: 8,
@@ -2611,7 +2642,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Apasionado por el voluntariado y el impacto social. Creo en el poder de las comunidades para transformar vidas. Especializado en proyectos ambientales y educativos. ¡Siempre dispuesto a ayudar! 🌱📚',
+                          _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
+                              ? _perfilVoluntario!.bio!
+                              : 'Apasionado por el voluntariado y el impacto social. Creo en el poder de las comunidades para transformar vidas. Especializado en proyectos ambientales y educativos. ¡Siempre dispuesto a ayudar! 🌱📚',
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onSurface,
                             height: 1.6,

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 
 /// Utilidades para manejar imágenes en formato base64
 class ImageUtils {
@@ -13,8 +15,15 @@ class ImageUtils {
     'image/gif',
   ];
 
-  /// Tamaño máximo del archivo en bytes (5MB)
-  static const int maxFileSize = 5 * 1024 * 1024;
+  /// Tamaño máximo del archivo en bytes (2MB para evitar "entity too large")
+  static const int maxFileSize = 2 * 1024 * 1024; // Reducido de 5MB a 2MB
+
+  /// Calidad de compresión por defecto (70% para buen balance calidad/tamaño)
+  static const int defaultQuality = 70;
+
+  /// Dimensiones máximas para redimensionar imágenes grandes
+  static const int maxWidth = 1200;
+  static const int maxHeight = 1200;
 
   /// Convierte un archivo de imagen a base64 con data URI
   /// 
@@ -25,7 +34,7 @@ class ImageUtils {
   /// Lanza una excepción si:
   /// - El archivo es null
   /// - El tipo de archivo no está permitido
-  /// - El tamaño del archivo excede 5MB
+  /// - El tamaño del archivo excede 2MB
   static Future<String> convertFileToBase64(File file) async {
     if (!await file.exists()) {
       throw Exception('El archivo no existe');
@@ -35,13 +44,10 @@ class ImageUtils {
     final fileSize = await file.length();
     if (fileSize > maxFileSize) {
       throw Exception(
-        'El archivo es demasiado grande. Tamaño máximo: 5MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
+        'El archivo es demasiado grande. Tamaño máximo: 2MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
       );
     }
 
-    // Leer el archivo como bytes
-    final bytes = await file.readAsBytes();
-    
     // Determinar el tipo MIME basado en la extensión
     final extension = file.path.split('.').last.toLowerCase();
     String mimeType;
@@ -64,8 +70,14 @@ class ImageUtils {
         throw Exception('Tipo de archivo no permitido. Use: JPEG, PNG, WEBP o GIF');
     }
 
+    // Leer el archivo como bytes
+    final bytes = await file.readAsBytes();
+    
+    // Comprimir la imagen antes de convertir a base64
+    final compressedBytes = await _compressImage(bytes, mimeType);
+    
     // Convertir a base64
-    final base64String = base64Encode(bytes);
+    final base64String = base64Encode(compressedBytes);
     
     // Retornar con formato data URI
     return 'data:$mimeType;base64,$base64String';
@@ -86,13 +98,10 @@ class ImageUtils {
     final fileSize = await xFile.length();
     if (fileSize > maxFileSize) {
       throw Exception(
-        'El archivo es demasiado grande. Tamaño máximo: 5MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
+        'El archivo es demasiado grande. Tamaño máximo: 2MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
       );
     }
 
-    // Leer el archivo como bytes
-    final bytes = await xFile.readAsBytes();
-    
     // Determinar el tipo MIME
     String mimeType = xFile.mimeType ?? 'image/jpeg';
     
@@ -118,8 +127,14 @@ class ImageUtils {
       }
     }
 
+    // Leer el archivo como bytes
+    final bytes = await xFile.readAsBytes();
+    
+    // Comprimir la imagen antes de convertir a base64
+    final compressedBytes = await _compressImage(bytes, mimeType);
+    
     // Convertir a base64
-    final base64String = base64Encode(bytes);
+    final base64String = base64Encode(compressedBytes);
     
     // Retornar con formato data URI
     return 'data:$mimeType;base64,$base64String';
@@ -194,6 +209,80 @@ class ImageUtils {
     final estimatedSize = (base64Data.length * 3) ~/ 4;
     
     return estimatedSize <= maxFileSize;
+  }
+
+  /// Comprime una imagen para reducir su tamaño
+  /// 
+  /// [bytes] - Los bytes de la imagen original
+  /// [mimeType] - El tipo MIME de la imagen
+  /// 
+  /// Retorna los bytes comprimidos de la imagen
+  static Future<Uint8List> _compressImage(Uint8List bytes, String mimeType) async {
+    try {
+      // Decodificar la imagen
+      img.Image? image = img.decodeImage(bytes);
+      if (image == null) {
+        // Si no se puede decodificar, retornar los bytes originales
+        return bytes;
+      }
+
+      // Redimensionar si es necesario
+      if (image.width > maxWidth || image.height > maxHeight) {
+        image = img.copyResize(
+          image,
+          width: image.width > image.height ? maxWidth : null,
+          height: image.height > image.width ? maxHeight : null,
+          maintainAspect: true,
+        );
+      }
+
+      // Comprimir según el tipo de imagen
+      Uint8List compressedBytes;
+      if (mimeType == 'image/jpeg' || mimeType == 'image/jpg') {
+        compressedBytes = img.encodeJpg(image, quality: defaultQuality);
+      } else if (mimeType == 'image/png') {
+        compressedBytes = img.encodePng(image, level: 6); // Compresión PNG
+      } else {
+        // Para WEBP y otros formatos, convertir a JPEG
+        compressedBytes = img.encodeJpg(image, quality: defaultQuality);
+      }
+
+      // Verificar que el archivo comprimido no exceda el límite
+      if (compressedBytes.length > maxFileSize) {
+        // Si aún es muy grande, reducir más la calidad
+        if (mimeType == 'image/jpeg' || mimeType == 'image/jpg') {
+          compressedBytes = img.encodeJpg(image, quality: 50); // Reducir calidad a 50%
+        } else if (mimeType == 'image/png') {
+          compressedBytes = img.encodePng(image, level: 9); // Máxima compresión PNG
+        } else {
+          compressedBytes = img.encodeJpg(image, quality: 50);
+        }
+
+        // Si aún es grande, redimensionar a un tamaño más pequeño
+        if (compressedBytes.length > maxFileSize) {
+          image = img.copyResize(
+            image,
+            width: image.width > image.height ? 800 : null,
+            height: image.height > image.width ? 800 : null,
+            maintainAspect: true,
+          );
+          
+          if (mimeType == 'image/jpeg' || mimeType == 'image/jpg') {
+            compressedBytes = img.encodeJpg(image, quality: 50);
+          } else if (mimeType == 'image/png') {
+            compressedBytes = img.encodePng(image, level: 9); // Máxima compresión
+          } else {
+            compressedBytes = img.encodeJpg(image, quality: 50);
+          }
+        }
+      }
+
+      return compressedBytes;
+    } catch (e) {
+      print('Error al comprimir imagen: $e');
+      // En caso de error, retornar los bytes originales
+      return bytes;
+    }
   }
 }
 

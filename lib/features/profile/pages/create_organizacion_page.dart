@@ -780,7 +780,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
-        imageQuality: 85,
+        imageQuality: 70, // Reducido de 85 a 70 para mejor compresión
       );
 
       if (image != null) {
@@ -812,7 +812,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
-        imageQuality: 85,
+        imageQuality: 70, // Reducido de 85 a 70 para mejor compresión
       );
 
       if (image != null) {

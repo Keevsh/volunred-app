@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import '../config/api_config.dart';
 import '../services/dio_client.dart';
 import '../models/proyecto.dart';
@@ -639,9 +640,20 @@ class FuncionarioRepository {
   /// Obtener todos los perfiles de voluntarios (con organización si están aprobados)
   Future<List<PerfilVoluntario>> getPerfilesVoluntarios() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.perfilesVoluntarios);
-      final List<dynamic> data = response.data is List 
-          ? response.data 
+      // Obtener el usuario actual para incluir su ID en la petición
+      final authRepo = Modular.get<AuthRepository>();
+      final usuario = await authRepo.getStoredUser();
+
+      if (usuario == null || usuario.idUsuario == 0) {
+        throw Exception('Usuario no autenticado o ID de usuario inválido');
+      }
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.perfilesVoluntarios,
+        queryParameters: {'usuario_id': usuario.idUsuario},
+      );
+      final List<dynamic> data = response.data is List
+          ? response.data
           : (response.data['perfiles'] ?? []);
       return data.map((json) => PerfilVoluntario.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {

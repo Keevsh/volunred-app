@@ -103,67 +103,85 @@ class _CreateProfilePageState extends State<CreateProfilePage>
   }
 
   Future<void> _handleCreateProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final authRepo = Modular.get<AuthRepository>();
-    final usuario = await authRepo.getStoredUser();
-
-    print('👤 Usuario recuperado: ${usuario?.toJson()}');
-    print('👤 ID Usuario: ${usuario?.idUsuario}');
-
-    if (usuario == null) {
-      _showSnackBar('Error: Usuario no encontrado');
-      return;
-    }
-
-    final disponibilidad = _selectedDisponibilidad.isEmpty
-        ? _disponibilidadController.text.trim()
-        : _selectedDisponibilidad.join(', ');
-
-    print('📝 Disponibilidad final: $disponibilidad');
-    print('📝 Bio: ${_bioController.text.trim()}');
-    print('📝 Modo: ${_isEditing ? "EDITANDO" : "CREANDO"}');
-
-    // Si estamos editando, actualizar el perfil
-    if (_isEditing && _perfilExistente != null) {
-      try {
-        final voluntarioRepo = Modular.get<VoluntarioRepository>();
-        final datosActualizacion = <String, dynamic>{
-          'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
-          'disponibilidad': disponibilidad.isEmpty ? null : disponibilidad,
-          if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) 'foto_perfil': _fotoPerfilBase64,
-        };
-        
-        // Remover valores null
-        datosActualizacion.removeWhere((key, value) => value == null);
-        
-        await voluntarioRepo.updatePerfil(
-          _perfilExistente!.idPerfilVoluntario,
-          datosActualizacion,
-        );
-        
-        _showSnackBar('Perfil actualizado exitosamente', isError: false);
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Modular.to.pop();
-        });
-      } catch (e) {
-        _showSnackBar('Error al actualizar perfil: $e');
+    print('🚀 Iniciando _handleCreateProfile...');
+    
+    try {
+      if (!_formKey.currentState!.validate()) {
+        print('❌ Validación del formulario falló');
+        return;
       }
-      return;
-    }
 
-    // Si no estamos editando, crear nuevo perfil
-    BlocProvider.of<ProfileBloc>(context).add(
-      CreatePerfilRequested(
-        CreatePerfilVoluntarioRequest(
-          usuarioId: usuario.idUsuario,
-          bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
-          disponibilidad: disponibilidad.isEmpty ? null : disponibilidad,
-          estado: 'activo',
-          fotoPerfil: _fotoPerfilBase64,
-        ),
-      ),
-    );
+      final authRepo = Modular.get<AuthRepository>();
+      final usuario = await authRepo.getStoredUser();
+
+      print('👤 Usuario recuperado: ${usuario?.toJson()}');
+      print('👤 ID Usuario: ${usuario?.idUsuario}');
+
+      if (usuario == null) {
+        _showSnackBar('Error: Usuario no encontrado');
+        return;
+      }
+
+      final disponibilidad = _selectedDisponibilidad.isEmpty
+          ? _disponibilidadController.text.trim()
+          : _selectedDisponibilidad.join(', ');
+
+      print('📝 Disponibilidad final: $disponibilidad');
+      print('📝 Bio: ${_bioController.text.trim()}');
+      print('📝 Modo: ${_isEditing ? "EDITANDO" : "CREANDO"}');
+
+      // Si estamos editando, actualizar el perfil
+      if (_isEditing && _perfilExistente != null) {
+        try {
+          final voluntarioRepo = Modular.get<VoluntarioRepository>();
+          final datosActualizacion = <String, dynamic>{
+            'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+            'disponibilidad': disponibilidad.isEmpty ? null : disponibilidad,
+            if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) 'foto_perfil': _fotoPerfilBase64,
+          };
+          
+          // Remover valores null
+          datosActualizacion.removeWhere((key, value) => value == null);
+          
+          await voluntarioRepo.updatePerfil(
+            _perfilExistente!.idPerfilVoluntario,
+            datosActualizacion,
+          );
+          
+          _showSnackBar('Perfil actualizado exitosamente', isError: false);
+          Future.delayed(const Duration(milliseconds: 500), () {
+            Modular.to.pop();
+          });
+        } catch (e) {
+          _showSnackBar('Error al actualizar perfil: $e');
+        }
+        return;
+      }
+
+      // Si no estamos editando, crear nuevo perfil
+      print('📤 Creando request para nuevo perfil...');
+      final request = CreatePerfilVoluntarioRequest(
+        usuarioId: usuario.idUsuario,
+        bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+        disponibilidad: disponibilidad.isEmpty ? null : disponibilidad,
+        estado: 'activo',
+        fotoPerfil: _fotoPerfilBase64,
+      );
+      
+      print('📤 Request creado: ${request.toJson()}');
+      print('📤 Enviando evento al Bloc...');
+      
+      final bloc = BlocProvider.of<ProfileBloc>(context);
+      print('📤 Bloc obtenido: $bloc');
+      
+      bloc.add(CreatePerfilRequested(request));
+      
+      print('✅ Evento enviado al Bloc');
+    } catch (e, stackTrace) {
+      print('❌ Error crítico en _handleCreateProfile: $e');
+      print('❌ StackTrace: $stackTrace');
+      _showSnackBar('Error crítico: $e');
+    }
   }
 
   void _showSnackBar(String message, {bool isError = true}) {

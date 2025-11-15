@@ -170,22 +170,25 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                               onRefresh: _loadData,
                               child: GridView.builder(
                                 padding: const EdgeInsets.all(16),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
+                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 200, // Ancho máximo de cada tarjeta
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 0.8,
+                                  childAspectRatio: 1.2, // Ajustado para dar más altura
                                 ),
                                 itemCount: _proyectosFiltrados.length,
+                                shrinkWrap: false, // Asegurar que no se encoja
+                                physics: const AlwaysScrollableScrollPhysics(), // Física de scroll consistente
                                 itemBuilder: (context, index) {
                                   final proyecto = _proyectosFiltrados[index];
                                   return Card(
+                                    clipBehavior: Clip.antiAlias, // Agregado para mejor renderizado
                                     child: InkWell(
                                       onTap: () {
                                         Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.all(12),
+                                        padding: const EdgeInsets.all(16), // Aumentado de 12 a 16 para más espacio
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
@@ -197,13 +200,13 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                                     style: theme.textTheme.titleSmall?.copyWith(
                                                       fontWeight: FontWeight.bold,
                                                     ),
-                                                    maxLines: 2,
+                                                    maxLines: 3, // Aumentado de 2 a 3 para mostrar más texto
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 8), // Aumentado de 4 a 8
                                             Chip(
                                               label: Text(
                                                 proyecto.estado.toUpperCase(),
@@ -221,11 +224,11 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                             ),
                                             if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty) ...[
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 12), // Aumentado de 8 a 12
                                               Text(
                                                 proyecto.objetivo!,
                                                 style: theme.textTheme.bodySmall,
-                                                maxLines: 3,
+                                                maxLines: 4, // Aumentado de 3 a 4
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
@@ -247,7 +250,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                               ),
                                             ],
                                             if (proyecto.categoriasProyectos != null && proyecto.categoriasProyectos!.isNotEmpty) ...[
-                                              const SizedBox(height: 4),
+                                              const SizedBox(height: 8), // Aumentado de 4 a 8
                                               Wrap(
                                                 spacing: 2,
                                                 runSpacing: 2,

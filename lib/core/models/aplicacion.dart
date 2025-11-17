@@ -19,11 +19,18 @@ class Aplicacion extends Equatable {
   });
 
   factory Aplicacion.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Aplicacion(
-      idAplicacion: json['id_aplicacion'] as int,
-      nombre: json['nombre'] as String,
+      idAplicacion: _getInt(json['id_aplicacion']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       estado: json['estado'] as String? ?? 'activo',
-      idModulo: json['id_modulo'] as int,
+      idModulo: _getInt(json['id_modulo']) ?? 0,
       modulo: json['modulo'] != null
           ? Modulo.fromJson(json['modulo'])
           : null,

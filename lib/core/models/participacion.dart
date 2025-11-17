@@ -27,7 +27,7 @@ class Participacion extends Equatable {
   final double? horasComprometidasSemana;
   
   /// Estado de la participación
-  /// Valores posibles: 'programada', 'en_progreso', 'completado', 'ausente'
+  /// Valores posibles: 'PROGRAMADA', 'EN_PROGRESO', 'COMPLETADO', 'AUSENTE'
   final String estado;
   
   /// Fecha de creación de la participación
@@ -109,13 +109,17 @@ class Participacion extends Equatable {
       }
     }
     
+    // Manejar estado: normalizar a mayúsculas (PROGRAMADA, EN_PROGRESO, COMPLETADO, AUSENTE)
+    String estadoValue = _getString(json['estado']) ?? 'PROGRAMADA';
+    estadoValue = estadoValue.toUpperCase();
+    
     return Participacion(
       idParticipacion: _getInt(json['id_participacion']) ?? 0,
       inscripcionId: _getInt(json['inscripcion_id']) ?? 0,
       proyectoId: _getInt(json['proyecto_id']) ?? 0,
       rolAsignado: _getString(json['rol_asignado']),
       horasComprometidasSemana: horasComprometidasSemana,
-      estado: _getString(json['estado']) ?? 'programada',
+      estado: estadoValue,
       creadoEn: creadoEn,
       actualizadoEn: actualizadoEn,
       inscripcion: json['inscripcion'] is Map 

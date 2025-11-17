@@ -67,17 +67,24 @@ class Rol extends Equatable {
     }
 
     // Manejo seguro del campo _count
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     int? cantidadUsuarios;
     int? cantidadPermisos;
     if (json['_count'] != null && json['_count'] is Map<String, dynamic>) {
       final countMap = json['_count'] as Map<String, dynamic>;
-      cantidadUsuarios = countMap['usuarios'] as int?;
-      cantidadPermisos = countMap['permisos'] as int?;
+      cantidadUsuarios = _getInt(countMap['usuarios']);
+      cantidadPermisos = _getInt(countMap['permisos']);
     }
 
     return Rol(
-      idRol: json['id_rol'] as int,
-      nombre: json['nombre'] as String,
+      idRol: _getInt(json['id_rol']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       descripcion: json['descripcion'] as String?,
       estado: json['estado'] as String? ?? 'activo',
       creadoEn: json['creado_en'] != null

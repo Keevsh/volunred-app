@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/organizacion.dart';
+import '../../../core/repositories/auth_repository.dart';
 import '../../../core/utils/image_utils.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import '../bloc/admin_bloc.dart';
@@ -17,16 +19,51 @@ class ProyectosManagementPage extends StatefulWidget {
 }
 
 class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
+  bool? _esAdmin;
+  int? _userId;
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verificarAcceso();
+    });
   }
 
-  void _loadData() {
-    context.read<AdminBloc>().add(LoadProyectosRequested());
-    context.read<AdminBloc>().add(LoadOrganizacionesRequested());
-    context.read<AdminBloc>().add(LoadCategoriasProyectosRequested());
+  Future<void> _verificarAcceso() async {
+    final authRepo = Modular.get<AuthRepository>();
+    final usuario = await authRepo.getStoredUser();
+
+    if (usuario == null) {
+      // No autenticado, redirigir al login o home
+      if (mounted) {
+        Modular.to.navigate('/home');
+      }
+    } else {
+      // Determinar si es admin
+      final esAdmin = usuario.isAdmin;
+      
+      // Cargar datos apropiados
+      _loadData(esAdmin, usuario.idUsuario);
+    }
+  }
+
+  void _loadData([bool? esAdmin, int? userId]) {
+    if (esAdmin != null) _esAdmin = esAdmin;
+    if (userId != null) _userId = userId;
+    
+    // Usar los valores guardados
+    final admin = _esAdmin ?? true;
+    final uid = _userId ?? 0;
+    
+    BlocProvider.of<AdminBloc>(context).add(LoadProyectosRequested());
+    
+    if (admin) {
+      BlocProvider.of<AdminBloc>(context).add(LoadOrganizacionesRequested());
+    } else {
+      BlocProvider.of<AdminBloc>(context).add(LoadOrganizacionesByUsuarioRequested(uid));
+    }
+    
+    BlocProvider.of<AdminBloc>(context).add(LoadCategoriasProyectosRequested());
   }
 
   @override
@@ -383,7 +420,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     String? imagenBase64;
     final ImagePicker _imagePicker = ImagePicker();
 
-    final bloc = context.read<AdminBloc>();
+    final bloc = BlocProvider.of<AdminBloc>(context);
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -397,13 +434,13 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               if (state is OrganizacionesLoaded) {
                 organizaciones = state.organizaciones;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadOrganizacionesRequested());
+                BlocProvider.of<AdminBloc>(dialogContext).add(LoadOrganizacionesRequested());
               }
 
               if (state is CategoriasProyectosLoaded) {
                 categorias = state.categorias;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadCategoriasProyectosRequested());
+                BlocProvider.of<AdminBloc>(dialogContext).add(LoadCategoriasProyectosRequested());
               }
 
               return StatefulBuilder(
@@ -586,7 +623,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                             objetivoController.text.isNotEmpty &&
                             selectedCategoriaId != null &&
                             selectedOrganizacionId != null) {
-                          dialogContext.read<AdminBloc>().add(
+                          BlocProvider.of<AdminBloc>(dialogContext).add(
                                 CreateProyectoRequested(
                                   categoriaProyectoId: selectedCategoriaId!,
                                   organizacionId: selectedOrganizacionId!,
@@ -627,7 +664,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     int? selectedOrganizacionId = proyecto.organizacionId;
     String? selectedEstado = proyecto.estado;
 
-    final bloc = context.read<AdminBloc>();
+    final bloc = BlocProvider.of<AdminBloc>(context);
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -641,13 +678,13 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               if (state is OrganizacionesLoaded) {
                 organizaciones = state.organizaciones;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadOrganizacionesRequested());
+                BlocProvider.of<AdminBloc>(dialogContext).add(LoadOrganizacionesRequested());
               }
 
               if (state is CategoriasProyectosLoaded) {
                 categorias = state.categorias;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadCategoriasProyectosRequested());
+                BlocProvider.of<AdminBloc>(dialogContext).add(LoadCategoriasProyectosRequested());
               }
 
               return StatefulBuilder(
@@ -825,7 +862,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                             objetivoController.text.isNotEmpty &&
                             selectedCategoriaId != null &&
                             selectedOrganizacionId != null) {
-                          dialogContext.read<AdminBloc>().add(
+                          BlocProvider.of<AdminBloc>(dialogContext).add(
                                 UpdateProyectoRequested(
                                   id: proyecto.idProyecto,
                                   categoriaProyectoId: selectedCategoriaId,
@@ -974,7 +1011,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteProyectoRequested(proyecto.idProyecto));
+              BlocProvider.of<AdminBloc>(context).add(DeleteProyectoRequested(proyecto.idProyecto));
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),

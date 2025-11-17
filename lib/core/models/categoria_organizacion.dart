@@ -16,13 +16,22 @@ class CategoriaOrganizacion extends Equatable {
   });
 
   factory CategoriaOrganizacion.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return CategoriaOrganizacion(
-      idCategoria: json['id_categoria'] as int,
-      nombre: json['nombre'] as String,
+      idCategoria: _getInt(json['id_categoria']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       descripcion: json['descripcion'] as String?,
-      creadoEn: DateTime.parse(json['creado_en'] as String),
+      creadoEn: json['creado_en'] != null
+          ? DateTime.parse(json['creado_en'] as String)
+          : DateTime.now(),
       cantidadOrganizaciones: json['_count'] != null 
-          ? json['_count']['organizaciones'] as int?
+          ? _getInt(json['_count']['organizaciones'])
           : null,
     );
   }

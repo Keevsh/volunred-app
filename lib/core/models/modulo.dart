@@ -14,9 +14,16 @@ class Modulo extends Equatable {
   });
 
   factory Modulo.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Modulo(
-      idModulo: json['id_modulo'] as int,
-      nombre: json['nombre'] as String,
+      idModulo: _getInt(json['id_modulo']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       estado: json['estado'] as String? ?? 'activo',
       descripcion: json['descripcion'] as String? ?? '',
     );

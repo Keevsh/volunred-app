@@ -42,12 +42,19 @@ class Programa extends Equatable {
   });
 
   factory Programa.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Programa(
-      idPrograma: json['id_programa'] as int,
-      nombre: json['nombre'] as String,
+      idPrograma: _getInt(json['id_programa']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       descripcion: json['descripcion'] as String?,
       estado: json['estado'] as String? ?? 'activo',
-      idAplicacion: json['id_aplicacion'] as int,
+      idAplicacion: _getInt(json['id_aplicacion']) ?? 0,
       aplicacion: json['aplicacion'] != null
           ? Aplicacion.fromJson(json['aplicacion'])
           : null,

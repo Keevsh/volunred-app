@@ -2331,68 +2331,155 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: _isProfileLoading ? _buildProfileSkeleton(theme, colorScheme) : CustomScrollView(
         slivers: [
-          // Header con portada (Cover Photo)
+          // Header con portada (Cover Photo) - ESTILO LINKEDIN/X
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 280, // Más grande como en LinkedIn
             pinned: true,
             backgroundColor: colorScheme.primary,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary.withOpacity(0.8),
-                      colorScheme.secondary.withOpacity(0.6),
-                      colorScheme.tertiary.withOpacity(0.4),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              background: Stack(
+                children: [
+                  // Banner de fondo - más prominente
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primary.withOpacity(0.9),
+                          colorScheme.secondary.withOpacity(0.7),
+                          colorScheme.tertiary.withOpacity(0.5),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    // Patrón de fondo sutil
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: 0.1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/pattern.png'), // TODO: Agregar imagen de patrón
-                              repeat: ImageRepeat.repeat,
-                            ),
+
+                  // Patrón sutil de fondo
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: 0.05,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/images/pattern.png'),
+                            repeat: ImageRepeat.repeat,
                           ),
                         ),
                       ),
                     ),
-                    // Elementos decorativos
-                    Positioned(
-                      top: 40,
-                      right: 20,
+                  ),
+
+                  // Elementos decorativos sutiles
+                  Positioned(
+                    top: 60,
+                    right: 30,
+                    child: Icon(
+                      Icons.volunteer_activism,
+                      size: 80,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 40,
+                    left: 30,
+                    child: Icon(
+                      Icons.favorite,
+                      size: 50,
+                      color: Colors.white.withOpacity(0.15),
+                    ),
+                  ),
+
+                  // Avatar superpuesto al banner - ESTILO LINKEDIN
+                  Positioned(
+                    bottom: -60, // Superpone el avatar al banner
+                    left: 24,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.surface,
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
+                          ? CircularImageBase64Widget(
+                              base64String: _perfilVoluntario!.fotoPerfil!,
+                              size: 120,
+                              backgroundColor: colorScheme.surface,
+                            )
+                          : CircleAvatar(
+                              radius: 60,
+                              backgroundColor: colorScheme.surface,
+                              child: Text(
+                                _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  // Botón de editar foto de perfil
+                  Positioned(
+                    bottom: -20,
+                    left: 140,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colorScheme.surface,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: Icon(
-                        Icons.volunteer_activism,
-                        size: 60,
-                        color: Colors.white.withOpacity(0.3),
+                        Icons.camera_alt,
+                        size: 24,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
+                  ),
+
+                  // Botón de editar banner
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Icon(
-                        Icons.favorite,
-                        size: 40,
-                        color: Colors.white.withOpacity(0.2),
+                        Icons.camera_alt,
+                        size: 20,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () {
-                  // TODO: Compartir perfil
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Función de compartir próximamente')),
                   );
@@ -2469,178 +2556,213 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
 
-          // Contenido principal
+          // Contenido principal - ESTILO LINKEDIN/X
           SliverToBoxAdapter(
             child: Container(
-              margin: const EdgeInsets.only(top: 20),
+              margin: const EdgeInsets.only(top: 80), // Más espacio para el avatar superpuesto
               child: Column(
                 children: [
-                  // Avatar grande
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Stack(
+                  // Información del perfil - ESTILO LINKEDIN
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.primary,
-                                colorScheme.secondary,
-                                colorScheme.tertiary,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colorScheme.shadow.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
+                        // Nombre y verificación - más prominente
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _userName,
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                  fontSize: 28,
+                                ),
                               ),
-                            ],
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.verified,
+                              color: colorScheme.primary,
+                              size: 28,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Título/Headline - ESTILO LINKEDIN
+                        Text(
+                          'Voluntario Comprometido',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
                           ),
-                          child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
-                              ? CircularImageBase64Widget(
-                                  base64String: _perfilVoluntario!.fotoPerfil!,
-                                  size: 120,
-                                  backgroundColor: colorScheme.surface,
-                                )
-                              : CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: colorScheme.surface,
-                                  child: Text(
-                                    _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                                    style: TextStyle(
-                                      fontSize: 48,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.primary,
-                                    ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Ubicación y estado - más compacto
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 18,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Nueva York, NY',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 12),
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: colorScheme.outline,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Icon(
+                              Icons.access_time,
+                              size: 18,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Voluntario desde 2023',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Conexiones/Estadísticas rápidas - ESTILO LINKEDIN
+                        Row(
+                          children: [
+                            Text(
+                              '342',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'personas impactadas',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 12),
+                              width: 4,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: colorScheme.outline,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Text(
+                              '8',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.secondary,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'proyectos completados',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Botones de acción - ESTILO LINKEDIN
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Editar perfil próximamente')),
+                                  );
+                                },
+                                icon: const Icon(Icons.edit, size: 18),
+                                label: const Text('Editar perfil'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.primary,
+                                  foregroundColor: colorScheme.onPrimary,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colorScheme.surface,
-                                width: 3,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colorScheme.shadow.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Compartir perfil próximamente')),
+                                );
+                              },
+                              icon: const Icon(Icons.share, size: 18),
+                              label: const Text('Compartir'),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: colorScheme.outline),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                              ],
+                              ),
                             ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 20,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
+                          ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
 
-                  // Nombre y verificación
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _userName,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.verified,
-                        color: colorScheme.primary,
-                        size: 24,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // Estado y ubicación
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Nueva York, NY',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: colorScheme.outline,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Voluntario desde 2023',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Biografía - SIN CONTENEDOR BLANCO
+                  // ACERCA DE - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Icon(
-                              Icons.edit_note,
-                              size: 20,
+                              Icons.info_outline,
+                              size: 24,
                               color: colorScheme.primary,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Sobre mí',
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              'Acerca de',
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Text(
                           _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
                               ? _perfilVoluntario!.bio!
@@ -2649,18 +2771,61 @@ class _HomePageState extends State<HomePage> {
                             color: colorScheme.onSurface,
                             height: 1.6,
                           ),
-                          textAlign: TextAlign.left,
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Estadísticas mejoradas - SIN CONTENEDOR BLANCO
+                  // EXPERIENCIA - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.timeline,
+                              size: 24,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Experiencia como Voluntario',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: colorScheme.primary,
+                              ),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Agregar experiencia próximamente')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildExperienceRoadmap(theme, colorScheme),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ESTADÍSTICAS DE IMPACTO - ESTILO LINKEDIN
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Mi Impacto',
@@ -2700,11 +2865,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Organizaciones inscritas - SIN CONTENEDOR BLANCO
+                  // ORGANIZACIONES - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2724,10 +2889,18 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const Spacer(),
-                            Text(
-                              '3 inscritas',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '3 inscritas',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -2760,11 +2933,54 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Insignias mejoradas - Carrusel horizontal - SIN CONTENEDOR BLANCO
+                  // APTITUDES Y HABILIDADES - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline,
+                              size: 24,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Aptitudes y Habilidades',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: colorScheme.primary,
+                              ),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Agregar aptitud próximamente')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSkillsSection(theme, colorScheme),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // LOGROS E INSIGNIAS - ESTILO LINKEDIN
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2878,67 +3094,16 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
 
-                        const SizedBox(height: 16),
 
-                        // Indicador de progreso general
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Progreso General',
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  Text(
-                                    '75%',
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: LinearProgressIndicator(
-                                  value: 0.75,
-                                  backgroundColor: colorScheme.surfaceContainerHighest,
-                                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                                  minHeight: 8,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '¡Solo 1 insignia más para completar tu colección!',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                  // Proyectos - SIN CONTENEDOR BLANCO
+                  // PROYECTOS - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2980,9 +3145,9 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 32),
 
-                  // Acciones sociales - SIN CONTENEDOR BLANCO
+                  // ACCIONES SOCIALES - ESTILO LINKEDIN
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -3085,16 +3250,8 @@ class _HomePageState extends State<HomePage> {
     required ColorScheme colorScheme,
     required ThemeData theme,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
@@ -3343,6 +3500,353 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ========== ROADMAP DE EXPERIENCIA ==========
+  Widget _buildExperienceRoadmap(ThemeData theme, ColorScheme colorScheme) {
+    final experiences = [
+      {
+        'year': '2024',
+        'title': 'Coordinador de Proyecto Ambiental',
+        'organization': 'Fundación Verde Esperanza',
+        'description': 'Lideré un equipo de 15 voluntarios en la reforestación de 500 hectáreas',
+        'icon': Icons.eco,
+        'color': colorScheme.primary,
+      },
+      {
+        'year': '2023',
+        'title': 'Mentor Educativo',
+        'organization': 'Centro Educativo Futuro',
+        'description': 'Apoyé a 50 estudiantes en programas de alfabetización digital',
+        'icon': Icons.school,
+        'color': colorScheme.secondary,
+      },
+      {
+        'year': '2023',
+        'title': 'Cuidador de Animales',
+        'organization': 'Refugio Animal Amigo',
+        'description': 'Cuidé de más de 200 animales en situación de abandono',
+        'icon': Icons.pets,
+        'color': colorScheme.tertiary,
+      },
+    ];
+
+    return Column(
+      children: experiences.asMap().entries.map((entry) {
+        final index = entry.key;
+        final exp = entry.value;
+        final isLast = index == experiences.length - 1;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Timeline line and dot
+            SizedBox(
+              width: 60,
+              child: Column(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: exp['color'] as Color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colorScheme.surface,
+                        width: 3,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (exp['color'] as Color).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    Container(
+                      width: 2,
+                      height: 80,
+                      color: colorScheme.outline.withOpacity(0.3),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 24, left: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Year badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: (exp['color'] as Color).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: (exp['color'] as Color).withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        exp['year'] as String,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: exp['color'] as Color,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Title and organization
+                    Row(
+                      children: [
+                        Icon(
+                          exp['icon'] as IconData,
+                          size: 20,
+                          color: exp['color'] as Color,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                exp['title'] as String,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                exp['organization'] as String,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Description
+                    Text(
+                      exp['description'] as String,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.5,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Ver detalles de ${exp['title']}')),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.visibility,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          label: Text(
+                            'Ver detalles',
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Editar experiencia próximamente')),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  // ========== SECCIÓN DE APTITUDES ==========
+  Widget _buildSkillsSection(ThemeData theme, ColorScheme colorScheme) {
+    final skills = [
+      {'name': 'Liderazgo', 'level': 'Avanzado', 'color': colorScheme.primary},
+      {'name': 'Trabajo en Equipo', 'level': 'Experto', 'color': colorScheme.secondary},
+      {'name': 'Comunicación', 'level': 'Avanzado', 'color': colorScheme.tertiary},
+      {'name': 'Empatía', 'level': 'Experto', 'color': colorScheme.primary},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Skills grid
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: skills.map((skill) {
+            final color = skill['color'] as Color;
+            final level = skill['level'] as String;
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: color.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    skill['name'] as String,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      level,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Add new skill button
+        InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Agregar nueva aptitud próximamente')),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: colorScheme.outline.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Agregar aptitud',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Skills insights
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.insights,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Tus fortalezas destacadas',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Basado en tus experiencias y evaluaciones, destacas en habilidades de liderazgo y trabajo en equipo. Las organizaciones buscan voluntarios con tu perfil.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFutureProjects() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -3421,38 +3925,53 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: CustomScrollView(
         slivers: [
-          // Header con portada (Cover Photo) - Skeleton
+          // Header con portada (Cover Photo) - Skeleton - ESTILO LINKEDIN
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 280,
             pinned: true,
             backgroundColor: colorScheme.surfaceContainerHighest,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                ),
-                child: Stack(
-                  children: [
-                    // Skeleton animado para el header
-                    Positioned.fill(
+              background: Stack(
+                children: [
+                  // Banner skeleton
+                  Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
+
+                  // Avatar superpuesto skeleton
+                  Positioned(
+                    bottom: -60,
+                    left: 24,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.surface,
+                      ),
                       child: _buildShimmerEffect(
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.surfaceContainerHighest.withOpacity(0.8),
-                                colorScheme.surfaceContainerHighest.withOpacity(0.6),
-                                colorScheme.surfaceContainerHighest.withOpacity(0.4),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  // Botón de editar foto skeleton
+                  Positioned(
+                    bottom: -20,
+                    left: 140,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             actions: [
@@ -3468,97 +3987,218 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
 
-          // Contenido principal con skeletons
+          // Contenido principal con skeletons - ESTILO LINKEDIN
           SliverToBoxAdapter(
             child: Container(
-              margin: const EdgeInsets.only(top: 20),
+              margin: const EdgeInsets.only(top: 80),
               child: Column(
                 children: [
-                  // Avatar skeleton
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Stack(
+                  // Información del perfil skeleton
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Nombre skeleton
                         Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colorScheme.surfaceContainerHighest,
-                          ),
+                          height: 36,
+                          width: 250,
+                          margin: const EdgeInsets.only(bottom: 8),
                           child: _buildShimmerEffect(
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundColor: colorScheme.surfaceContainerHighest,
+                            Container(
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest,
-                              shape: BoxShape.circle,
+
+                        // Título skeleton
+                        Container(
+                          height: 24,
+                          width: 180,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: _buildShimmerEffect(
+                            Container(
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
+                        ),
+
+                        // Ubicación y estado skeleton
+                        Row(
+                          children: [
+                            Container(
+                              height: 20,
+                              width: 140,
+                              child: _buildShimmerEffect(
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Container(
+                              height: 20,
+                              width: 160,
+                              child: _buildShimmerEffect(
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Conexiones skeleton
+                        Row(
+                          children: [
+                            Container(
+                              height: 20,
+                              width: 60,
+                              child: _buildShimmerEffect(
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              height: 20,
+                              width: 120,
+                              child: _buildShimmerEffect(
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Botones skeleton
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 40,
+                                child: _buildShimmerEffect(
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              height: 40,
+                              width: 120,
+                              child: _buildShimmerEffect(
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                  // Nombre skeleton
+                  // Acerca de skeleton
                   Container(
-                    height: 32,
-                    width: 200,
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(24),
                     child: _buildShimmerEffect(
                       Container(
+                        height: 120,
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 24),
 
-                  // Estado y ubicación skeleton
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                  // Experiencia skeleton
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(24),
+                    child: _buildShimmerEffect(
                       Container(
-                        height: 16,
-                        width: 120,
-                        child: _buildShimmerEffect(
-                          Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Container(
-                        height: 16,
-                        width: 140,
-                        child: _buildShimmerEffect(
-                          Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
 
                   const SizedBox(height: 24),
+
+                  // Habilidades skeleton
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(24),
+                    child: _buildShimmerEffect(
+                      Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Estadísticas skeleton
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(24),
+                    child: _buildShimmerEffect(
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
 
                   // Biografía skeleton
                   Padding(

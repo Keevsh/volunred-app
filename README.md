@@ -77,6 +77,8 @@ El sistema usa JWT almacenado en SharedPreferences. El interceptor de Dio agrega
 
 Ver [DOCUMENTACION_API.md](DOCUMENTACION_API.md) para endpoints completos del backend.
 
+**🚨 IMPORTANTE**: Ver [BACKEND_ERRORS_GUIDE.md](BACKEND_ERRORS_GUIDE.md) para errores críticos del backend que afectan la funcionalidad.
+
 ---
 
 **Desarrollado con ❤️ usando Flutter**

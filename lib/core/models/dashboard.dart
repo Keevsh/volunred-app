@@ -28,11 +28,18 @@ class Dashboard extends Equatable {
     // El JSON puede venir directamente o dentro de un objeto 'resumen'
     final data = json['resumen'] ?? json;
     
+    // Helper function to safely get int value
+    int _getInt(dynamic value, {int defaultValue = 0}) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      return int.tryParse(value.toString()) ?? defaultValue;
+    }
+    
     return Dashboard(
-      totalProyectos: (data['total_proyectos'] ?? 0) as int,
-      totalTareas: (data['total_tareas'] ?? 0) as int,
-      inscripcionesPendientes: (data['inscripciones_pendientes'] ?? 0) as int,
-      totalParticipaciones: (data['total_participaciones'] ?? 0) as int,
+      totalProyectos: _getInt(data['total_proyectos']),
+      totalTareas: _getInt(data['total_tareas']),
+      inscripcionesPendientes: _getInt(data['inscripciones_pendientes']),
+      totalParticipaciones: _getInt(data['total_participaciones']),
     );
   }
 

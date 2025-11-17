@@ -104,7 +104,6 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
       final data = {
         'usuario_id': perfil.usuarioId,
         'organizacion_id': widget.organizacionId,
-        'fecha_recepcion': DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
         'estado': 'pendiente', // El backend espera minúsculas
       };
 
@@ -112,8 +111,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
       print('📦 [VOLUNTARIO] Data: $data');
       print('👤 Usuario ID: ${perfil.usuarioId}');
       print('🏢 Organización ID: ${widget.organizacionId}');
-      print('📅 Fecha recepción original: ${DateTime.now()}');
-      print('📅 Fecha recepción formateada: ${DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      print('📅 Fecha recepción: será asignada automáticamente por el backend');
 
       await _repository.createInscripcion(data);
 

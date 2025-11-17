@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:math';
 import '../config/api_config.dart';
 import 'storage_service.dart';
 
@@ -41,8 +42,15 @@ class AuthInterceptor extends Interceptor {
     // Obtener token del storage
     final token = await StorageService.getString(ApiConfig.accessTokenKey);
 
+    print('🔐 [AUTH INTERCEPTOR] Verificando token para ${options.method} ${options.path}');
+    print('🔐 [AUTH INTERCEPTOR] Token existe: ${token != null}');
     if (token != null) {
+      print('🔐 [AUTH INTERCEPTOR] Token length: ${token.length}');
+      print('🔐 [AUTH INTERCEPTOR] Token starts with: ${token.substring(0, min(20, token.length))}...');
       options.headers['Authorization'] = 'Bearer $token';
+      print('🔐 [AUTH INTERCEPTOR] Header Authorization agregado');
+    } else {
+      print('⚠️ [AUTH INTERCEPTOR] No hay token disponible - usuario no autenticado');
     }
 
     // Safety: Remove id_categoria_organizacion from organization creation requests

@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/dto/request_models.dart';
 import '../../../core/repositories/admin_repository.dart';
+import '../../../core/config/api_config.dart';
+import '../../../core/services/storage_service.dart';
 import 'admin_event.dart';
 import 'admin_state.dart';
 
@@ -67,6 +69,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     // Organizaciones
     on<LoadOrganizacionesRequested>(_onLoadOrganizacionesRequested);
     on<LoadOrganizacionByIdRequested>(_onLoadOrganizacionByIdRequested);
+    on<LoadOrganizacionesByUsuarioRequested>(_onLoadOrganizacionesByUsuarioRequested);
     on<CreateOrganizacionRequested>(_onCreateOrganizacionRequested);
     on<UpdateOrganizacionRequested>(_onUpdateOrganizacionRequested);
     on<DeleteOrganizacionRequested>(_onDeleteOrganizacionRequested);
@@ -727,6 +730,19 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     }
   }
 
+  Future<void> _onLoadOrganizacionesByUsuarioRequested(
+    LoadOrganizacionesByUsuarioRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final organizaciones = await adminRepository.getOrganizacionesByUsuario(event.userId);
+      emit(OrganizacionesLoaded(organizaciones));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
   Future<void> _onLoadOrganizacionByIdRequested(
     LoadOrganizacionByIdRequested event,
     Emitter<AdminState> emit,
@@ -832,8 +848,15 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(AdminLoading());
     try {
+      // Verificar si el usuario está autenticado
+      final usuarioJson = await StorageService.getString(ApiConfig.usuarioKey);
+      if (usuarioJson == null) {
+        emit(AdminError('Usuario no autenticado.'));
+        return;
+      }
+
       final data = <String, dynamic>{
-        'categoria_proyecto_id': event.categoriaProyectoId,
+        'categorias_ids': [event.categoriaProyectoId],
         'organizacion_id': event.organizacionId,
         'nombre': event.nombre,
         'objetivo': event.objetivo,
@@ -872,7 +895,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final data = <String, dynamic>{};
       if (event.categoriaProyectoId != null)
-        data['categoria_proyecto_id'] = event.categoriaProyectoId;
+        data['categorias_ids'] = [event.categoriaProyectoId];
       if (event.organizacionId != null) data['organizacion_id'] = event.organizacionId;
       if (event.nombre != null) data['nombre'] = event.nombre;
       if (event.objetivo != null) data['objetivo'] = event.objetivo;
@@ -1063,14 +1086,14 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final data = <String, dynamic>{
         'usuario_id': event.usuarioId,
         'organizacion_id': event.organizacionId,
-        'fecha_recepcion': (event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+        // 'fecha_recepcion': (event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''), // REMOVIDO: Backend no tiene la columna
         'estado': event.estado ?? 'activo',
       };
 
       print('🚀 [ADMIN] Enviando datos al backend para crear inscripción:');
       print('📦 [ADMIN] Data: $data');
-      print('📅 [ADMIN] Fecha recepción original: ${event.fechaRecepcion ?? DateTime.now()}');
-      print('📅 [ADMIN] Fecha recepción formateada: ${(event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+      // print('📅 [ADMIN] Fecha recepción original: ${event.fechaRecepcion ?? DateTime.now()}');
+      // print('📅 [ADMIN] Fecha recepción formateada: ${(event.fechaRecepcion ?? DateTime.now()).toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
 
       final inscripcion = await adminRepository.createInscripcion(data);
       emit(InscripcionCreated(inscripcion));

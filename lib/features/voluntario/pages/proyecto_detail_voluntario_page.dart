@@ -89,7 +89,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
       await _repository.createParticipacion({
         'inscripcion_id': _inscripcionAprobada!.idInscripcion,
         'proyecto_id': widget.proyectoId,
-        'estado': 'programada',
+        'estado': 'PROGRAMADA',
       });
 
       if (mounted) {

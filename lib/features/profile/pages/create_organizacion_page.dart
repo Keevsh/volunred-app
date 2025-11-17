@@ -155,12 +155,33 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
     switch (_currentStep) {
       case 0:
         isValid = _formKey1.currentState?.validate() ?? false;
+        print('🔍 Paso 1 validación: $isValid');
+        if (!isValid) {
+          print('❌ Paso 1 falló validación. Campos requeridos:');
+          print('   - Nombre: ${_nombreOrgController.text.isNotEmpty}');
+          print('   - Descripción: ${_descripcionController.text.isNotEmpty}');
+          print('   - Dirección: ${_direccionController.text.isNotEmpty}');
+          print('   - Email: ${_emailOrgController.text.isNotEmpty}');
+        }
         break;
       case 1:
         isValid = _formKey2.currentState?.validate() ?? false;
+        print('🔍 Paso 2 validación: $isValid');
+        if (!isValid) {
+          print('❌ Paso 2 falló validación. Campos requeridos:');
+          print('   - RUC: ${_rucController.text.isNotEmpty && _rucController.text.length == 13}');
+          print('   - Razón Social: ${_razonSocialController.text.isNotEmpty}');
+          print('   - Categoría: ${_categoriaSeleccionada != null}');
+        }
         break;
       case 2:
         isValid = _formKey3.currentState?.validate() ?? false;
+        print('🔍 Paso 3 validación: $isValid');
+        if (!isValid) {
+          print('❌ Paso 3 falló validación. Campos requeridos:');
+          print('   - Cargo: ${_cargoController.text.isNotEmpty}');
+          print('   - Departamento: ${_departamentoController.text.isNotEmpty}');
+        }
         if (isValid) {
           await _submitAll();
           return;
@@ -169,12 +190,36 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
     }
 
     if (isValid && _currentStep < 2) {
+      print('✅ Avanzando de paso $_currentStep a ${_currentStep + 1}');
       setState(() => _currentStep++);
       _pageController.animateToPage(
         _currentStep,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+    } else if (!isValid) {
+      print('❌ No se puede avanzar: validación falló para paso ${_currentStep + 1}');
+      // Mostrar mensaje de error si la validación falló
+      String errorMessage = 'Por favor, completa todos los campos obligatorios';
+      switch (_currentStep) {
+        case 0:
+          errorMessage = 'Completa la información básica de la organización';
+          break;
+        case 1:
+          errorMessage = 'Completa la información legal de la organización';
+          break;
+        case 2:
+          errorMessage = 'Completa tu información personal';
+          break;
+      }
+      
+      if (mounted) {
+        AppWidgets.showStyledSnackBar(
+          context: context,
+          message: errorMessage,
+          isError: true,
+        );
+      }
     }
   }
 
@@ -495,6 +540,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         key: _formKey1,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
               'Paso 1: Información Básica',
@@ -560,6 +606,17 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               icon: Icons.email,
               keyboardType: TextInputType.emailAddress,
               required: true,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'El email es obligatorio';
+                }
+                // Validación básica de email
+                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                if (!emailRegex.hasMatch(value.trim())) {
+                  return 'Ingresa un email válido';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             
@@ -570,6 +627,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               icon: Icons.language,
               keyboardType: TextInputType.url,
             ),
+            const SizedBox(height: 24), // Add bottom padding
           ],
         ),
       ),
@@ -660,27 +718,40 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       ),
                       hint: const Text('Selecciona una categoría'),
+                      isExpanded: true, // Make dropdown take full width
                       items: _categorias.map((cat) {
                         print('📋 Mapeando categoría: $cat');
                         return DropdownMenuItem<int>(
-                          value: cat['id_categoria_org'] as int, // Corregido: era id_categoria_organizacion
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                cat['nombre'] as String,
-                                style: const TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              if (cat['descripcion'] != null)
+                          value: cat['id_categoria'] != null 
+                              ? (cat['id_categoria'] is int 
+                                  ? cat['id_categoria'] as int
+                                  : int.tryParse(cat['id_categoria'].toString()) ?? 0)
+                              : null,
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 300), // Limit width
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 Text(
-                                  cat['descripcion'] as String,
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF86868B)),
+                                  cat['nombre'] as String? ?? 'Sin nombre',
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                            ],
+                                if (cat['descripcion'] != null)
+                                  Text(
+                                    cat['descripcion'] as String,
+                                    style: const TextStyle(fontSize: 12, color: Color(0xFF86868B)),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),
                       onChanged: (value) {
+                        print('🎯 Categoría seleccionada: $value');
                         setState(() => _categoriaSeleccionada = value);
                       },
                       validator: (value) {
@@ -726,7 +797,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             const SizedBox(height: 24),
             _buildFotoPerfilSelector(),
             const SizedBox(height: 24),
-            
+
             _buildTextField(
               controller: _cargoController,
               label: 'Tu Cargo',
@@ -735,7 +806,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _departamentoController,
               label: 'Departamento',
@@ -744,7 +815,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 24),
-            
+
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

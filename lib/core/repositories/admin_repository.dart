@@ -13,6 +13,7 @@ import '../models/inscripcion.dart';
 import '../models/rol.dart';
 import '../models/usuario.dart';
 import '../services/dio_client.dart';
+import '../services/storage_service.dart';
 
 class AdminRepository {
   final DioClient _dioClient;
@@ -61,13 +62,21 @@ class AdminRepository {
       
       // Si por alguna razón viene como objeto con data
       final data = response.data as Map<String, dynamic>;
+      
+      // Helper function to safely get int value
+      int _getInt(dynamic value, {int defaultValue = 0}) {
+        if (value == null) return defaultValue;
+        if (value is int) return value;
+        return int.tryParse(value.toString()) ?? defaultValue;
+      }
+      
       return {
         'usuarios': (data['data'] as List)
             .map((u) => Usuario.fromJson(u as Map<String, dynamic>))
             .toList(),
-        'total': data['total'] as int,
-        'page': data['page'] as int,
-        'limit': data['limit'] as int,
+        'total': _getInt(data['total']),
+        'page': _getInt(data['page']),
+        'limit': _getInt(data['limit']),
       };
     } on DioException catch (e) {
       print('🔴 Error al obtener usuarios: ${e.response?.statusCode}');
@@ -660,6 +669,48 @@ class AdminRepository {
     }
   }
 
+  /// Obtener organizaciones a las que pertenece un usuario (basado en inscripciones aprobadas)
+  Future<List<Organizacion>> getOrganizacionesByUsuario(int userId) async {
+    try {
+      // Obtener todas las inscripciones del usuario
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.inscripciones}?usuario_id=$userId&estado=aprobado',
+      );
+      
+      final List<dynamic> inscripcionesData = response.data is List
+          ? response.data
+          : (response.data['inscripciones'] ?? []);
+      
+      // Extraer IDs únicos de organizaciones
+      final Set<int> organizacionIds = {};
+      for (final item in inscripcionesData) {
+        final inscripcion = Inscripcion.fromJson(item as Map<String, dynamic>);
+        organizacionIds.add(inscripcion.organizacionId);
+      }
+      
+      // Si no hay organizaciones, devolver lista vacía
+      if (organizacionIds.isEmpty) {
+        return [];
+      }
+      
+      // Obtener detalles de cada organización
+      final organizaciones = <Organizacion>[];
+      for (final id in organizacionIds) {
+        try {
+          final org = await getOrganizacionById(id);
+          organizaciones.add(org);
+        } catch (e) {
+          // Si falla una, continuar con las demás
+          print('Error obteniendo organización $id: $e');
+        }
+      }
+      
+      return organizaciones;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Obtener organización por ID
   Future<Organizacion> getOrganizacionById(int id) async {
     try {
@@ -746,7 +797,14 @@ class AdminRepository {
       data.forEach((key, value) {
         print('   $key: ${value.runtimeType} = $value');
       });
-      
+
+      // Verificar si hay token antes de hacer la petición
+      final token = await StorageService.getString(ApiConfig.accessTokenKey);
+      print('🔐 [ADMIN REPO] Token disponible para crear proyecto: ${token != null}');
+      if (token != null) {
+        print('🔐 [ADMIN REPO] Token length: ${token.length}');
+      }
+
       final response = await _dioClient.dio.post(
         ApiConfig.proyectos,
         data: data,
@@ -761,6 +819,9 @@ class AdminRepository {
       if (e.response != null) {
         print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
         print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
+        print('🔍 [ADMIN REPO] Error Response Headers: ${e.response!.headers}');
+      } else {
+        print('🔍 [ADMIN REPO] Error sin respuesta del servidor');
       }
       throw _handleError(e);
     }

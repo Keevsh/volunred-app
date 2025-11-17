@@ -558,9 +558,19 @@ class FuncionarioRepository {
   /// Crear participación (asignar voluntario a proyecto)
   Future<Participacion> createParticipacion(Map<String, dynamic> data) async {
     try {
+      // Normalizar el estado a mayúsculas si está presente (el backend espera: PROGRAMADA, EN_PROGRESO, COMPLETADO, AUSENTE)
+      final normalizedData = Map<String, dynamic>.from(data);
+      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String).toUpperCase();
+      } else if (!normalizedData.containsKey('estado')) {
+        normalizedData['estado'] = 'PROGRAMADA';
+      }
+      
+      print('📤 Creando participación (funcionario): $normalizedData');
+      
       final response = await _dioClient.dio.post(
         ApiConfig.funcionariosParticipaciones,
-        data: data,
+        data: normalizedData,
       );
       return Participacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

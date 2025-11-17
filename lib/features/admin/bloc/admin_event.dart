@@ -439,6 +439,15 @@ class LoadOrganizacionByIdRequested extends AdminEvent {
   List<Object?> get props => [id];
 }
 
+class LoadOrganizacionesByUsuarioRequested extends AdminEvent {
+  final int userId;
+
+  const LoadOrganizacionesByUsuarioRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
 class CreateOrganizacionRequested extends AdminEvent {
   final String nombreLegal;
   final String? nombreCorto;

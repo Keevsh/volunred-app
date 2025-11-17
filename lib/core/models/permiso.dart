@@ -47,10 +47,17 @@ class Permiso extends Equatable {
   });
 
   factory Permiso.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Permiso(
-      idPermiso: json['id_permiso'] as int,
-      idRol: json['id_rol'] as int,
-      idPrograma: json['id_programa'] as int,
+      idPermiso: _getInt(json['id_permiso']) ?? 0,
+      idRol: _getInt(json['id_rol']) ?? 0,
+      idPrograma: _getInt(json['id_programa']) ?? 0,
       nombre: json['nombre'] as String?,
       estado: json['estado'] as String? ?? 'activo',
       rol: json['rol'] != null ? Rol.fromJson(json['rol']) : null,

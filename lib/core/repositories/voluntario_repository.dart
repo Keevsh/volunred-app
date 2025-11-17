@@ -591,8 +591,12 @@ class VoluntarioRepository {
         try {
           // Obtener todas las inscripciones del usuario y buscar la más reciente
           final inscripciones = await getInscripciones();
-          final usuarioId = normalizedData['usuario_id'] as int;
-          final organizacionId = normalizedData['organizacion_id'] as int;
+          final usuarioId = normalizedData['usuario_id'] as int?;
+          final organizacionId = normalizedData['organizacion_id'] as int?;
+          
+          if (usuarioId == null || organizacionId == null) {
+            throw Exception('usuario_id o organizacion_id no pueden ser null');
+          }
           
           // Buscar la inscripción más reciente para este usuario y organización
           final inscripcionEncontrada = inscripciones
@@ -622,10 +626,17 @@ class VoluntarioRepository {
         } catch (e) {
           print('⚠️ No se pudo obtener la inscripción: $e');
           // Crear una inscripción temporal con los datos del request
+          final usuarioId = normalizedData['usuario_id'] as int?;
+          final organizacionId = normalizedData['organizacion_id'] as int?;
+          
+          if (usuarioId == null || organizacionId == null) {
+            throw Exception('usuario_id o organizacion_id no pueden ser null');
+          }
+          
           inscripcion = Inscripcion(
             idInscripcion: 0, // Temporal, se actualizará después
-            usuarioId: normalizedData['usuario_id'] as int,
-            organizacionId: normalizedData['organizacion_id'] as int,
+            usuarioId: usuarioId,
+            organizacionId: organizacionId,
             fechaRecepcion: normalizedData['fecha_recepcion'] != null
                 ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
                 : DateTime.now(),
@@ -767,9 +778,19 @@ class VoluntarioRepository {
   /// Crear participación en un proyecto
   Future<Participacion> createParticipacion(Map<String, dynamic> data) async {
     try {
+      // Normalizar el estado a mayúsculas si está presente (el backend espera: PROGRAMADA, EN_PROGRESO, COMPLETADO, AUSENTE)
+      final normalizedData = Map<String, dynamic>.from(data);
+      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String).toUpperCase();
+      } else if (!normalizedData.containsKey('estado')) {
+        normalizedData['estado'] = 'PROGRAMADA';
+      }
+      
+      print('📤 Creando participación: $normalizedData');
+      
       final response = await _dioClient.dio.post(
         ApiConfig.participaciones,
-        data: data,
+        data: normalizedData,
       );
       return Participacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

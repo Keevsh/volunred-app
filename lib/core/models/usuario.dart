@@ -29,16 +29,23 @@ class Usuario extends Equatable {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Usuario(
-      idUsuario: json['id_usuario'] as int,
-      nombres: json['nombres'] as String,
-      apellidos: json['apellidos'] as String,
-      email: json['email'] as String,
-      telefono: json['telefono'] as int?,
-      ci: json['ci'] as int?,
+      idUsuario: _getInt(json['id_usuario']) ?? 0,
+      nombres: json['nombres'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      telefono: _getInt(json['telefono']),
+      ci: _getInt(json['ci']),
       sexo: json['sexo'] as String?,
       tipoUsuario: json['tipo_usuario'] as String?,
-      idRol: json['id_rol'] as int?,
+      idRol: _getInt(json['id_rol']),
       rol: json['rol'] != null ? Rol.fromJson(json['rol']) : null,
       creadoEn: json['creado_en'] != null 
           ? DateTime.parse(json['creado_en'] as String)

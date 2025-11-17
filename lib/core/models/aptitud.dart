@@ -16,9 +16,16 @@ class Aptitud extends Equatable {
   });
 
   factory Aptitud.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely get int value
+    int? _getInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      return int.tryParse(value.toString());
+    }
+    
     return Aptitud(
-      idAptitud: json['id_aptitud'] as int,
-      nombre: json['nombre'] as String,
+      idAptitud: _getInt(json['id_aptitud']) ?? 0,
+      nombre: json['nombre'] as String? ?? '',
       descripcion: json['descripcion'] as String?,
       estado: json['estado'] as String? ?? 'activo',
       creadoEn: json['creado_en'] != null

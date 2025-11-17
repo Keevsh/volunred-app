@@ -22,15 +22,93 @@ class DioClient {
     // Agregar interceptor para JWT
     _dio.interceptors.add(AuthInterceptor());
 
-    // Agregar interceptor para logging (desarrollo)
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      error: true,
-    ));
+    // Agregar interceptor personalizado para logging optimizado
+    _dio.interceptors.add(SmartLogInterceptor());
   }
 
   Dio get dio => _dio;
+}
+
+/// Interceptor de logging inteligente que no imprime respuestas grandes
+class SmartLogInterceptor extends Interceptor {
+  static const int maxBodyLength = 1000; // Máximo de caracteres a imprimir
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    print('\n');
+    print('┌─────────────────────────────────────────────────────────────');
+    print('│ 🚀 REQUEST');
+    print('├─────────────────────────────────────────────────────────────');
+    print('│ ${options.method} ${options.uri}');
+    
+    if (options.data != null) {
+      final dataStr = options.data.toString();
+      if (dataStr.length > maxBodyLength) {
+        print('│ Body: ${dataStr.substring(0, maxBodyLength)}... [TRUNCATED]');
+      } else {
+        print('│ Body: $dataStr');
+      }
+    }
+    print('└─────────────────────────────────────────────────────────────\n');
+    
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    print('\n');
+    print('┌─────────────────────────────────────────────────────────────');
+    print('│ ✅ RESPONSE');
+    print('├─────────────────────────────────────────────────────────────');
+    print('│ ${response.statusCode} ${response.requestOptions.uri}');
+    
+    if (response.data != null) {
+      final dataStr = response.data.toString();
+      if (dataStr.length > maxBodyLength) {
+        // Verificar si contiene base64 (imágenes grandes)
+        if (dataStr.contains('base64,')) {
+          print('│ Body: [RESPONSE WITH BASE64 IMAGE - ${dataStr.length} chars]');
+          // Mostrar solo metadata sin el base64
+          if (response.data is Map) {
+            final Map<String, dynamic> data = Map.from(response.data);
+            if (data.containsKey('logo') && data['logo'] is String) {
+              final logoLength = (data['logo'] as String).length;
+              data['logo'] = '[BASE64 IMAGE - $logoLength chars]';
+            }
+            if (data.containsKey('imagen') && data['imagen'] is String) {
+              final imagenLength = (data['imagen'] as String).length;
+              data['imagen'] = '[BASE64 IMAGE - $imagenLength chars]';
+            }
+            print('│ Data (without base64): $data');
+          }
+        } else {
+          print('│ Body: ${dataStr.substring(0, maxBodyLength)}... [TRUNCATED - ${dataStr.length} chars total]');
+        }
+      } else {
+        print('│ Body: $dataStr');
+      }
+    }
+    print('└─────────────────────────────────────────────────────────────\n');
+    
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    print('\n');
+    print('┌─────────────────────────────────────────────────────────────');
+    print('│ ❌ ERROR');
+    print('├─────────────────────────────────────────────────────────────');
+    print('│ ${err.requestOptions.method} ${err.requestOptions.uri}');
+    print('│ ${err.type}: ${err.message}');
+    if (err.response != null) {
+      print('│ Status: ${err.response?.statusCode}');
+      print('│ Response: ${err.response?.data}');
+    }
+    print('└─────────────────────────────────────────────────────────────\n');
+    
+    handler.next(err);
+  }
 }
 
 class AuthInterceptor extends Interceptor {

@@ -7,6 +7,52 @@ import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/categoria.dart';
 import '../../../core/config/api_config.dart';
 
+// Widget optimizado para categorías que solo se reconstruye cuando cambian las categorías
+class _CategoriasSelector extends StatelessWidget {
+  final List<Categoria> categorias;
+  final List<int> categoriasSeleccionadas;
+  final Function(int) onToggle;
+  final ColorScheme colorScheme;
+
+  const _CategoriasSelector({
+    required this.categorias,
+    required this.categoriasSeleccionadas,
+    required this.onToggle,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: categorias.map((categoria) {
+        final isSelected = categoriasSeleccionadas.contains(categoria.idCategoria);
+        return FilterChip(
+          selected: isSelected,
+          label: Text(categoria.nombre),
+          avatar: isSelected 
+              ? Icon(
+                  Icons.check_circle,
+                  size: 18,
+                  color: colorScheme.onPrimaryContainer,
+                )
+              : null,
+          onSelected: (_) => onToggle(categoria.idCategoria),
+          selectedColor: colorScheme.primaryContainer,
+          checkmarkColor: colorScheme.onPrimaryContainer,
+          labelStyle: TextStyle(
+            color: isSelected 
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
 class CreateProyectoPage extends StatefulWidget {
   const CreateProyectoPage({super.key});
 
@@ -48,26 +94,27 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   }
 
   Future<void> _loadCategorias() async {
+    if (!mounted) return;
+    
+    _loadingCategorias = true;
+    _errorCategorias = null;
+    setState(() {});
+    
     try {
-      setState(() {
-        _loadingCategorias = true;
-        _errorCategorias = null;
-      });
-      
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       final categorias = await funcionarioRepo.getCategorias();
       
-      setState(() {
+      if (mounted) {
         _categorias = categorias;
         _loadingCategorias = false;
-      });
+        setState(() {});
+      }
     } catch (e) {
-      setState(() {
+      if (mounted) {
         _loadingCategorias = false;
         _errorCategorias = 'Error cargando categorías: $e';
-      });
-      
-      if (mounted) {
+        setState(() {});
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_errorCategorias!),
@@ -86,29 +133,28 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
       lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
     
-    if (picked != null) {
-      setState(() {
-        if (isInicio) {
-          _fechaInicio = picked;
-          // Si la fecha de fin es anterior a la nueva fecha de inicio, resetearla
-          if (_fechaFin != null && _fechaFin!.isBefore(picked)) {
-            _fechaFin = null;
-          }
-        } else {
-          _fechaFin = picked;
+    if (picked != null && mounted) {
+      if (isInicio) {
+        _fechaInicio = picked;
+        // Si la fecha de fin es anterior a la nueva fecha de inicio, resetearla
+        if (_fechaFin != null && _fechaFin!.isBefore(picked)) {
+          _fechaFin = null;
         }
-      });
+      } else {
+        _fechaFin = picked;
+      }
+      setState(() {}); // Rebuild mínimo
     }
   }
 
   void _toggleCategoria(int categoriaId) {
-    setState(() {
-      if (_categoriasSeleccionadas.contains(categoriaId)) {
-        _categoriasSeleccionadas.remove(categoriaId);
-      } else {
-        _categoriasSeleccionadas.add(categoriaId);
-      }
-    });
+    // Optimización: solo actualizar si realmente cambia
+    if (_categoriasSeleccionadas.contains(categoriaId)) {
+      _categoriasSeleccionadas.remove(categoriaId);
+    } else {
+      _categoriasSeleccionadas.add(categoriaId);
+    }
+    setState(() {}); // Rebuild mínimo
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -120,19 +166,17 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         imageQuality: 85,
       );
 
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImage = pickedFile;
-        });
+      if (pickedFile != null && mounted) {
+        // Actualizar UI inmediatamente con la imagen seleccionada
+        _selectedImage = pickedFile;
+        setState(() {});
         
-        // Convertir imagen a base64
+        // Convertir imagen a base64 en background (no bloquea UI)
         final bytes = await pickedFile.readAsBytes();
         final base64String = base64Encode(bytes);
         final mimeType = _getMimeType(pickedFile.path);
         
-        setState(() {
-          _imageBase64 = 'data:$mimeType;base64,$base64String';
-        });
+        _imageBase64 = 'data:$mimeType;base64,$base64String';
         
         print('📸 Imagen seleccionada: ${pickedFile.name}');
         print('📊 Tamaño: ${bytes.length} bytes');
@@ -168,10 +212,9 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   }
 
   void _removeImage() {
-    setState(() {
-      _selectedImage = null;
-      _imageBase64 = null;
-    });
+    _selectedImage = null;
+    _imageBase64 = null;
+    setState(() {}); // Rebuild mínimo
   }
 
   void _showImageSourceDialog() {
@@ -302,13 +345,13 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                     // Nombre
                     TextFormField(
                       controller: _nombreController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Nombre del Proyecto *',
                         hintText: 'Ej: Reforestación Urbana 2025',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
-                        prefixIcon: const Icon(Icons.title),
+                        prefixIcon: Icon(Icons.title),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -322,13 +365,13 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                     // Objetivo
                     TextFormField(
                       controller: _objetivoController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Objetivo',
                         hintText: 'Descripción del objetivo del proyecto',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
-                        prefixIcon: const Icon(Icons.description),
+                        prefixIcon: Icon(Icons.description),
                       ),
                       maxLines: 3,
                     ),
@@ -337,13 +380,13 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                     // Ubicación
                     TextFormField(
                       controller: _ubicacionController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Ubicación',
                         hintText: 'Ej: Zona Sur, La Paz',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
                         ),
-                        prefixIcon: const Icon(Icons.location_on),
+                        prefixIcon: Icon(Icons.location_on),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -559,32 +602,11 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         ),
                       )
                     else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _categorias.map((categoria) {
-                          final isSelected = _categoriasSeleccionadas.contains(categoria.idCategoria);
-                          return FilterChip(
-                            selected: isSelected,
-                            label: Text(categoria.nombre),
-                            avatar: isSelected 
-                                ? Icon(
-                                    Icons.check_circle,
-                                    size: 18,
-                                    color: colorScheme.onPrimaryContainer,
-                                  )
-                                : null,
-                            onSelected: (_) => _toggleCategoria(categoria.idCategoria),
-                            selectedColor: colorScheme.primaryContainer,
-                            checkmarkColor: colorScheme.onPrimaryContainer,
-                            labelStyle: TextStyle(
-                              color: isSelected 
-                                  ? colorScheme.onPrimaryContainer
-                                  : colorScheme.onSurface,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
-                          );
-                        }).toList(),
+                      _CategoriasSelector(
+                        categorias: _categorias,
+                        categoriasSeleccionadas: _categoriasSeleccionadas,
+                        onToggle: _toggleCategoria,
+                        colorScheme: colorScheme,
                       ),
                     
                     if (_categoriasSeleccionadas.isNotEmpty) ...[

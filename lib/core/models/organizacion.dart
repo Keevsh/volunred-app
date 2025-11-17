@@ -148,6 +148,22 @@ class Organizacion extends Equatable {
         throw Exception('id_organizacion cannot be 0');
       }
       
+      // Manejar logo (puede ser muy grande si es base64)
+      String? logo;
+      try {
+        logo = _getString(json['logo']);
+        if (logo != null && logo.isNotEmpty) {
+          // Validar que sea un base64 válido o URL
+          if (!logo.startsWith('data:image/') && !logo.startsWith('http')) {
+            print('⚠️ Logo inválido detectado, ignorando');
+            logo = null;
+          }
+        }
+      } catch (e) {
+        print('⚠️ Error procesando logo: $e');
+        logo = null;
+      }
+      
       return Organizacion(
         idOrganizacion: idOrg,
         nombre: nombre,
@@ -160,7 +176,7 @@ class Organizacion extends Equatable {
         ruc: _getString(json['ruc']),
         razonSocial: _getString(json['razon_social']) ?? _getString(json['nombre_legal']),
         estado: _getString(json['estado']) ?? 'activo',
-        logo: _getString(json['logo']),
+        logo: logo,
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
         categoriaOrganizacion: json['categoria_organizacion'] is Map 

@@ -109,9 +109,9 @@ class ApiConfig {
   // Asignaciones de Tareas
   static const String funcionariosAsignacionesTareas = '$funcionariosBase/asignaciones-tareas';
   
-  // Timeouts
+  // Timeouts (aumentados para manejar respuestas con imágenes base64)
   static const int connectTimeout = 30000; // 30 segundos
-  static const int receiveTimeout = 30000;
+  static const int receiveTimeout = 60000; // 60 segundos para respuestas grandes
   
   // Storage keys
   static const String accessTokenKey = 'access_token';

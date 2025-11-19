@@ -172,10 +172,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                               child: GridView.builder(
                                 padding: const EdgeInsets.all(16),
                                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 200, // Ancho máximo de cada tarjeta
+                                  maxCrossAxisExtent: 220, // Ancho máximo de cada tarjeta
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 1.2, // Ajustado para dar más altura
+                                  childAspectRatio: 0.85, // Más altura para imagen + texto
                                 ),
                                 itemCount: _proyectosFiltrados.length,
                                 shrinkWrap: false, // Asegurar que no se encoja
@@ -196,7 +196,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                                             ImageBase64Widget(
                                               base64String: proyecto.imagen!,
                                               width: double.infinity,
-                                              height: 120,
+                                              height: 140,
                                               fit: BoxFit.cover,
                                             )
                                           else

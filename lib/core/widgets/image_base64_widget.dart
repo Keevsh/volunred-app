@@ -24,6 +24,9 @@ class ImageBase64Widget extends StatelessWidget {
   
   /// BoxFit para la imagen
   final BoxFit fit;
+
+  /// Calidad del filtro al escalar la imagen
+  final FilterQuality filterQuality;
   
   /// Widget a mostrar cuando no hay imagen
   final Widget? placeholder;
@@ -50,6 +53,7 @@ class ImageBase64Widget extends StatelessWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
+    this.filterQuality = FilterQuality.high,
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
@@ -76,6 +80,7 @@ class ImageBase64Widget extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      filterQuality: filterQuality,
       errorBuilder: (context, error, stackTrace) {
         return errorWidget ?? _buildErrorWidget(context, 'Error al cargar la imagen');
       },

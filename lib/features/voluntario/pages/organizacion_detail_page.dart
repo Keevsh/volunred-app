@@ -178,75 +178,154 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Imagen header
-                          Container(
-                            height: 200,
+                          // Header tipo perfil con logo/avatar y fondo suave
+                          SizedBox(
+                            height: 220,
                             width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                            ),
                             child: Stack(
+                              alignment: Alignment.topCenter,
                               children: [
-                                Center(
-                                  child: Icon(
-                                    Icons.business,
-                                    size: 80,
-                                    color: colorScheme.onPrimaryContainer,
+                                Container(
+                                  height: 160,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        colorScheme.primaryContainer,
+                                        colorScheme.secondaryContainer,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
                                   ),
                                 ),
-                                // Badge de estado
-                                if (_organizacion!.estado == 'activo')
-                                  Positioned(
-                                    top: 16,
-                                    right: 16,
-                                    child: Chip(
-                                      label: const Text('Activa'),
-                                      backgroundColor: Colors.white,
-                                      labelStyle: TextStyle(
-                                        color: colorScheme.primary,
+                                Positioned(
+                                  bottom: 0,
+                                  child: CircleAvatar(
+                                    radius: 48,
+                                    backgroundColor: colorScheme.surface,
+                                    child: CircleAvatar(
+                                      radius: 44,
+                                      backgroundColor: colorScheme.primaryContainer,
+                                      backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
+                                          ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
+                                          : null,
+                                      child: (_organizacion!.logo == null || _organizacion!.logo!.isEmpty)
+                                          ? Icon(
+                                              Icons.business,
+                                              size: 40,
+                                              color: colorScheme.onPrimaryContainer,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 56),
+
+                          // Contenido principal estilo tarjeta de perfil
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              elevation: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Nombre y razón social
+                                    Text(
+                                      _organizacion!.nombre,
+                                      style: theme.textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          // Contenido
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Nombre y razón social
-                                Text(
-                                  _organizacion!.nombre,
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                if (_organizacion!.razonSocial != null && _organizacion!.razonSocial != _organizacion!.nombre) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _organizacion!.razonSocial!,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
+                                    if (_organizacion!.razonSocial != null && _organizacion!.razonSocial != _organizacion!.nombre) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _organizacion!.razonSocial!,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 12),
+                                    // Chips de estado y categoría
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        Chip(
+                                          label: Text(
+                                            _organizacion!.estado.toUpperCase(),
+                                          ),
+                                          backgroundColor: _organizacion!.estado == 'activo'
+                                              ? colorScheme.primaryContainer
+                                              : colorScheme.errorContainer,
+                                          labelStyle: TextStyle(
+                                            color: _organizacion!.estado == 'activo'
+                                                ? colorScheme.onPrimaryContainer
+                                                : colorScheme.onErrorContainer,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (_organizacion!.categoriaOrganizacion != null)
+                                          Chip(
+                                            avatar: Icon(
+                                              Icons.category,
+                                              size: 18,
+                                              color: colorScheme.primary,
+                                            ),
+                                            label: Text(
+                                              _organizacion!.categoriaOrganizacion!['nombre']?.toString() ?? 'Categoría',
+                                            ),
+                                            backgroundColor: colorScheme.primaryContainer,
+                                            labelStyle: TextStyle(
+                                              color: colorScheme.onPrimaryContainer,
+                                            ),
+                                          ),
+                                        if (_organizacion!.direccion != null && _organizacion!.direccion!.isNotEmpty)
+                                          Chip(
+                                            avatar: Icon(
+                                              Icons.location_on,
+                                              size: 18,
+                                              color: colorScheme.secondary,
+                                            ),
+                                            label: Text(
+                                              _organizacion!.direccion!,
+                                            ),
+                                            backgroundColor: colorScheme.secondaryContainer,
+                                            labelStyle: TextStyle(
+                                              color: colorScheme.onSecondaryContainer,
+                                            ),
+                                          ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                                const SizedBox(height: 16),
-                                
-                                // Descripción
-                                if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty) ...[
-                                  Text(
-                                    _organizacion!.descripcion!,
-                                    style: theme.textTheme.bodyLarge,
-                                  ),
-                                  const SizedBox(height: 24),
-                                ],
-                              ],
+                                    const SizedBox(height: 16),
+                                    // Descripción
+                                    if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty) ...[
+                                      Text(
+                                        'Sobre la organización',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        _organizacion!.descripcion!,
+                                        style: theme.textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-
                           // Información de contacto
                           if (_organizacion!.email.isNotEmpty || _organizacion!.telefono != null || _organizacion!.direccion != null) ...[
                             Padding(

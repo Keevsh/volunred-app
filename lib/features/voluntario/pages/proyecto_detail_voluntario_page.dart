@@ -5,6 +5,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/participacion.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/organizacion.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 
 class ProyectoDetailVoluntarioPage extends StatefulWidget {
   final int proyectoId;
@@ -156,21 +157,37 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Imagen placeholder
-                          Container(
-                            height: 200,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.volunteer_activism,
-                                size: 64,
-                                color: colorScheme.primary,
-                              ),
-                            ),
+                          // Imagen principal del proyecto (con fallback elegante)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: _proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty
+                                ? ImageBase64Widget(
+                                    base64String: _proyecto!.imagen!,
+                                    width: double.infinity,
+                                    height: 220,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    height: 220,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          colorScheme.primaryContainer,
+                                          colorScheme.secondaryContainer,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.volunteer_activism,
+                                        size: 64,
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ),
                           ),
                           const SizedBox(height: 16),
                           

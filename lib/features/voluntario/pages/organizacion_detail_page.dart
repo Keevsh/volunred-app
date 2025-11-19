@@ -175,122 +175,117 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Banner superior tipo red social con botón atrás flotante y avatar a un lado
-                          SizedBox(
-                            height: 260,
-                            width: double.infinity,
-                            child: Stack(
-                              children: [
-                                // Banner de fondo
-                                Container(
-                                  height: 190,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.primaryContainer,
-                                        colorScheme.secondaryContainer,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
+                          // Header superior tipo Instagram (nombre centrado, botón atrás, menú)
+                          SafeArea(
+                            bottom: false,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_back),
+                                    color: colorScheme.onSurface,
+                                    onPressed: () => Modular.to.pop(),
                                   ),
-                                ),
-                                // Botón atrás flotante
-                                SafeArea(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Material(
-                                        color: colorScheme.surface.withOpacity(0.85),
-                                        shape: const CircleBorder(),
-                                        elevation: 2,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.arrow_back),
-                                          color: colorScheme.onSurface,
-                                          onPressed: () => Modular.to.pop(),
+                                  Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        _organizacion!.nombre,
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ),
-                                ),
-                                // Avatar alineado a un lado sobre el banner, con indicador de estado tipo Instagram
-                                Positioned(
-                                  left: 16,
-                                  bottom: 16,
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.15),
-                                              blurRadius: 12,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 40,
-                                              backgroundColor: colorScheme.surface,
-                                              child: CircleAvatar(
-                                                radius: 40,
-                                                backgroundColor: colorScheme.primaryContainer,
-                                                backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
-                                                    ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
-                                                    : null,
-                                                child: (_organizacion!.logo == null || _organizacion!.logo!.isEmpty)
-                                                    ? Icon(
-                                                        Icons.business,
-                                                        size: 38,
-                                                        color: colorScheme.onPrimaryContainer,
-                                                      )
-                                                    : null,
-                                              ),
-                                            ),
-                                            if (_organizacion!.estado.toLowerCase() == 'activo')
-                                              Positioned(
-                                                right: -2,
-                                                bottom: -2,
-                                                child: Container(
-                                                  width: 16,
-                                                  height: 16,
-                                                  decoration: const BoxDecoration(
-                                                    color: Colors.white,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Container(
-                                                    margin: const EdgeInsets.all(2),
-                                                    decoration: const BoxDecoration(
-                                                      color: Colors.green,
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                  const SizedBox(width: 48), // espacio para balancear con el IconButton izquierdo
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 16),
 
-                          // Contenido principal estilo sección de perfil (tipo Twitter)
+                          // Contenido principal estilo perfil Instagram
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Fila avatar + estadísticas
+                                Row(
+                                  children: [
+                                    // Avatar con indicador de estado
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.15),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 40,
+                                            backgroundColor: colorScheme.surface,
+                                            child: CircleAvatar(
+                                              radius: 40,
+                                              backgroundColor: colorScheme.primaryContainer,
+                                              backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
+                                                  ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
+                                                  : null,
+                                              child: (_organizacion!.logo == null || _organizacion!.logo!.isEmpty)
+                                                  ? Icon(
+                                                      Icons.business,
+                                                      size: 38,
+                                                      color: colorScheme.onPrimaryContainer,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ),
+                                          if (_organizacion!.estado.toLowerCase() == 'activo')
+                                            Positioned(
+                                              right: -2,
+                                              bottom: -2,
+                                              child: Container(
+                                                width: 16,
+                                                height: 16,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.white,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Container(
+                                                  margin: const EdgeInsets.all(2),
+                                                  decoration: const BoxDecoration(
+                                                    color: Colors.green,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 24),
+                                    // Stats a la derecha
+                                    Expanded(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          _buildStatItem(theme, 'Inscripciones', '-'),
+                                          _buildStatItem(theme, 'Funcionarios', '-'),
+                                          _buildStatItem(theme, 'Proyectos', '-'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
                                 // Nombre, razón social y ubicación debajo del banner
                                 Text(
                                   _organizacion!.nombre,
@@ -337,18 +332,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                 ],
                                 const SizedBox(height: 16),
 
-                                // Fila de estadísticas tipo Instagram
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildStatItem(theme, 'Inscripciones', '-'),
-                                    _buildStatItem(theme, 'Funcionarios', '-'),
-                                    _buildStatItem(theme, 'Proyectos', '-'),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Botones estilo Instagram: Seguir/Siguiendo y Contacto
+                                // Botones estilo Instagram: Inscribirse/Inscrito y Contacto
                                 Row(
                                   children: [
                                     Expanded(
@@ -370,8 +354,8 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                               )
                                             : Text(
                                                 _inscripcion == null
-                                                    ? 'Seguir'
-                                                    : 'Siguiendo',
+                                                    ? 'Inscribirse'
+                                                    : 'Inscrito',
                                               ),
                                       ),
                                     ),

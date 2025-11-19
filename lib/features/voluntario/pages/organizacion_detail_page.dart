@@ -148,10 +148,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalles de Organización'),
-        elevation: 0,
-      ),
+      // Quitamos el título y usamos un perfil tipo red social con banner propio
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -178,15 +175,15 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header tipo perfil con logo/avatar y fondo suave
+                          // Banner superior tipo red social con botón atrás flotante y avatar a un lado
                           SizedBox(
-                            height: 220,
+                            height: 260,
                             width: double.infinity,
                             child: Stack(
-                              alignment: Alignment.topCenter,
                               children: [
+                                // Banner de fondo
                                 Container(
-                                  height: 160,
+                                  height: 190,
                                   width: double.infinity,
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
@@ -199,188 +196,292 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                     ),
                                   ),
                                 ),
-                                Positioned(
-                                  bottom: 0,
-                                  child: CircleAvatar(
-                                    radius: 48,
-                                    backgroundColor: colorScheme.surface,
-                                    child: CircleAvatar(
-                                      radius: 44,
-                                      backgroundColor: colorScheme.primaryContainer,
-                                      backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
-                                          ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
-                                          : null,
-                                      child: (_organizacion!.logo == null || _organizacion!.logo!.isEmpty)
-                                          ? Icon(
-                                              Icons.business,
-                                              size: 40,
-                                              color: colorScheme.onPrimaryContainer,
-                                            )
-                                          : null,
+                                // Botón atrás flotante
+                                SafeArea(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Material(
+                                        color: colorScheme.surface.withOpacity(0.85),
+                                        shape: const CircleBorder(),
+                                        elevation: 2,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.arrow_back),
+                                          color: colorScheme.onSurface,
+                                          onPressed: () => Modular.to.pop(),
+                                        ),
+                                      ),
                                     ),
+                                  ),
+                                ),
+                                // Avatar alineado a un lado sobre el banner, con indicador de estado tipo Instagram
+                                Positioned(
+                                  left: 16,
+                                  bottom: 16,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.15),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 40,
+                                              backgroundColor: colorScheme.surface,
+                                              child: CircleAvatar(
+                                                radius: 40,
+                                                backgroundColor: colorScheme.primaryContainer,
+                                                backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
+                                                    ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
+                                                    : null,
+                                                child: (_organizacion!.logo == null || _organizacion!.logo!.isEmpty)
+                                                    ? Icon(
+                                                        Icons.business,
+                                                        size: 38,
+                                                        color: colorScheme.onPrimaryContainer,
+                                                      )
+                                                    : null,
+                                              ),
+                                            ),
+                                            if (_organizacion!.estado.toLowerCase() == 'activo')
+                                              Positioned(
+                                                right: -2,
+                                                bottom: -2,
+                                                child: Container(
+                                                  width: 16,
+                                                  height: 16,
+                                                  decoration: const BoxDecoration(
+                                                    color: Colors.white,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Container(
+                                                    margin: const EdgeInsets.all(2),
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.green,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 56),
+                          const SizedBox(height: 16),
 
-                          // Contenido principal estilo tarjeta de perfil
+                          // Contenido principal estilo sección de perfil (tipo Twitter)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              elevation: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Nombre y razón social
-                                    Text(
-                                      _organizacion!.nombre,
-                                      style: theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    if (_organizacion!.razonSocial != null && _organizacion!.razonSocial != _organizacion!.nombre) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _organizacion!.razonSocial!,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 12),
-                                    // Chips de estado y categoría
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: [
-                                        Chip(
-                                          label: Text(
-                                            _organizacion!.estado.toUpperCase(),
-                                          ),
-                                          backgroundColor: _organizacion!.estado == 'activo'
-                                              ? colorScheme.primaryContainer
-                                              : colorScheme.errorContainer,
-                                          labelStyle: TextStyle(
-                                            color: _organizacion!.estado == 'activo'
-                                                ? colorScheme.onPrimaryContainer
-                                                : colorScheme.onErrorContainer,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        if (_organizacion!.categoriaOrganizacion != null)
-                                          Chip(
-                                            avatar: Icon(
-                                              Icons.category,
-                                              size: 18,
-                                              color: colorScheme.primary,
-                                            ),
-                                            label: Text(
-                                              _organizacion!.categoriaOrganizacion!['nombre']?.toString() ?? 'Categoría',
-                                            ),
-                                            backgroundColor: colorScheme.primaryContainer,
-                                            labelStyle: TextStyle(
-                                              color: colorScheme.onPrimaryContainer,
-                                            ),
-                                          ),
-                                        if (_organizacion!.direccion != null && _organizacion!.direccion!.isNotEmpty)
-                                          Chip(
-                                            avatar: Icon(
-                                              Icons.location_on,
-                                              size: 18,
-                                              color: colorScheme.secondary,
-                                            ),
-                                            label: Text(
-                                              _organizacion!.direccion!,
-                                            ),
-                                            backgroundColor: colorScheme.secondaryContainer,
-                                            labelStyle: TextStyle(
-                                              color: colorScheme.onSecondaryContainer,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-                                    // Descripción
-                                    if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty) ...[
-                                      Text(
-                                        'Sobre la organización',
-                                        style: theme.textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        _organizacion!.descripcion!,
-                                        style: theme.textTheme.bodyMedium,
-                                      ),
-                                    ],
-                                  ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nombre, razón social y ubicación debajo del banner
+                                Text(
+                                  _organizacion!.nombre,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ),
-                          ),
-                          // Información de contacto
-                          if (_organizacion!.email.isNotEmpty || _organizacion!.telefono != null || _organizacion!.direccion != null) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Información de Contacto',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
+                                if (_organizacion!.razonSocial != null && _organizacion!.razonSocial != _organizacion!.nombre) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _organizacion!.razonSocial!,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                                if (_organizacion!.direccion != null && _organizacion!.direccion!.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
                                     children: [
-                                      if (_organizacion!.email.isNotEmpty)
-                                        ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          leading: Icon(Icons.email, color: colorScheme.primary),
-                                          title: const Text('Correo'),
-                                          subtitle: Text(_organizacion!.email),
+                                      Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          _organizacion!.direccion!,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      if (_organizacion!.telefono != null && _organizacion!.telefono!.isNotEmpty)
-                                        ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          leading: Icon(Icons.phone, color: colorScheme.primary),
-                                          title: const Text('Teléfono'),
-                                          subtitle: Text(_organizacion!.telefono!),
-                                        ),
-                                      if (_organizacion!.direccion != null && _organizacion!.direccion!.isNotEmpty)
-                                        ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          leading: Icon(Icons.location_on, color: colorScheme.primary),
-                                          title: const Text('Dirección'),
-                                          subtitle: Text(_organizacion!.direccion!),
-                                        ),
-                                      if (_organizacion!.sitioWeb != null && _organizacion!.sitioWeb!.isNotEmpty)
-                                        ListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          leading: Icon(Icons.language, color: colorScheme.primary),
-                                          title: const Text('Sitio Web'),
-                                          subtitle: Text(_organizacion!.sitioWeb!),
-                                        ),
+                                      ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                                ],
+                                const SizedBox(height: 16),
 
+                                // Fila de estadísticas tipo Instagram
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildStatItem(theme, 'Inscripciones', '-'),
+                                    _buildStatItem(theme, 'Funcionarios', '-'),
+                                    _buildStatItem(theme, 'Proyectos', '-'),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Botones estilo Instagram: Seguir/Siguiendo y Contacto
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: FilledButton(
+                                        onPressed: _inscripcion == null && !_isInscribiendo
+                                            ? _inscribirse
+                                            : null,
+                                        style: FilledButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        child: _isInscribiendo
+                                            ? const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : Text(
+                                                _inscripcion == null
+                                                    ? 'Seguir'
+                                                    : 'Siguiendo',
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            showDragHandle: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                            ),
+                                            builder: (context) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(16),
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Contacto',
+                                                      style: theme.textTheme.titleMedium?.copyWith(
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                    if (_organizacion!.email.isNotEmpty)
+                                                      ListTile(
+                                                        contentPadding: EdgeInsets.zero,
+                                                        leading: Icon(Icons.email, color: colorScheme.primary),
+                                                        title: const Text('Correo'),
+                                                        subtitle: Text(_organizacion!.email),
+                                                      ),
+                                                    if (_organizacion!.telefono != null && _organizacion!.telefono!.isNotEmpty)
+                                                      ListTile(
+                                                        contentPadding: EdgeInsets.zero,
+                                                        leading: Icon(Icons.phone, color: colorScheme.primary),
+                                                        title: const Text('Teléfono'),
+                                                        subtitle: Text(_organizacion!.telefono!),
+                                                      ),
+                                                    if (_organizacion!.direccion != null && _organizacion!.direccion!.isNotEmpty)
+                                                      ListTile(
+                                                        contentPadding: EdgeInsets.zero,
+                                                        leading: Icon(Icons.location_on, color: colorScheme.primary),
+                                                        title: const Text('Dirección'),
+                                                        subtitle: Text(_organizacion!.direccion!),
+                                                      ),
+                                                    if (_organizacion!.sitioWeb != null && _organizacion!.sitioWeb!.isNotEmpty)
+                                                      ListTile(
+                                                        contentPadding: EdgeInsets.zero,
+                                                        leading: Icon(Icons.language, color: colorScheme.primary),
+                                                        title: const Text('Sitio Web'),
+                                                        subtitle: Text(_organizacion!.sitioWeb!),
+                                                      ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        child: const Text('Contacto'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Chip de categoría (sin chip de estado, el estado se indica con el punto verde)
+                                if (_organizacion!.categoriaOrganizacion != null) ...[
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      Chip(
+                                        avatar: Icon(
+                                          Icons.category,
+                                          size: 18,
+                                          color: colorScheme.primary,
+                                        ),
+                                        label: Text(
+                                          _organizacion!.categoriaOrganizacion!['nombre']?.toString() ?? 'Categoría',
+                                        ),
+                                        backgroundColor: colorScheme.primaryContainer,
+                                        labelStyle: TextStyle(
+                                          color: colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+
+                                // Descripción tipo bio
+                                if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty) ...[
+                                  Text(
+                                    _organizacion!.descripcion!,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ],
+                            ),
+                          ),
                           // Estado de inscripción
                           if (_inscripcion != null) ...[
                             Padding(
@@ -656,6 +757,26 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
       print('Error cargando proyectos de la organización: $e');
       return [];
     }
+  }
+
+  Widget _buildStatItem(ThemeData theme, String label, String value) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    );
   }
 
 }

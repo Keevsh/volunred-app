@@ -3,6 +3,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 
 class ProyectoDetailPage extends StatefulWidget {
   final int proyectoId;
@@ -90,6 +91,19 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Imagen principal del proyecto
+                          if (_proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: ImageBase64Widget(
+                                base64String: _proyecto!.imagen!,
+                                width: double.infinity,
+                                height: 250,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
                           // Nombre
                           Text(
                             _proyecto!.nombre,
@@ -107,6 +121,73 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                                 : colorScheme.errorContainer,
                           ),
                           const SizedBox(height: 24),
+
+                          // Organización
+                          if (_proyecto!.organizacion != null) ...[
+                            Card(
+                              elevation: 0,
+                              color: colorScheme.surfaceContainerHighest,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    // Logo de la organización
+                                    if (_proyecto!.organizacion!['logo'] != null && 
+                                        _proyecto!.organizacion!['logo'].toString().isNotEmpty)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: ImageBase64Widget(
+                                          base64String: _proyecto!.organizacion!['logo'].toString(),
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    else
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primaryContainer,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          Icons.business,
+                                          size: 30,
+                                          color: colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    const SizedBox(width: 16),
+                                    // Información de la organización
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Organización',
+                                            style: theme.textTheme.labelMedium?.copyWith(
+                                              color: colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _proyecto!.organizacion!['nombre']?.toString() ??
+                                                _proyecto!.organizacion!['nombre_legal']?.toString() ??
+                                                _proyecto!.organizacion!['nombre_corto']?.toString() ??
+                                                'Organización',
+                                            style: theme.textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
 
                           // Objetivo
                           if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty) ...[

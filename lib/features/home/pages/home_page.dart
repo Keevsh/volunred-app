@@ -226,44 +226,52 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Stack(
                 children: [
-                  // Placeholder de imagen con gradiente más atractivo
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
+                  // Imagen del proyecto o placeholder
+                  if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
+                    ImageBase64Widget(
+                      base64String: proyecto.imagen!,
+                      width: double.infinity,
+                      height: 160,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                        gradient: LinearGradient(
+                          colors: [
+                            colorScheme.primary.withOpacity(0.2),
+                            colorScheme.secondary.withOpacity(0.3),
+                            colorScheme.tertiary.withOpacity(0.2),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.primary.withOpacity(0.2),
-                          colorScheme.secondary.withOpacity(0.3),
-                          colorScheme.tertiary.withOpacity(0.2),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.volunteer_activism,
-                            size: 48, // Aumentado de 40 a 48
-                            color: colorScheme.primary.withOpacity(0.6),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Imagen del proyecto',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                              fontSize: 12,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.volunteer_activism,
+                              size: 48,
+                              color: colorScheme.primary.withOpacity(0.6),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              'Imagen del proyecto',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                   // Ícono de guardar en esquina superior derecha
                   Positioned(
                     top: 12,
@@ -311,15 +319,37 @@ class _HomePageState extends State<HomePage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
-                  // Información de organización
+                  // Información de organización con logo
                   Row(
                     children: [
-                      Icon(
-                        Icons.business_outlined,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                      ),
-                      const SizedBox(width: 6),
+                      // Logo de la organización
+                      if (proyecto.organizacion != null && 
+                          proyecto.organizacion!['logo'] != null &&
+                          proyecto.organizacion!['logo'].toString().isNotEmpty)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: ImageBase64Widget(
+                            base64String: proyecto.organizacion!['logo'].toString(),
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Icon(
+                            Icons.business,
+                            size: 14,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           organizacionNombre,

@@ -157,7 +157,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header de organización estilo red social (fila con avatar y nombre)
+                          // Header de organización estilo red social (avatar más grande y textos alineados)
                           FutureBuilder<Organizacion?>(
                             future: _loadOrganizacion(_proyecto!.organizacionId),
                             builder: (context, snapshot) {
@@ -181,17 +181,19 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                               if (logo != null && logo.isNotEmpty) {
                                 if (logo.startsWith('http')) {
                                   avatar = CircleAvatar(
+                                    radius: 24,
                                     backgroundImage: NetworkImage(logo),
                                   );
                                 } else {
                                   final base64Data = logo.contains(',') ? logo.split(',').last : logo;
                                   avatar = CircleAvatar(
+                                    radius: 24,
                                     backgroundColor: colorScheme.primaryContainer,
                                     child: ClipOval(
                                       child: ImageBase64Widget(
                                         base64String: base64Data,
-                                        width: 40,
-                                        height: 40,
+                                        width: 48,
+                                        height: 48,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -199,6 +201,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                 }
                               } else {
                                 avatar = CircleAvatar(
+                                  radius: 24,
                                   backgroundColor: colorScheme.primaryContainer,
                                   child: Icon(
                                     Icons.business,
@@ -213,7 +216,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                 },
                                 borderRadius: BorderRadius.circular(999),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
                                   child: Row(
                                     children: [
                                       avatar,
@@ -223,14 +226,18 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Organización',
-                                              style: theme.textTheme.labelSmall,
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
                                               organizacionNombre,
                                               style: theme.textTheme.titleMedium?.copyWith(
                                                 fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'Ver perfil de organización',
+                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
                                               ),
                                             ),
                                           ],
@@ -296,6 +303,30 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                           ] else ...[
                             const SizedBox(height: 16),
                           ],
+
+                          // Acciones tipo post (solo UI)
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.favorite_border),
+                                onPressed: () {},
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.mode_comment_outlined),
+                                onPressed: () {},
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.share_outlined),
+                                onPressed: () {},
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.bookmark_border),
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
 
                           // Chips de estado y categorías
                           Wrap(

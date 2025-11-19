@@ -25,6 +25,8 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
   bool _isLoading = true;
   String? _error;
   bool _isInscribiendo = false;
+  int _inscripcionesCount = 0;
+  int _proyectosCount = 0;
 
   @override
   void initState() {
@@ -41,15 +43,17 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
     try {
       final organizacion = await _repository.getOrganizacionById(widget.organizacionId);
       
-      // Verificar si ya hay una inscripción
+      // Verificar inscripciones y contar cuántas hay para esta organización
       try {
         final inscripciones = await _repository.getInscripciones();
-        _inscripcion = inscripciones.firstWhere(
-          (ins) => ins.organizacionId == widget.organizacionId,
-          orElse: () => throw Exception('No encontrada'),
-        );
+        final inscripcionesOrg = inscripciones
+            .where((ins) => ins.organizacionId == widget.organizacionId)
+            .toList();
+        _inscripcionesCount = inscripcionesOrg.length;
+        _inscripcion = inscripcionesOrg.isNotEmpty ? inscripcionesOrg.first : null;
       } catch (e) {
         _inscripcion = null;
+        _inscripcionesCount = 0;
       }
 
       setState(() {
@@ -214,26 +218,19 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                 // Fila avatar + estadísticas
                                 Row(
                                   children: [
-                                    // Avatar con indicador de estado
+                                    // Avatar con indicador de estado (sin sombra)
                                     Container(
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.15),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
                                       ),
                                       child: Stack(
                                         clipBehavior: Clip.none,
                                         children: [
                                           CircleAvatar(
-                                            radius: 40,
+                                            radius: 50,
                                             backgroundColor: colorScheme.surface,
                                             child: CircleAvatar(
-                                              radius: 40,
+                                              radius: 46,
                                               backgroundColor: colorScheme.primaryContainer,
                                               backgroundImage: _organizacion!.logo != null && _organizacion!.logo!.isNotEmpty
                                                   ? MemoryImage(base64Decode(_organizacion!.logo!.split(',').last))
@@ -249,17 +246,17 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                           ),
                                           if (_organizacion!.estado.toLowerCase() == 'activo')
                                             Positioned(
-                                              right: -2,
-                                              bottom: -2,
+                                              right: 0,
+                                              bottom: 0,
                                               child: Container(
-                                                width: 16,
-                                                height: 16,
+                                                width: 14,
+                                                height: 14,
                                                 decoration: const BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: Container(
-                                                  margin: const EdgeInsets.all(2),
+                                                  margin: const EdgeInsets.all(1.5),
                                                   decoration: const BoxDecoration(
                                                     color: Colors.green,
                                                     shape: BoxShape.circle,
@@ -276,9 +273,21 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          _buildStatItem(theme, 'Inscripciones', '-'),
-                                          _buildStatItem(theme, 'Funcionarios', '-'),
-                                          _buildStatItem(theme, 'Proyectos', '-'),
+                                          _buildStatItem(
+                                            theme,
+                                            'Inscripciones',
+                                            _inscripcionesCount > 0 ? '$_inscripcionesCount' : '0',
+                                          ),
+                                          _buildStatItem(
+                                            theme,
+                                            'Funcionarios',
+                                            '-', // No tenemos datos en esta pantalla
+                                          ),
+                                          _buildStatItem(
+                                            theme,
+                                            'Proyectos',
+                                            _proyectosCount > 0 ? '$_proyectosCount' : '0',
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -544,23 +553,34 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                               ),
                             ),
                           const SizedBox(height: 24),
-                          
-                          // Proyectos de la organización
+
+                          // Tabs simples sobre la sección de proyectos
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                Icon(Icons.grid_on, size: 18, color: colorScheme.onSurface),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Proyectos de la Organización',
-                                  style: theme.textTheme.titleLarge?.copyWith(
+                                  'Proyectos',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Icon(Icons.info_outline, size: 18, color: colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Info',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 12),
+
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: FutureBuilder<List<Proyecto>>(
@@ -736,10 +756,13 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
     try {
       final proyectos = await _repository.getProyectos();
       // Filtrar proyectos de esta organización
-      return proyectos.where((p) => p.organizacionId == widget.organizacionId).toList();
+      final proyectosOrg = proyectos.where((p) => p.organizacionId == widget.organizacionId).toList();
+      _proyectosCount = proyectosOrg.length;
+      return proyectosOrg;
     } catch (e) {
       print('Error cargando proyectos de la organización: $e');
       return [];
+
     }
   }
 

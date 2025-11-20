@@ -82,11 +82,16 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadPerfilVoluntario() async {
     try {
-      final perfilVolJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
-      if (perfilVolJson != null) {
-        final perfilMap = jsonDecode(perfilVolJson) as Map<String, dynamic>;
+      // Obtener siempre la versión más reciente del perfil desde la API
+      final authRepo = Modular.get<AuthRepository>();
+      final voluntarioRepo = Modular.get<VoluntarioRepository>();
+      final usuario = await authRepo.getStoredUser();
+
+      if (usuario != null) {
+        final perfil = await voluntarioRepo.getPerfilByUsuario(usuario.idUsuario);
+        if (!mounted) return;
         setState(() {
-          _perfilVoluntario = PerfilVoluntario.fromJson(perfilMap);
+          _perfilVoluntario = perfil;
         });
       }
     } catch (e) {
@@ -203,144 +208,83 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Card(
-      elevation: 4,
-      shadowColor: colorScheme.shadow.withOpacity(0.2),
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: colorScheme.surface,
       child: InkWell(
-        onTap: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
         borderRadius: BorderRadius.circular(16),
+        onTap: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Contenedor de imagen superior - Más grande y prominente
-            Container(
-              height: 160, // Aumentado de 120 a 160
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            // Imagen simple arriba
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
-              child: Stack(
-                children: [
-                  // Imagen del proyecto o placeholder
-                  if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
-                    ImageBase64Widget(
-                      base64String: proyecto.imagen!,
-                      width: double.infinity,
-                      height: 160,
-                      fit: BoxFit.cover,
-                    )
-                  else
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
-                        gradient: LinearGradient(
-                          colors: [
-                            colorScheme.primary.withOpacity(0.2),
-                            colorScheme.secondary.withOpacity(0.3),
-                            colorScheme.tertiary.withOpacity(0.2),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.volunteer_activism,
-                              size: 48,
-                              color: colorScheme.primary.withOpacity(0.6),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Imagen del proyecto',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  // Ícono de guardar en esquina superior derecha
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface.withOpacity(0.95),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.shadow.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+              child: SizedBox(
+                height: 150,
+                width: double.infinity,
+                child: proyecto.imagen != null && proyecto.imagen!.isNotEmpty
+                    ? ImageBase64Widget(
+                        base64String: proyecto.imagen!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        color: colorScheme.surfaceVariant,
+                        child: Center(
+                          child: Icon(
+                            Icons.volunteer_activism,
+                            size: 40,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                           ),
-                        ],
+                        ),
                       ),
-                      child: Icon(
-                        Icons.bookmark_border,
-                        size: 22,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
-            // Contenido de la tarjeta
+
+            // Contenido textual limpio
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Título del proyecto
+                  // Título
                   Text(
                     proyecto.nombre,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      letterSpacing: -0.3,
-                      color: colorScheme.onSurface,
-                      height: 1.2,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 12),
-                  // Información de organización con logo
+                  const SizedBox(height: 6),
+
+                  // Organización
                   Row(
                     children: [
-                      // Logo de la organización
-                      if (proyecto.organizacion != null && 
+                      if (proyecto.organizacion != null &&
                           proyecto.organizacion!['logo'] != null &&
                           proyecto.organizacion!['logo'].toString().isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: ImageBase64Widget(
                             base64String: proyecto.organizacion!['logo'].toString(),
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             fit: BoxFit.cover,
                           ),
                         )
                       else
                         Container(
-                          width: 24,
-                          height: 24,
+                          width: 20,
+                          height: 20,
                           decoration: BoxDecoration(
                             color: colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(4),
@@ -351,14 +295,12 @@ class _HomePageState extends State<HomePage> {
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           organizacionNombre,
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -366,53 +308,81 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Ubicación
-                  if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
-                    Row(
-                      children: [
+                  const SizedBox(height: 6),
+
+                  // Fila ubicación + fecha
+                  Row(
+                    children: [
+                      if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
                         Icon(
                           Icons.location_on_outlined,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.9),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             proyecto.ubicacion!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
-                              fontSize: 14,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
-                    ),
-                  const SizedBox(height: 8),
-                  // Fecha
-                  if (proyecto.fechaInicio != null)
-                    Row(
-                      children: [
+                      if (proyecto.fechaInicio != null) ...[
+                        if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            width: 3,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: colorScheme.outline.withOpacity(0.6),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         Icon(
                           Icons.calendar_today_outlined,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.9),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(
                           '${proyecto.fechaInicio!.day}/${proyecto.fechaInicio!.month}/${proyecto.fechaInicio!.year}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Chip de estado discreto
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: proyecto.estado.toLowerCase() == 'activo'
+                            ? colorScheme.primaryContainer
+                            : colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        proyecto.estado.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: proyecto.estado.toLowerCase() == 'activo'
+                              ? colorScheme.onPrimaryContainer
+                              : colorScheme.onSurface,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
                     ),
+                  ),
                 ],
               ),
             ),
@@ -541,34 +511,61 @@ class _HomePageState extends State<HomePage> {
       },
       child: CustomScrollView(
         slivers: [
-          // Header superior con ubicación, búsqueda y notificaciones
+          // Header superior con saludo, búsqueda y notificaciones
           SliverAppBar(
             floating: true,
             pinned: false,
             backgroundColor: colorScheme.surface,
             elevation: 0,
-            toolbarHeight: 120, // Aumentar altura para incluir barra de búsqueda
+            toolbarHeight: 140, // Un poco más alto para dar aire al saludo
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Ubicación
+                // Saludo al usuario con más estilo
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 20,
-                      color: colorScheme.primary,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.waving_hand_rounded,
+                        color: colorScheme.primary,
+                        size: 22,
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Nueva York, NY', // TODO: Obtener ubicación real
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hola, $_userName',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                              letterSpacing: -0.4,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Encuentra proyectos que encajen contigo',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
                 // Barra de búsqueda prominente
                 Container(
@@ -672,7 +669,7 @@ class _HomePageState extends State<HomePage> {
                           Modular.to.pushNamed('/voluntario/proyectos');
                         },
                         icon: const Icon(Icons.location_on),
-                        label: const Text('Ver proyectos en Nueva York'),
+                        label: const Text('Ver proyectos en Santa Cruz'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange.shade600, // Color acento vibrante
                           foregroundColor: Colors.white,
@@ -766,7 +763,7 @@ class _HomePageState extends State<HomePage> {
           // Carrusel horizontal de proyectos
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 280,
+              height: 300,
               child: FutureBuilder<List<Proyecto>>(
                 future: _loadProyectosVoluntario(),
                 builder: (context, snapshot) {
@@ -1019,6 +1016,30 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Stats compactas estilo Instagram (Proyectos, Horas, Personas)
+  Widget _buildIgStatItem(
+      String label, String value, ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 2),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -2240,154 +2261,20 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: _isProfileLoading ? _buildProfileSkeleton(theme, colorScheme) : CustomScrollView(
         slivers: [
-          // Header con portada (Cover Photo) - ESTILO LINKEDIN/X
+          // AppBar sencillo tipo Instagram (sin banner grande)
           SliverAppBar(
-            expandedHeight: 280, // Más grande como en LinkedIn
             pinned: true,
-            backgroundColor: colorScheme.primary,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: [
-                  // Banner de fondo - más prominente
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.primary.withOpacity(0.9),
-                          colorScheme.secondary.withOpacity(0.7),
-                          colorScheme.tertiary.withOpacity(0.5),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-
-                  // Patrón sutil de fondo
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.05,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/pattern.png'),
-                            repeat: ImageRepeat.repeat,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Elementos decorativos sutiles
-                  Positioned(
-                    top: 60,
-                    right: 30,
-                    child: Icon(
-                      Icons.volunteer_activism,
-                      size: 80,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 40,
-                    left: 30,
-                    child: Icon(
-                      Icons.favorite,
-                      size: 50,
-                      color: Colors.white.withOpacity(0.15),
-                    ),
-                  ),
-
-                  // Avatar superpuesto al banner - ESTILO LINKEDIN
-                  Positioned(
-                    bottom: -60, // Superpone el avatar al banner
-                    left: 24,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.shadow.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
-                          ? CircularImageBase64Widget(
-                              base64String: _perfilVoluntario!.fotoPerfil!,
-                              size: 120,
-                              backgroundColor: colorScheme.surface,
-                            )
-                          : CircleAvatar(
-                              radius: 60,
-                              backgroundColor: colorScheme.surface,
-                              child: Text(
-                                _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                    ),
-                  ),
-
-                  // Botón de editar foto de perfil
-                  Positioned(
-                    bottom: -20,
-                    left: 140,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.surface,
-                          width: 4,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.shadow.withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 24,
-                        color: colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
-
-                  // Botón de editar banner
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+            backgroundColor: colorScheme.surface,
+            elevation: 0,
+            title: Text(
+              _userName,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
+                icon: const Icon(Icons.share),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Función de compartir próximamente')),
@@ -2395,7 +2282,6 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.settings, color: Colors.white),
                 onSelected: (value) {
                   switch (value) {
                     case 'configuracion':
@@ -2465,188 +2351,146 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
 
-          // Contenido principal - ESTILO LINKEDIN/X
+          // Encabezado de perfil tipo Instagram
           SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.only(top: 80), // Más espacio para el avatar superpuesto
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Información del perfil - ESTILO LINKEDIN
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Foto de perfil circular grande al centro
+                  Center(
+                    child: Stack(
                       children: [
-                        // Nombre y verificación - más prominente
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _userName,
-                                style: theme.textTheme.headlineLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                  fontSize: 28,
-                                ),
-                              ),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.secondary,
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.verified,
-                              color: colorScheme.primary,
-                              size: 28,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: colorScheme.surface,
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // Título/Headline - ESTILO LINKEDIN
-                        Text(
-                          'Voluntario Comprometido',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
+                            child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
+                                ? CircularImageBase64Widget(
+                                    base64String: _perfilVoluntario!.fotoPerfil!,
+                                    size: 96,
+                                    backgroundColor: colorScheme.surface,
+                                  )
+                                : CircleAvatar(
+                                    radius: 48,
+                                    backgroundColor: colorScheme.surface,
+                                    child: Text(
+                                      _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
+                                      style: TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
-
-                        const SizedBox(height: 8),
-
-                        // Ubicación y estado - más compacto
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 18,
-                              color: colorScheme.onSurfaceVariant,
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: colorScheme.surface, width: 2),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Nueva York, NY',
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: colorScheme.onPrimary,
                             ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 12),
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: colorScheme.outline,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Icon(
-                              Icons.access_time,
-                              size: 18,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Voluntario desde 2023',
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Conexiones/Estadísticas rápidas - ESTILO LINKEDIN
-                        Row(
-                          children: [
-                            Text(
-                              '342',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'personas impactadas',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 12),
-                              width: 4,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: colorScheme.outline,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Text(
-                              '8',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.secondary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'proyectos completados',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Botones de acción - ESTILO LINKEDIN
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Editar perfil próximamente')),
-                                  );
-                                },
-                                icon: const Icon(Icons.edit, size: 18),
-                                label: const Text('Editar perfil'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.primary,
-                                  foregroundColor: colorScheme.onPrimary,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Compartir perfil próximamente')),
-                                );
-                              },
-                              icon: const Icon(Icons.share, size: 18),
-                              label: const Text('Compartir'),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: colorScheme.outline),
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+
+                  // Nombre y "rol"
+                  Text(
+                    _userName,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Voluntario',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Stats al estilo Instagram
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildIgStatItem('Proyectos', '8', theme, colorScheme),
+                      _buildIgStatItem('Horas', '127', theme, colorScheme),
+                      _buildIgStatItem('Personas', '342', theme, colorScheme),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Bio corta
+                  if (_perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty)
+                    Text(
+                      _perfilVoluntario!.bio!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                  else
+                    Text(
+                      'Agrega una biografía para que las organizaciones te conozcan mejor.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // Botón de editar perfil
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Editar perfil próximamente')),
+                        );
+                      },
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Editar perfil'),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
 
                   // ACERCA DE - ESTILO LINKEDIN
                   Padding(

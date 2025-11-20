@@ -69,7 +69,14 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
     }).toList();
   }
 
-  Widget _buildProyectoCard(BuildContext context, Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildProyectoCard(
+    BuildContext context,
+    Proyecto proyecto,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    int index,
+    int total,
+  ) {
     return GestureDetector(
       onTap: () {
         Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
@@ -107,7 +114,46 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                   ),
                 ),
               ),
-            
+
+            // Etiqueta "Para ti" e indicador de página en la parte superior
+            Positioned(
+              top: 40,
+              left: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.45),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'Para ti',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${index + 1} / $total',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             // Gradiente oscuro en la parte inferior para legibilidad
             Positioned(
               bottom: 0,
@@ -128,7 +174,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                 ),
               ),
             ),
-            
+
             // Botones de acción en la derecha (estilo TikTok)
             Positioned(
               right: 12,
@@ -177,7 +223,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                 ],
               ),
             ),
-            
+
             // Información del proyecto en la parte inferior
             Positioned(
               bottom: 0,
@@ -234,7 +280,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                         ],
                       ),
                     const SizedBox(height: 12),
-                    
+
                     // Nombre del proyecto
                     Text(
                       proyecto.nombre,
@@ -252,7 +298,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Objetivo/descripción
                     if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
                       Text(
@@ -270,7 +316,7 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     const SizedBox(height: 12),
-                    
+
                     // Chips de estado y ubicación
                     Wrap(
                       spacing: 8,
@@ -331,10 +377,6 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Explorar Proyectos'),
-        elevation: 0,
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -355,86 +397,37 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                     ],
                   ),
                 )
-              : Column(
-                  children: [
-                    // Filtros de categorías
-                    if (_categorias.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        color: colorScheme.surfaceContainerHighest,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Filtrar por categorías',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+              : SafeArea(
+                  child: _proyectosFiltrados.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox_outlined, size: 64, color: colorScheme.onSurfaceVariant),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No hay proyectos disponibles',
+                                style: theme.textTheme.titleLarge,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _categorias.map((categoria) {
-                                final isSelected = _categoriasSeleccionadas.contains(categoria.idCategoria);
-                                return FilterChip(
-                                  selected: isSelected,
-                                  label: Text(categoria.nombre),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _categoriasSeleccionadas.add(categoria.idCategoria);
-                                      } else {
-                                        _categoriasSeleccionadas.remove(categoria.idCategoria);
-                                      }
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                            if (_categoriasSeleccionadas.isNotEmpty)
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _categoriasSeleccionadas.clear();
-                                  });
-                                },
-                                child: const Text('Limpiar filtros'),
-                              ),
-                          ],
+                            ],
+                          ),
+                        )
+                      : PageView.builder(
+                          scrollDirection: Axis.vertical,
+                          itemCount: _proyectosFiltrados.length,
+                          itemBuilder: (context, index) {
+                            final proyecto = _proyectosFiltrados[index];
+                            return _buildProyectoCard(
+                              context,
+                              proyecto,
+                              theme,
+                              colorScheme,
+                              index,
+                              _proyectosFiltrados.length,
+                            );
+                          },
                         ),
-                      ),
-                    
-                    // Feed vertical tipo TikTok
-                    Expanded(
-                      child: _proyectosFiltrados.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.inbox_outlined, size: 64, color: colorScheme.onSurfaceVariant),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    _categoriasSeleccionadas.isNotEmpty
-                                        ? 'No hay proyectos con las categorías seleccionadas'
-                                        : 'No hay proyectos disponibles',
-                                    style: theme.textTheme.titleLarge,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : PageView.builder(
-                              scrollDirection: Axis.vertical,
-                              itemCount: _proyectosFiltrados.length,
-                              itemBuilder: (context, index) {
-                                final proyecto = _proyectosFiltrados[index];
-                                return _buildProyectoCard(context, proyecto, theme, colorScheme);
-                              },
-                            ),
-                    ),
-                  ],
                 ),
     );
   }
 }
-

@@ -3,6 +3,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/voluntario_repository.dart';
+import '../../voluntario/pages/proyectos_explore_page.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/models/organizacion.dart';
@@ -1464,28 +1465,8 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA EXPLORAR VOLUNTARIO ==========
   Widget _buildExplorarView() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Explorar Proyectos'),
-        actions: [
-          // Toggle entre vista de lista y mapa
-          IconButton(
-            icon: Icon(_showMapView ? Icons.list : Icons.map),
-            onPressed: () {
-              setState(() => _showMapView = !_showMapView);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFiltersBottomSheet(context),
-          ),
-        ],
-      ),
-      body: _showMapView ? _buildMapView(theme, colorScheme) : _buildListView(theme, colorScheme),
-    );
+    // Usar directamente la vista de exploración tipo TikTok para proyectos de voluntario
+    return const ProyectosExplorePage();
   }
 
   bool _showMapView = false;

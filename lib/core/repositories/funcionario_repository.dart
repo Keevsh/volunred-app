@@ -418,13 +418,9 @@ class FuncionarioRepository {
   /// Crear tarea en un proyecto (proyecto_id se toma de la URL)
   Future<Tarea> createTarea(int proyectoId, Map<String, dynamic> data) async {
     try {
-      // Remover proyecto_id si existe, ya que se toma de la URL
-      final cleanData = Map<String, dynamic>.from(data);
-      cleanData.remove('proyecto_id');
-      
       final response = await _dioClient.dio.post(
-        ApiConfig.funcionariosTareasProyecto(proyectoId),
-        data: cleanData,
+        ApiConfig.tareas,
+        data: data,
       );
       return Tarea.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -436,7 +432,7 @@ class FuncionarioRepository {
   Future<Tarea> updateTarea(int id, Map<String, dynamic> data) async {
     try {
       final response = await _dioClient.dio.patch(
-        ApiConfig.funcionariosTarea(id),
+        ApiConfig.tarea(id),
         data: data,
       );
       return Tarea.fromJson(response.data as Map<String, dynamic>);
@@ -445,10 +441,11 @@ class FuncionarioRepository {
     }
   }
 
-  /// Eliminar tarea
-  Future<void> deleteTarea(int id) async {
+  /// Eliminar (cancelar) tarea
+  Future<Map<String, dynamic>> deleteTarea(int id) async {
     try {
-      await _dioClient.dio.delete(ApiConfig.funcionariosTarea(id));
+      final response = await _dioClient.dio.delete(ApiConfig.tarea(id));
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -628,7 +625,7 @@ class FuncionarioRepository {
     }
   }
 
-  /// Asignar tarea a voluntario aprobado
+  /// Asignar tarea a voluntario aprobado (usando endpoint de funcionarios)
   Future<AsignacionTarea> asignarTareaVoluntario(int tareaId, Map<String, dynamic> data) async {
     try {
       // Remover tarea_id si existe, ya que se toma de la URL
@@ -640,6 +637,52 @@ class FuncionarioRepository {
         data: cleanData,
       );
       return AsignacionTarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear asignación de tarea (endpoint general)
+  Future<AsignacionTarea> createAsignacionTarea(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.asignacionesTareas,
+        data: data,
+      );
+      return AsignacionTarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener asignación de tarea por ID
+  Future<AsignacionTarea> getAsignacionTareaById(int id) async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.asignacionTarea(id));
+      return AsignacionTarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar asignación de tarea
+  Future<AsignacionTarea> updateAsignacionTarea(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        ApiConfig.asignacionTarea(id),
+        data: data,
+      );
+      return AsignacionTarea.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Cancelar asignación de tarea
+  Future<Map<String, dynamic>> deleteAsignacionTarea(int id) async {
+    try {
+      final response = await _dioClient.dio.delete(ApiConfig.asignacionTarea(id));
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _handleError(e);
     }

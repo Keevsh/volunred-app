@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/proyecto.dart';
+import '../../../core/models/tarea.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 
@@ -21,11 +22,15 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
   Proyecto? _proyecto;
   bool _isLoading = true;
   String? _error;
+  List<Tarea> _tareas = [];
+  bool _isLoadingTareas = false;
+  String? _tareasError;
 
   @override
   void initState() {
     super.initState();
     _loadProyecto();
+    _loadTareas();
   }
 
   Future<void> _loadProyecto() async {
@@ -44,6 +49,237 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
     }
   }
 
+  Future<void> _loadTareas() async {
+    setState(() {
+      _isLoadingTareas = true;
+      _tareasError = null;
+    });
+
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      final tareas = await funcionarioRepo.getTareasByProyecto(widget.proyectoId);
+      setState(() {
+        _tareas = tareas;
+        _isLoadingTareas = false;
+      });
+    } catch (e) {
+      setState(() {
+        _tareasError = e.toString();
+        _isLoadingTareas = false;
+      });
+    }
+  }
+
+  Future<void> _showCreateTareaDialog() async {
+    final nombreController = TextEditingController();
+    final descripcionController = TextEditingController();
+    String? prioridad;
+    String estado = 'PENDIENTE';
+    DateTime? fechaInicio;
+    DateTime? fechaFin;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Nueva tarea'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nombreController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre *',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descripcionController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Descripción',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Prioridad',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: prioridad,
+                      items: const [
+                        DropdownMenuItem(value: 'Alta', child: Text('Alta')),
+                        DropdownMenuItem(value: 'Media', child: Text('Media')),
+                        DropdownMenuItem(value: 'Baja', child: Text('Baja')),
+                      ],
+                      onChanged: (value) {
+                        setDialogState(() {
+                          prioridad = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Estado',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: estado,
+                      items: const [
+                        DropdownMenuItem(value: 'PENDIENTE', child: Text('Pendiente')),
+                        DropdownMenuItem(value: 'EN_PROGRESO', child: Text('En progreso')),
+                        DropdownMenuItem(value: 'COMPLETADA', child: Text('Completada')),
+                        DropdownMenuItem(value: 'CANCELADA', child: Text('Cancelada')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setDialogState(() {
+                          estado = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                              );
+                              if (date != null) {
+                                setDialogState(() {
+                                  fechaInicio = date;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today_rounded, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    fechaInicio != null
+                                        ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
+                                        : 'Fecha inicio',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: fechaInicio ?? DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                              );
+                              if (date != null) {
+                                setDialogState(() {
+                                  fechaFin = date;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today_rounded, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    fechaFin != null
+                                        ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
+                                        : 'Fecha fin',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    if (nombreController.text.trim().isEmpty) {
+                      return;
+                    }
+
+                    final data = <String, dynamic>{
+                      'proyecto_id': widget.proyectoId,
+                      'nombre': nombreController.text.trim(),
+                      'descripcion': descripcionController.text.trim().isEmpty
+                          ? null
+                          : descripcionController.text.trim(),
+                      'prioridad': prioridad?.toLowerCase(),
+                      'estado': estado.toLowerCase(),
+                    };
+
+                    if (fechaInicio != null) {
+                      data['fecha_inicio'] = '${fechaInicio!.year}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}';
+                    }
+                    if (fechaFin != null) {
+                      data['fecha_fin'] = '${fechaFin!.year}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}';
+                    }
+
+                    try {
+                      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+                      await funcionarioRepo.createTarea(widget.proyectoId, data);
+                      if (mounted) {
+                        Navigator.of(dialogContext).pop();
+                        await _loadTareas();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tarea creada correctamente')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al crear tarea: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Crear'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -52,75 +288,179 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalles del Proyecto'),
+        elevation: 0,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateTareaDialog,
+        icon: const Icon(Icons.add_task),
+        label: const Text('Nueva Tarea'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: colorScheme.error,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error al cargar proyecto',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _error!,
-                        style: theme.textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: _loadProyecto,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 80,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Error al cargar proyecto',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          onPressed: _loadProyecto,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : _proyecto == null
                   ? const Center(child: Text('Proyecto no encontrado'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Imagen principal del proyecto
-                          if (_proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: ImageBase64Widget(
-                                base64String: _proyecto!.imagen!,
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await _loadProyecto();
+                        await _loadTareas();
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Hero Image
+                            if (_proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty)
+                              Stack(
+                                children: [
+                                  ImageBase64Widget(
+                                    base64String: _proyecto!.imagen!,
+                                    width: double.infinity,
+                                    height: 280,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    height: 280,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withOpacity(0.7),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 24,
+                                    left: 16,
+                                    right: 16,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _proyecto!.estado == 'activo'
+                                                ? Colors.green
+                                                : Colors.red,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Text(
+                                            _proyecto!.estado.toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          _proyecto!.nombre,
+                                          style: theme.textTheme.headlineMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Container(
                                 width: double.infinity,
-                                height: 250,
-                                fit: BoxFit.cover,
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      colorScheme.primaryContainer,
+                                      colorScheme.secondaryContainer,
+                                    ],
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _proyecto!.estado == 'activo'
+                                            ? Colors.green
+                                            : Colors.red,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        _proyecto!.estado.toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _proyecto!.nombre,
+                                      style: theme.textTheme.headlineMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                          // Nombre
-                          Text(
-                            _proyecto!.nombre,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Estado
-                          Chip(
-                            label: Text(_proyecto!.estado.toUpperCase()),
-                            backgroundColor: _proyecto!.estado == 'activo'
-                                ? colorScheme.primaryContainer
-                                : colorScheme.errorContainer,
-                          ),
-                          const SizedBox(height: 24),
+                            
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
 
                           // Organización
                           if (_proyecto!.organizacion != null) ...[
@@ -299,7 +639,132 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                                 ),
                             ],
                           ),
-                        ],
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Tareas del proyecto',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      Modular.to.pushNamed('/proyectos/${widget.proyectoId}/tareas-kanban?role=funcionario');
+                                    },
+                                    icon: const Icon(Icons.view_column),
+                                    label: const Text('Kanban'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FilledButton.icon(
+                                    onPressed: () {
+                                      Modular.to.pushNamed('/proyectos/${widget.proyectoId}/tareas');
+                                    },
+                                    icon: const Icon(Icons.table_chart),
+                                    label: const Text('Tabla'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (_isLoadingTareas)
+                            const Center(child: CircularProgressIndicator())
+                          else if (_tareasError != null)
+                            Text(
+                              'Error al cargar tareas: $_tareasError',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.error,
+                              ),
+                            )
+                          else if (_tareas.isEmpty)
+                            Text(
+                              'No hay tareas creadas para este proyecto.',
+                              style: theme.textTheme.bodyMedium,
+                            )
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _tareas.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final tarea = _tareas[index];
+                                final fechaInicioStr = tarea.fechaInicio != null
+                                    ? '${tarea.fechaInicio!.day}/${tarea.fechaInicio!.month}/${tarea.fechaInicio!.year}'
+                                    : null;
+                                final fechaFinStr = tarea.fechaFin != null
+                                    ? '${tarea.fechaFin!.day}/${tarea.fechaFin!.month}/${tarea.fechaFin!.year}'
+                                    : null;
+
+                                return Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                tarea.nombre,
+                                                style: theme.textTheme.titleSmall?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            Chip(
+                                              label: Text(tarea.estado),
+                                            ),
+                                          ],
+                                        ),
+                                        if (tarea.descripcion != null && tarea.descripcion!.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            tarea.descripcion!,
+                                            style: theme.textTheme.bodyMedium,
+                                          ),
+                                        ],
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            if (tarea.prioridad != null && tarea.prioridad!.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 8),
+                                                child: Chip(
+                                                  label: Text('Prioridad: ${tarea.prioridad}'),
+                                                ),
+                                              ),
+                                            if (fechaInicioStr != null)
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.calendar_today_rounded, size: 14),
+                                                  const SizedBox(width: 4),
+                                                  Text(fechaInicioStr),
+                                                ],
+                                              ),
+                                            if (fechaFinStr != null) ...[
+                                              const SizedBox(width: 8),
+                                              const Text('→'),
+                                              const SizedBox(width: 4),
+                                              Text(fechaFinStr),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
     );

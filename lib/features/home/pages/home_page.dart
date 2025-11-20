@@ -11,6 +11,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/perfil_voluntario.dart';
 import '../../../core/widgets/image_base64_widget.dart';
+import '../widgets/funcionario_dashboard.dart';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -842,110 +843,7 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA FUNCIONARIO - MATERIAL 3 ==========
   Widget _buildFuncionarioHomeView() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return RefreshIndicator(
-      onRefresh: () async {
-        await _loadUserData();
-        setState(() {});
-      },
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            pinned: true,
-            title: Text('Mi Organización', style: theme.textTheme.titleLarge),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: () => Modular.to.pushNamed('/proyectos/create'),
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          
-          // Información de organización
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _buildOrganizacionCard(theme, colorScheme),
-            ),
-          ),
-          
-          // Estadísticas
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildStatsSection(theme, colorScheme),
-            ),
-          ),
-          
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          
-          // Lista de proyectos
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: FutureBuilder<List<Proyecto>>(
-              future: _loadProyectosOrganizacion(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                
-                if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.folder_outlined,
-                              size: 64,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No tienes proyectos aún',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            FilledButton.icon(
-                              onPressed: () => Modular.to.pushNamed('/proyectos/create'),
-                              icon: const Icon(Icons.add),
-                              label: const Text('Crear Proyecto'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final proyecto = snapshot.data![index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
-                      );
-                    },
-                    childCount: snapshot.data!.length,
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
+    return const FuncionarioDashboard();
   }
   
   Widget _buildOrganizacionCard(ThemeData theme, ColorScheme colorScheme) {

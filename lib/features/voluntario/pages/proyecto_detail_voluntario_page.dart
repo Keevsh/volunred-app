@@ -151,7 +151,15 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles del Proyecto'),
+        // Mostrar el nombre del proyecto con un estilo limpio
+        title: Text(
+          _proyecto?.nombre ?? 'Detalles del Proyecto',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         elevation: 0,
       ),
       body: _isLoading
@@ -177,10 +185,69 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
               : _proyecto == null
                   ? const Center(child: Text('Proyecto no encontrado'))
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Imagen principal tipo portada (sin bordes redondeados)
+                          Stack(
+                            children: [
+                              _proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty
+                                  ? ImageBase64Widget(
+                                      base64String: _proyecto!.imagen!,
+                                      width: double.infinity,
+                                      height: 230,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      height: 230,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            colorScheme.primaryContainer,
+                                            colorScheme.secondaryContainer,
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.volunteer_activism,
+                                          size: 64,
+                                          color: colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ),
+                              Positioned(
+                                right: 12,
+                                bottom: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.45),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.photo_library_outlined, size: 16, color: Colors.white),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Más fotos pronto',
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
                           // Header de organización estilo red social (avatar más grande y textos alineados)
                           FutureBuilder<Organizacion?>(
                             future: _loadOrganizacion(_proyecto!.organizacionId),
@@ -238,9 +305,13 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                 onTap: () {
                                   Modular.to.pushNamed('/voluntario/organizaciones/${_proyecto!.organizacionId}');
                                 },
-                                borderRadius: BorderRadius.circular(999),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                   child: Row(
                                     children: [
                                       avatar,
@@ -267,9 +338,10 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                           ],
                                         ),
                                       ),
-                                      const Icon(
-                                        Icons.more_vert,
+                                      Icon(
+                                        Icons.chevron_right,
                                         size: 20,
+                                        color: colorScheme.onSurfaceVariant,
                                       ),
                                     ],
                                   ),
@@ -279,59 +351,16 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                           ),
                           const SizedBox(height: 16),
 
-                          // Imagen principal del proyecto (con fallback elegante)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: _proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty
-                                ? ImageBase64Widget(
-                                    base64String: _proyecto!.imagen!,
-                                    width: double.infinity,
-                                    height: 220,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    height: 220,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          colorScheme.primaryContainer,
-                                          colorScheme.secondaryContainer,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.volunteer_activism,
-                                        size: 64,
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Título y texto principal (tipo post)
+                          // SOBRE EL PROYECTO
                           Text(
                             _proyecto!.nombre,
-                            style: theme.textTheme.headlineSmall?.copyWith(
+                            style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty) ...[
-                            Text(_proyecto!.objetivo!, style: theme.textTheme.bodyLarge),
-                            const SizedBox(height: 24),
-                          ] else ...[
-                            const SizedBox(height: 16),
-                          ],
-
-                          // Chips de estado y categorías
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Chip(
                                 label: Text(_proyecto!.estado.toUpperCase()),
@@ -344,112 +373,192 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                       : colorScheme.onErrorContainer,
                                 ),
                               ),
-                              if (_proyecto!.categoriasProyectos != null && _proyecto!.categoriasProyectos!.isNotEmpty)
-                                ..._proyecto!.categoriasProyectos!.map((catProy) {
-                                  String categoriaNombre = 'Categoría';
-                                  if (catProy is Map) {
-                                    if (catProy['categoria'] is Map) {
-                                      categoriaNombre = catProy['categoria']['nombre']?.toString() ?? 'Categoría';
-                                    }
-                                  }
-                                  return Chip(
-                                    label: Text(categoriaNombre),
-                                    avatar: Icon(Icons.label, size: 18, color: colorScheme.primary),
-                                    backgroundColor: colorScheme.primaryContainer,
-                                    labelStyle: TextStyle(color: colorScheme.onPrimaryContainer),
-                                  );
-                                }).toList(),
                             ],
                           ),
+                          const SizedBox(height: 8),
+                          if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty) ...[
+                            Text(
+                              _proyecto!.objetivo!,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          if (_proyecto!.categoriasProyectos != null && _proyecto!.categoriasProyectos!.isNotEmpty)
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _proyecto!.categoriasProyectos!.map((catProy) {
+                                String categoriaNombre = 'Categoría';
+                                if (catProy is Map) {
+                                  if (catProy['categoria'] is Map) {
+                                    categoriaNombre = catProy['categoria']['nombre']?.toString() ?? 'Categoría';
+                                  }
+                                }
+                                return Chip(
+                                  label: Text(categoriaNombre),
+                                  avatar: Icon(Icons.label, size: 18, color: colorScheme.primary),
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  labelStyle: TextStyle(color: colorScheme.onPrimaryContainer),
+                                );
+                              }).toList(),
+                            ),
+
                           const SizedBox(height: 24),
 
-                          // Timeline de fechas e información de ubicación
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // DETALLES
+                          Text(
+                            'Detalles',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                'Línea de tiempo',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Icon(Icons.event, size: 20, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('Inicio:', style: theme.textTheme.bodyMedium),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _proyecto!.fechaInicio != null
+                                      ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
+                                      : 'No especificada',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Row(
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.event_busy, size: 20, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text('Fin:', style: theme.textTheme.bodyMedium),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _proyecto!.fechaFin != null
+                                      ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
+                                      : 'No especificada',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_proyecto!.ubicacion != null && _proyecto!.ubicacion!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.location_on, size: 20, color: colorScheme.primary),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _proyecto!.ubicacion!,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          const SizedBox(height: 24),
+
+                          // Insights del proyecto (idea para métricas futuras)
+                          Card(
+                            elevation: 0,
+                            color: colorScheme.surface,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Columna visual del timeline
-                                  Column(
+                                  Text(
+                                    'Insights del proyecto',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
                                     children: [
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primary,
-                                          shape: BoxShape.circle,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Inscritos',
+                                              style: theme.textTheme.labelSmall,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Próximamente',
+                                              style: theme.textTheme.bodyMedium?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      Container(
-                                        width: 2,
-                                        height: 24,
-                                        color: colorScheme.primary.withOpacity(0.4),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Reseñas',
+                                              style: theme.textTheme.labelSmall,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Próximamente',
+                                              style: theme.textTheme.bodyMedium?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: _proyecto!.fechaFin != null
-                                              ? colorScheme.primary
-                                              : colorScheme.outlineVariant,
-                                          shape: BoxShape.circle,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Puntaje',
+                                              style: theme.textTheme.labelSmall,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.star_border, size: 18, color: colorScheme.primary),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Próx.',
+                                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                                    color: colorScheme.onSurfaceVariant,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(width: 12),
-                                  // Contenido de fechas
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Inicio', style: theme.textTheme.labelMedium),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _proyecto!.fechaInicio != null
-                                              ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
-                                              : 'No especificada',
-                                          style: theme.textTheme.bodyLarge,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text('Fin', style: theme.textTheme.labelMedium),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _proyecto!.fechaFin != null
-                                              ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
-                                              : 'No especificada',
-                                          style: theme.textTheme.bodyLarge,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                 ],
                               ),
-                              if (_proyecto!.ubicacion != null && _proyecto!.ubicacion!.isNotEmpty) ...[
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Icon(Icons.location_on, size: 20, color: colorScheme.primary),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        _proyecto!.ubicacion!,
-                                        style: theme.textTheme.bodyLarge,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
+                            ),
                           ),
+
                           const SizedBox(height: 24),
 
                           // Acciones de participación

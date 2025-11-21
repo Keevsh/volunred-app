@@ -341,24 +341,23 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                         await _loadProyecto();
                         await _loadTareas();
                       },
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Hero Image
-                            if (_proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty)
-                              Stack(
+                      child: Column(
+                        children: [
+                          // Hero Image - Full width, square, no margins
+                          if (_proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty)
+                            AspectRatio(
+                              aspectRatio: 1.0, // Square image
+                              child: Stack(
                                 children: [
                                   ImageBase64Widget(
                                     base64String: _proyecto!.imagen!,
                                     width: double.infinity,
-                                    height: 280,
+                                    height: double.infinity,
                                     fit: BoxFit.cover,
                                   ),
                                   Container(
                                     width: double.infinity,
-                                    height: 280,
+                                    height: double.infinity,
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         begin: Alignment.topCenter,
@@ -409,58 +408,63 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                                     ),
                                   ),
                                 ],
-                              )
-                            else
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      colorScheme.primaryContainer,
-                                      colorScheme.secondaryContainer,
-                                    ],
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _proyecto!.estado == 'activo'
-                                            ? Colors.green
-                                            : Colors.red,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        _proyecto!.estado.toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _proyecto!.nombre,
-                                      style: theme.textTheme.headlineMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                              ),
+                            )
+                          else
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    colorScheme.primaryContainer,
+                                    colorScheme.secondaryContainer,
                                   ],
                                 ),
                               ),
-                            
-                            Padding(
-                              padding: const EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _proyecto!.estado == 'activo'
+                                          ? Colors.green
+                                          : Colors.red,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      _proyecto!.estado.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _proyecto!.nombre,
+                                    style: theme.textTheme.headlineMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          
+                          // Scrollable content
+                          Expanded(
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
 
                           // Organización
                           if (_proyecto!.organizacion != null) ...[
@@ -760,11 +764,12 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                                 );
                               },
                             ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
     );

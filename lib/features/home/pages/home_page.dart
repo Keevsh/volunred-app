@@ -4664,25 +4664,18 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Avatar circular con gradiente sutil
+                // Avatar circular skeleton más contrastado
                 Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.surfaceContainerHighest.withOpacity(0.6),
-                        colorScheme.surfaceContainerHighest,
-                      ],
-                    ),
+                    color: colorScheme.surfaceVariant,
                   ),
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
+                        color: colorScheme.surfaceVariant.withOpacity(0.9),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -4696,7 +4689,7 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
+                        color: colorScheme.surfaceVariant.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -4709,7 +4702,7 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
+                        color: colorScheme.surfaceVariant.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),

@@ -547,25 +547,6 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                             const SizedBox(height: 16),
                           ],
 
-                          // Botón de acción
-                          if (_inscripcion == null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: FilledButton(
-                                onPressed: _isInscribiendo ? null : _inscribirse,
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  minimumSize: const Size(double.infinity, 48),
-                                ),
-                                child: _isInscribiendo
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Text('Inscribirse a esta Organización'),
-                              ),
-                            ),
                           const SizedBox(height: 24),
 
                           // Tabs simples sobre la sección de proyectos

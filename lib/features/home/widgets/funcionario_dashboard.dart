@@ -245,75 +245,138 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primaryContainer,
-            colorScheme.secondaryContainer,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.6),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_organizacion!.logo != null && _organizacion!.logo!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: ImageBase64Widget(
-                  base64String: _organizacion!.logo!,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              )
-            else
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.business,
-                  size: 40,
-                  color: colorScheme.onPrimary,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primary.withOpacity(0.06),
+              ),
+              padding: const EdgeInsets.all(3),
+              child: ClipOval(
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: (_organizacion!.logo != null && _organizacion!.logo!.isNotEmpty)
+                      ? ImageBase64Widget(
+                          base64String: _organizacion!.logo!,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            borderRadius: BorderRadius.circular(72),
+                          ),
+                          child: Icon(
+                            Icons.apartment_rounded,
+                            size: 38,
+                            color: colorScheme.onPrimary,
+                          ),
+                        ),
                 ),
               ),
-            const SizedBox(width: 20),
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _organizacion!.nombre,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (_organizacion!.descripcion != null)
-                    Text(
-                      _organizacion!.descripcion!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _organizacion!.nombre,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onSurface,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty)
+                              Text(
+                                _organizacion!.descripcion!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.shield_rounded,
+                                  size: 18,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Organización activa',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () {
+                              // Navegar al perfil completo de la organización (si existe ruta)
+                            },
+                            icon: const Icon(Icons.open_in_new, size: 18),
+                            label: const Text('Ver organización'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
+                    runSpacing: 8,
                     children: [
                       _buildInfoChip(
                         Icons.location_on,
@@ -324,6 +387,18 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                         _buildInfoChip(
                           Icons.category,
                           _organizacion!.categoriaOrganizacion!['nombre']?.toString() ?? 'General',
+                          colorScheme,
+                        ),
+                      if (_organizacion!.email != null && _organizacion!.email!.isNotEmpty)
+                        _buildInfoChip(
+                          Icons.email_outlined,
+                          _organizacion!.email,
+                          colorScheme,
+                        ),
+                      if (_organizacion!.telefono != null && _organizacion!.telefono!.isNotEmpty)
+                        _buildInfoChip(
+                          Icons.phone,
+                          _organizacion!.telefono!,
                           colorScheme,
                         ),
                     ],
@@ -509,96 +584,100 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       child: InkWell(
         onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: ImageBase64Widget(
-                  base64String: proyecto.imagen!,
-                  width: double.infinity,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
-              )
-            else
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [colorScheme.primaryContainer, colorScheme.secondaryContainer],
-                  ),
+        child: SizedBox(
+          height: 230,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
+                ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Center(
-                  child: Icon(Icons.folder, size: 48, color: colorScheme.primary),
-                ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            proyecto.nombre,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: proyecto.estado == 'activo' ? Colors.green : Colors.grey,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            proyecto.estado.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                  child: ImageBase64Widget(
+                    base64String: proyecto.imagen!,
+                    width: double.infinity,
+                    height: 110,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else
+                Container(
+                  height: 110,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [colorScheme.primaryContainer, colorScheme.secondaryContainer],
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.people, size: 16, color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Ver voluntarios',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    if (proyecto.fechaFin != null) ...[
-                      const SizedBox(height: 4),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.folder, size: 40, color: colorScheme.primary),
+                  ),
+                ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
+                          Expanded(
+                            child: Text(
+                              proyecto.nombre,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: proyecto.estado == 'activo' ? Colors.green : Colors.grey,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              proyecto.estado.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.people, size: 16, color: colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Text(
-                            DateFormat('dd MMM yyyy').format(proyecto.fechaFin!),
+                            'Ver voluntarios',
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
                       ),
+                      if (proyecto.fechaFin != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Text(
+                              DateFormat('dd MMM yyyy').format(proyecto.fechaFin!),
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

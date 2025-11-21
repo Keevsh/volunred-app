@@ -517,10 +517,11 @@ class _HomePageState extends State<HomePage> {
             pinned: false,
             backgroundColor: colorScheme.surface,
             elevation: 0,
-            toolbarHeight: 140, // Un poco más alto para dar aire al saludo
+            toolbarHeight: 150, // Un poco más alto para dar aire al saludo
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
                 // Saludo al usuario con más estilo
                 Row(
                   children: [
@@ -543,10 +544,10 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(
                             'Hola, $_userName',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
                               color: colorScheme.onSurface,
-                              letterSpacing: -0.4,
+                              letterSpacing: -0.5,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -609,12 +610,126 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
 
+          // Carrusel de organizaciones destacadas (logos redondos tipo historias)
+          SliverToBoxAdapter(
+            child: FutureBuilder<List<Proyecto>>(
+              future: _loadProyectosVoluntario(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(height: 90);
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                // Construir lista única de organizaciones a partir de los proyectos
+                final proyectos = snapshot.data!;
+                final List<Map<String, dynamic>> organizaciones = [];
+                final Set<int> orgIds = {};
+
+                for (final p in proyectos) {
+                  if (p.organizacion != null) {
+                    final org = p.organizacion!;
+                    final id = org['id_organizacion'] is int
+                        ? org['id_organizacion'] as int
+                        : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
+
+                    if (id != -1 && !orgIds.contains(id)) {
+                      orgIds.add(id);
+                      organizaciones.add(org);
+                    }
+                  }
+                }
+
+                if (organizaciones.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return SizedBox(
+                  height: 130,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: organizaciones.length,
+                    itemBuilder: (context, index) {
+                      final org = organizaciones[index];
+                      final nombre = (org['nombre'] ?? org['nombre_legal'] ?? org['nombre_corto'] ?? 'Org').toString();
+                      final logo = org['logo']?.toString();
+                      final idOrg = org['id_organizacion'] is int
+                          ? org['id_organizacion'] as int
+                          : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(40),
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          overlayColor: MaterialStateProperty.all(Colors.transparent),
+                          onTap: () {
+                            if (idOrg != -1) {
+                              Modular.to.pushNamed('/voluntario/organizaciones/$idOrg');
+                            }
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: colorScheme.surface,
+                                ),
+                                child: ClipOval(
+                                  child: (logo != null && logo.isNotEmpty)
+                                      ? ImageBase64Widget(
+                                          base64String: logo,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Icon(
+                                          Icons.business,
+                                          size: 32,
+                                          color: colorScheme.primary,
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: 80,
+                                child: Text(
+                                  nombre,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: 11,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+
           // Banner principal grande
           SliverToBoxAdapter(
             child: Container(
               height: 280,
               width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
                 gradient: LinearGradient(

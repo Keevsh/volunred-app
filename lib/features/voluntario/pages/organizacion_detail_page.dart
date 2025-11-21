@@ -43,17 +43,31 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
     try {
       final organizacion = await _repository.getOrganizacionById(widget.organizacionId);
       
-      // Verificar inscripciones y contar cuántas hay para esta organización
+      // Obtener el perfil del voluntario actual
+      final perfil = await _repository.getStoredPerfil();
+      
+      // Verificar inscripciones SOLO del usuario actual
       try {
         final inscripciones = await _repository.getInscripciones();
+        
+        // Contar todas las inscripciones de esta organización (para estadísticas)
         final inscripcionesOrg = inscripciones
             .where((ins) => ins.organizacionId == widget.organizacionId)
             .toList();
         _inscripcionesCount = inscripcionesOrg.length;
-        _inscripcion = inscripcionesOrg.isNotEmpty ? inscripcionesOrg.first : null;
+        
+        // Buscar la inscripción del usuario actual en esta organización
+        if (perfil != null) {
+          _inscripcion = inscripciones.firstWhere(
+            (ins) => ins.organizacionId == widget.organizacionId && 
+                     ins.usuarioId == perfil.usuarioId,
+            orElse: () => throw StateError('No encontrada'),
+          );
+        } else {
+          _inscripcion = null;
+        }
       } catch (e) {
         _inscripcion = null;
-        _inscripcionesCount = 0;
       }
 
       setState(() {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Tema Material 3 estilo Google
 class AppTheme {
@@ -81,6 +82,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: lightColorScheme,
       brightness: Brightness.light,
+      fontFamily: 'Nunito',
       
       // AppBar Theme - Estilo Google
       appBarTheme: AppBarTheme(
@@ -270,98 +272,88 @@ class AppTheme {
         space: 1,
       ),
       
-      // Typography
-      textTheme: TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 57,
-          fontWeight: FontWeight.w400,
-          letterSpacing: -0.25,
-          color: lightColorScheme.onSurface,
+      // Typography con Nunito desde Google Fonts
+      textTheme: GoogleFonts.nunitoTextTheme(
+        const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 57,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.25,
+          ),
+          displayMedium: TextStyle(
+            fontSize: 45,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0,
+          ),
+          displaySmall: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0,
+          ),
+          headlineLarge: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0,
+          ),
+          titleLarge: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.15,
+          ),
+          titleSmall: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+          labelLarge: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+          labelMedium: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
+          labelSmall: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.5,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.25,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.4,
+          ),
         ),
-        displayMedium: TextStyle(
-          fontSize: 45,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        displaySmall: TextStyle(
-          fontSize: 36,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0,
-          color: lightColorScheme.onSurface,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.15,
-          color: lightColorScheme.onSurface,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-          color: lightColorScheme.onSurface,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-          color: lightColorScheme.onSurface,
-        ),
-        labelMedium: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
-          color: lightColorScheme.onSurface,
-        ),
-        labelSmall: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
-          color: lightColorScheme.onSurface,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.5,
-          color: lightColorScheme.onSurface,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.25,
-          color: lightColorScheme.onSurface,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.4,
-          color: lightColorScheme.onSurface,
-        ),
+      ).apply(
+        bodyColor: lightColorScheme.onSurface,
+        displayColor: lightColorScheme.onSurface,
       ),
       
       // Scaffold Background
@@ -397,6 +389,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: darkColorScheme,
       brightness: Brightness.dark,
+      fontFamily: 'Nunito',
       
       appBarTheme: AppBarTheme(
         centerTitle: false,
@@ -458,7 +451,13 @@ class AppTheme {
           ),
         ),
       ),
-      
+
+      // Typography con Nunito también en modo oscuro
+      textTheme: GoogleFonts.nunitoTextTheme().apply(
+        bodyColor: darkColorScheme.onSurface,
+        displayColor: darkColorScheme.onSurface,
+      ),
+
       scaffoldBackgroundColor: darkColorScheme.surfaceContainerLowest,
     );
   }

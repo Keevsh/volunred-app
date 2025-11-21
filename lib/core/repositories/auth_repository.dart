@@ -33,7 +33,10 @@ class AuthRepository {
         jsonEncode(authResponse.usuario.toJson()),
       );
 
-      // Guardar perfiles si están disponibles
+      // Siempre limpiar cualquier perfil de voluntario previo
+      await StorageService.remove(ApiConfig.perfilVoluntarioKey);
+
+      // Guardar perfil de voluntario si está disponible para el nuevo usuario
       if (authResponse.perfilVoluntario != null) {
         await StorageService.saveString(
           ApiConfig.perfilVoluntarioKey,
@@ -69,7 +72,10 @@ class AuthRepository {
         jsonEncode(authResponse.usuario.toJson()),
       );
 
-      // Guardar perfiles si están disponibles
+      // Siempre limpiar cualquier perfil de voluntario previo
+      await StorageService.remove(ApiConfig.perfilVoluntarioKey);
+
+      // Guardar perfiles si están disponibles para este usuario
       if (authResponse.perfilVoluntario != null) {
         print('💾 Guardando perfil de voluntario en storage');
         await StorageService.saveString(

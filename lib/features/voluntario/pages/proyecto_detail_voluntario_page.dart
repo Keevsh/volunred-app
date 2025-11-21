@@ -42,29 +42,53 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
     try {
       final proyecto = await _repository.getProyectoById(widget.proyectoId);
-      
-      // Verificar si ya hay una participación
+
+      // Obtener el perfil del voluntario para conocer el usuario_id
+      final perfil = await _repository.getStoredPerfil();
+
+      // Verificar si ya hay una participación PARA ESTE USUARIO en este proyecto
       try {
         final participaciones = await _repository.getParticipaciones();
+
         _participacion = participaciones.firstWhere(
-          (part) => part.proyectoId == widget.proyectoId,
+          (part) {
+            if (part.proyectoId != widget.proyectoId) {
+              return false;
+            }
+
+            // Si la participación viene con la relación de inscripción, usamos el usuario_id de ahí
+            final inscripcionMap = part.inscripcion;
+            if (perfil != null && inscripcionMap != null && inscripcionMap['usuario_id'] != null) {
+              final usuarioIdInscripcion = int.tryParse(inscripcionMap['usuario_id'].toString());
+              if (usuarioIdInscripcion != null && usuarioIdInscripcion == perfil.usuarioId) {
+                return true;
+              }
+            }
+
+            return false;
+          },
           orElse: () => throw Exception('No encontrada'),
         );
       } catch (e) {
         _participacion = null;
       }
 
-      // Verificar si hay inscripción aprobada en la organización del proyecto
-      if (proyecto.organizacionId != null) {
+      // Verificar si hay inscripción aprobada en la organización del proyecto PARA ESTE USUARIO
+      if (proyecto.organizacionId != null && perfil != null) {
         try {
           final inscripciones = await _repository.getInscripciones();
           _inscripcionAprobada = inscripciones.firstWhere(
-            (ins) => ins.organizacionId == proyecto.organizacionId && ins.estado == 'APROBADO',
+            (ins) =>
+                ins.organizacionId == proyecto.organizacionId &&
+                ins.usuarioId == perfil.usuarioId &&
+                ins.estado == 'APROBADO',
             orElse: () => throw Exception('No encontrada'),
           );
         } catch (e) {
           _inscripcionAprobada = null;
         }
+      } else {
+        _inscripcionAprobada = null;
       }
 
       setState(() {

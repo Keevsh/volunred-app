@@ -14,21 +14,35 @@ class _WelcomePageState extends State<WelcomePage> {
 
   final List<Map<String, String>> _slides = [
     {
-      'icon': '🤝',
+      'image': 'assets/images/voluntarios.jpg',
       'title': 'Conecta con Causas',
       'subtitle': 'Encuentra oportunidades de voluntariado que se alineen con tus intereses y pasiones',
     },
     {
-      'icon': '🌍',
+      'image': 'assets/images/lapaz.jpg',
       'title': 'Haz la Diferencia',
       'subtitle': 'Únete a proyectos que transforman comunidades y el medio ambiente',
     },
     {
-      'icon': '👥',
+      'image': 'assets/images/animal.jpg',
       'title': 'Crece y Aprende',
       'subtitle': 'Desarrolla nuevas habilidades mientras ayudas a otros',
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Precargar imágenes de los slides para que el carrusel sea más fluido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final slide in _slides) {
+        final imagePath = slide['image'];
+        if (imagePath != null && imagePath.isNotEmpty) {
+          precacheImage(AssetImage(imagePath), context);
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -45,6 +59,41 @@ class _WelcomePageState extends State<WelcomePage> {
       body: SafeArea(
         child: Column(
           children: [
+            // Header con mini logo y texto VolunRed
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.primary.withOpacity(0.1),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'VR',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'VolunRed',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -120,26 +169,77 @@ class _WelcomePageState extends State<WelcomePage> {
 
   Widget _buildSlide(Map<String, String> slide, ThemeData theme, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.all(48),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icono
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                slide['icon']!,
-                style: const TextStyle(fontSize: 64),
-              ),
+          // Imagen principal tipo tarjeta con esquinas redondeadas y círculos decorativos
+          SizedBox(
+            height: 420,
+            child: Stack(
+              children: [
+                // Foto principal con bordes redondeados (más grande)
+                Align(
+                  alignment: Alignment.center,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: AspectRatio(
+                      aspectRatio: 4 / 5, // un poco más alto que ancho
+                      child: Image.asset(
+                        slide['image']!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Circulito bandera Bolivia arriba a la izquierda (simple)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.transparent,
+                    ),
+                    child: ClipOval(
+                      child: Column(
+                        children: const [
+                          Expanded(child: ColoredBox(color: Color(0xFFE53935))), // rojo
+                          Expanded(child: ColoredBox(color: Color(0xFFFDD835))), // amarillo
+                          Expanded(child: ColoredBox(color: Color(0xFF43A047))), // verde
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Circulito con ícono de mundo abajo a la derecha
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.primary,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.public,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           
           // Título
           Text(

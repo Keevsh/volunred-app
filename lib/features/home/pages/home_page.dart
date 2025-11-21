@@ -35,6 +35,17 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserData();
+    // Precargar imágenes usadas en el carrusel de voluntarios para que se muestren sin saltos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      const imagePaths = [
+        'assets/images/voluntarios.jpg',
+        'assets/images/lapaz.jpg',
+        'assets/images/animal.jpg',
+      ];
+      for (final path in imagePaths) {
+        precacheImage(AssetImage(path), context);
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -616,7 +627,7 @@ class _HomePageState extends State<HomePage> {
               future: _loadProyectosVoluntario(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox(height: 90);
+                  return _buildOrganizacionesCarouselSkeleton(colorScheme);
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -883,7 +894,7 @@ class _HomePageState extends State<HomePage> {
                 future: _loadProyectosVoluntario(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return _buildProyectosCarouselSkeleton(theme, colorScheme);
                   }
                   
                   if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
@@ -2886,79 +2897,37 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Carrusel horizontal de insignias
+                        // Carrusel horizontal de fotos de voluntarios (assets/images)
                         SizedBox(
-                          height: 180,
-                          child: ListView(
+                          height: 220,
+                          child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 8),
-                            children: [
-                              _buildCarouselBadge(
-                                icon: Icons.star,
-                                title: 'Líder Comunitario',
-                                description: '5 proyectos completados',
-                                color: colorScheme.primary,
-                                earned: true,
-                                level: 'ORO',
-                                progress: 1.0,
-                                theme: theme,
-                              ),
-                              const SizedBox(width: 16),
-                              _buildCarouselBadge(
-                                icon: Icons.pets,
-                                title: 'Amigo de los Animales',
-                                description: '3 proyectos de refugio',
-                                color: colorScheme.secondary,
-                                earned: true,
-                                level: 'PLATA',
-                                progress: 1.0,
-                                theme: theme,
-                              ),
-                              const SizedBox(width: 16),
-                              _buildCarouselBadge(
-                                icon: Icons.eco,
-                                title: 'Guardián Ambiental',
-                                description: '2 proyectos ambientales',
-                                color: colorScheme.tertiary,
-                                earned: true,
-                                level: 'BRONCE',
-                                progress: 1.0,
-                                theme: theme,
-                              ),
-                              const SizedBox(width: 16),
-                              _buildCarouselBadge(
-                                icon: Icons.school,
-                                title: 'Educador',
-                                description: '¡Participa en 1 proyecto educativo!',
-                                color: colorScheme.outline,
-                                earned: false,
-                                level: 'PRÓXIMO',
-                                progress: 0.0,
-                                theme: theme,
-                              ),
-                              const SizedBox(width: 16),
-                              _buildCarouselBadge(
-                                icon: Icons.volunteer_activism,
-                                title: 'Super Voluntario',
-                                description: 'Completa 10 proyectos',
-                                color: colorScheme.primary,
-                                earned: false,
-                                level: 'LEYENDA',
-                                progress: 0.4,
-                                theme: theme,
-                              ),
-                              const SizedBox(width: 16),
-                              _buildCarouselBadge(
-                                icon: Icons.celebration,
-                                title: 'Inspirador',
-                                description: 'Motiva a 5 voluntarios nuevos',
-                                color: colorScheme.secondary,
-                                earned: false,
-                                level: 'ÉPICO',
-                                progress: 0.2,
-                                theme: theme,
-                              ),
-                            ],
+                            itemCount: 3,
+                            itemBuilder: (context, index) {
+                              final imagePaths = [
+                                'assets/images/voluntarios.jpg',
+                                'assets/images/lapaz.jpg',
+                                'assets/images/animal.jpg',
+                              ];
+
+                              final path = imagePaths[index];
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: AspectRatio(
+                                    // Más alto que ancho
+                                    aspectRatio: 3 / 4,
+                                    child: Image.asset(
+                                      path,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
 
@@ -4678,6 +4647,258 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  // ========== SKELETONS PARA HOME VIEW ==========
+  Widget _buildOrganizacionesCarouselSkeleton(ColorScheme colorScheme) {
+    return SizedBox(
+      height: 130,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          // Variar ligeramente el ancho para mayor realismo
+          final nameWidth = 60.0 + (index % 3) * 10.0;
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Avatar circular con gradiente sutil
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.surfaceContainerHighest.withOpacity(0.6),
+                        colorScheme.surfaceContainerHighest,
+                      ],
+                    ),
+                  ),
+                  child: _buildShimmerEffect(
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Nombre de organización (2 líneas)
+                Container(
+                  height: 11,
+                  width: nameWidth,
+                  child: _buildShimmerEffect(
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  height: 11,
+                  width: nameWidth * 0.7,
+                  child: _buildShimmerEffect(
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProyectosCarouselSkeleton(ThemeData theme, ColorScheme colorScheme) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return Container(
+          width: 300,
+          margin: const EdgeInsets.only(right: 16),
+          child: Card(
+            elevation: 2,
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Imagen skeleton con gradiente
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                          colorScheme.surfaceContainerHighest,
+                          colorScheme.surfaceContainerHighest.withOpacity(0.8),
+                        ],
+                      ),
+                    ),
+                    child: _buildShimmerEffect(
+                      Container(
+                        color: colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                  ),
+                ),
+                // Contenido skeleton
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Título skeleton (2 líneas)
+                      Container(
+                        height: 16,
+                        width: double.infinity,
+                        child: _buildShimmerEffect(
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        height: 16,
+                        width: 220,
+                        child: _buildShimmerEffect(
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Organización skeleton
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: _buildShimmerEffect(
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            height: 13,
+                            width: 140,
+                            child: _buildShimmerEffect(
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Ubicación y fecha skeleton
+                      Row(
+                        children: [
+                          Container(
+                            height: 12,
+                            width: 90,
+                            child: _buildShimmerEffect(
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            height: 12,
+                            width: 75,
+                            child: _buildShimmerEffect(
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Chip skeleton
+                      Container(
+                        height: 22,
+                        width: 65,
+                        child: _buildShimmerEffect(
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ========== WIDGET PARA EFECTO SHIMMER ==========
@@ -4699,12 +4920,12 @@ class _ShimmerContainerState extends State<ShimmerContainer>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800), // Más suave
       vsync: this,
     )..repeat();
 
-    _animation = Tween<double>(begin: -1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _animation = Tween<double>(begin: -2.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
     );
   }
 
@@ -4716,20 +4937,31 @@ class _ShimmerContainerState extends State<ShimmerContainer>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
         return ShaderMask(
+          blendMode: BlendMode.srcATop,
           shaderCallback: (bounds) {
             return LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.4),
-                Colors.white.withOpacity(0.1),
+              colors: isDark ? [
+                Colors.white.withOpacity(0.05),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.05),
+              ] : [
+                Colors.white.withOpacity(0.3),
+                Colors.white.withOpacity(0.5),
+                Colors.white.withOpacity(0.7),
+                Colors.white.withOpacity(0.5),
+                Colors.white.withOpacity(0.3),
               ],
-              stops: const [0.0, 0.5, 1.0],
-              begin: Alignment(_animation.value, 0),
-              end: Alignment(_animation.value + 1, 0),
+              stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+              begin: Alignment(_animation.value - 1, -0.3),
+              end: Alignment(_animation.value, 0.3),
             ).createShader(bounds);
           },
           child: widget.child,

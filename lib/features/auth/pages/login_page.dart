@@ -50,14 +50,6 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthAuthenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('¡Bienvenido ${state.usuario.nombres}!'),
-                backgroundColor: colorScheme.primaryContainer,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            
             Future.microtask(() {
               try {
                 if (state.authResponse != null) {

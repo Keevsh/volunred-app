@@ -305,7 +305,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           // Formulario principal
           _buildTextField(
             controller: _nombresController,
@@ -425,39 +425,33 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-          const SizedBox(height: 32),
-          // Botón principal de registro
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: FilledButton(
-              onPressed: _isLoading ? null : _nextStep,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF007AFF),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
+          const SizedBox(height: 16),
+          // Opción: Solicitar cuenta de organización (checkbox)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Checkbox(
+                value: _isFuncionario,
+                activeColor: const Color(0xFF007AFF),
+                onChanged: (value) {
+                  setState(() {
+                    _isFuncionario = value ?? false;
+                  });
+                },
               ),
-              child: _isLoading 
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      'Continuar',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.4,
-                      ),
-                    ),
-            ),
+              const SizedBox(width: 8),
+              const Flexible(
+                child: Text(
+                  'Solicitar cuenta de organización',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.2,
+                    color: Color(0xFF007AFF),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24), // Espacio adicional para el teclado
         ],
@@ -495,16 +489,39 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 32),
-            DropdownMenu<String>(
-              initialSelection: _sexo,
-              label: const Text('Sexo (opcional)'),
-              leadingIcon: const Icon(Icons.wc_rounded),
-              dropdownMenuEntries: const [
-                DropdownMenuEntry(value: 'M', label: 'Masculino'),
-                DropdownMenuEntry(value: 'F', label: 'Femenino'),
-                DropdownMenuEntry(value: 'O', label: 'Otro'),
+            DropdownButtonFormField<String>(
+              value: _sexo,
+              decoration: InputDecoration(
+                labelText: 'Sexo',
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                prefixIcon: const Icon(Icons.wc_rounded, color: Color(0xFF86868B), size: 22),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'M', child: Text('Masculino')),
+                DropdownMenuItem(value: 'F', child: Text('Femenino')),
+                DropdownMenuItem(value: 'O', child: Text('Otro')),
               ],
-              onSelected: (value) => setState(() => _sexo = value),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Selecciona tu sexo';
+                }
+                return null;
+              },
+              onChanged: (value) {
+                setState(() => _sexo = value);
+              },
             ),
             const SizedBox(height: 20),
             _buildTextField(
@@ -523,77 +540,6 @@ class _RegisterPageState extends State<RegisterPage> {
               icon: Icons.badge_outlined,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-            const SizedBox(height: 32),
-            // Divider con "o"
-            Row(
-              children: [
-                Expanded(child: Divider(color: Colors.grey[300])),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'o',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Expanded(child: Divider(color: Colors.grey[300])),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Opción: Solicitar cuenta de organización
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  setState(() => _isFuncionario = true);
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  foregroundColor: const Color(0xFF007AFF),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                child: const Text('Solicitar cuenta de organización'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Botón de registro
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: _isLoading ? null : _handleRegister,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF007AFF),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                child: _isLoading 
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Crear cuenta',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-              ),
             ),
             const SizedBox(height: 24), // Espacio adicional para el teclado
           ],
@@ -676,45 +622,41 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildNavigation() {
-    if (_currentStep == 0) {
-      return const SizedBox.shrink();
-    }
-    
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _previousStep,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: Colors.grey[300]!),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Text(
-                'Atrás',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1D1D1F),
-                ),
-              ),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: FilledButton(
+          onPressed: _isLoading
+              ? null
+              : (_currentStep == 0 ? _nextStep : _handleRegister),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF007AFF),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
             ),
+            elevation: 0,
           ),
-        ],
+          child: _isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  _currentStep == 0 ? 'Continuar' : 'Crear cuenta',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+        ),
       ),
     );
   }

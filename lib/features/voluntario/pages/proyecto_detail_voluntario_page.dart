@@ -150,17 +150,22 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        // Mostrar el nombre del proyecto con un estilo limpio
+        // AppBar transparente sobre la imagen
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           _proyecto?.nombre ?? 'Detalles del Proyecto',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -185,7 +190,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
               : _proyecto == null
                   ? const Center(child: Text('Proyecto no encontrado'))
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.only(top: 0, bottom: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -196,11 +201,11 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                   ? ImageBase64Widget(
                                       base64String: _proyecto!.imagen!,
                                       width: double.infinity,
-                                      height: 230,
+                                      height: 280,
                                       fit: BoxFit.cover,
                                     )
                                   : Container(
-                                      height: 230,
+                                      height: 280,
                                       width: double.infinity,
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(

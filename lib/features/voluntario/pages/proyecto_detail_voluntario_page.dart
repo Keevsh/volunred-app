@@ -328,30 +328,6 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                             const SizedBox(height: 16),
                           ],
 
-                          // Acciones tipo post (solo UI)
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.favorite_border),
-                                onPressed: () {},
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.mode_comment_outlined),
-                                onPressed: () {},
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.share_outlined),
-                                onPressed: () {},
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                icon: const Icon(Icons.bookmark_border),
-                                onPressed: () {},
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
                           // Chips de estado y categorías
                           Wrap(
                             spacing: 8,

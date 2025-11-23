@@ -30,20 +30,23 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
     {
       'key': 'pendiente',
       'label': 'PENDIENTE',
-      'color': Colors.grey,
-      'icon': Icons.radio_button_unchecked,
+      'color': const Color(0xFFFF9800),
+      'bgColor': const Color(0xFFFFF3E0),
+      'icon': Icons.schedule_rounded,
     },
     {
       'key': 'en_progreso',
       'label': 'EN PROGRESO',
-      'color': Colors.blue,
-      'icon': Icons.pending,
+      'color': const Color(0xFF2196F3),
+      'bgColor': const Color(0xFFE3F2FD),
+      'icon': Icons.pending_rounded,
     },
     {
       'key': 'completada',
       'label': 'COMPLETADA',
-      'color': Colors.green,
-      'icon': Icons.check_circle,
+      'color': const Color(0xFF4CAF50),
+      'bgColor': const Color(0xFFE8F5E9),
+      'icon': Icons.check_circle_rounded,
     },
   ];
 
@@ -62,8 +65,12 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
     try {
       if (widget.isFuncionario) {
         final funcionarioRepo = Modular.get<FuncionarioRepository>();
-        final proyecto = await funcionarioRepo.getProyectoById(widget.proyectoId);
-        final tareas = await funcionarioRepo.getTareasByProyecto(widget.proyectoId);
+        final proyecto = await funcionarioRepo.getProyectoById(
+          widget.proyectoId,
+        );
+        final tareas = await funcionarioRepo.getTareasByProyecto(
+          widget.proyectoId,
+        );
         setState(() {
           _proyecto = proyecto;
           _tareas = tareas.where((t) => t.estado != 'cancelada').toList();
@@ -74,7 +81,11 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
         final tareas = await voluntarioRepo.getTareas();
         setState(() {
           _tareas = tareas
-              .where((t) => t.proyectoId == widget.proyectoId && t.estado != 'cancelada')
+              .where(
+                (t) =>
+                    t.proyectoId == widget.proyectoId &&
+                    t.estado != 'cancelada',
+              )
               .toList();
           _isLoading = false;
         });
@@ -121,9 +132,9 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -141,9 +152,9 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
               padding: const EdgeInsets.only(bottom: 16),
               child: Text(
                 'Cambiar estado',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             ..._estados.map((estado) {
@@ -155,10 +166,7 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                   decoration: BoxDecoration(
                     color: isSelected ? estado['color'] : Colors.transparent,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: estado['color'],
-                      width: 2,
-                    ),
+                    border: Border.all(color: estado['color'], width: 2),
                   ),
                   child: isSelected
                       ? const Icon(Icons.check, size: 16, color: Colors.white)
@@ -181,12 +189,11 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: tarea.estado == 'cancelada' ? Colors.red : Colors.transparent,
+                  color: tarea.estado == 'cancelada'
+                      ? Colors.red
+                      : Colors.transparent,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.red,
-                    width: 2,
-                  ),
+                  border: Border.all(color: Colors.red, width: 2),
                 ),
                 child: tarea.estado == 'cancelada'
                     ? const Icon(Icons.check, size: 16, color: Colors.white)
@@ -259,9 +266,18 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                         ),
                         value: prioridad,
                         items: const [
-                          DropdownMenuItem(value: 'Alta', child: Text('🔴 Alta')),
-                          DropdownMenuItem(value: 'Media', child: Text('🟠 Media')),
-                          DropdownMenuItem(value: 'Baja', child: Text('🔵 Baja')),
+                          DropdownMenuItem(
+                            value: 'Alta',
+                            child: Text('🔴 Alta'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Media',
+                            child: Text('🟠 Media'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Baja',
+                            child: Text('🔵 Baja'),
+                          ),
                         ],
                         onChanged: (value) {
                           setDialogState(() {
@@ -290,7 +306,9 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                               icon: const Icon(Icons.calendar_today),
                               label: Text(
                                 fechaInicio != null
-                                    ? DateFormat('dd/MM/yyyy').format(fechaInicio!)
+                                    ? DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(fechaInicio!)
                                     : 'Fecha Inicio',
                               ),
                             ),
@@ -301,7 +319,8 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                               onPressed: () async {
                                 final date = await showDatePicker(
                                   context: context,
-                                  initialDate: fechaFin ?? fechaInicio ?? DateTime.now(),
+                                  initialDate:
+                                      fechaFin ?? fechaInicio ?? DateTime.now(),
                                   firstDate: fechaInicio ?? DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
@@ -350,21 +369,27 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
                     };
 
                     if (fechaInicio != null) {
-                      data['fecha_inicio'] = '${fechaInicio!.year}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}';
+                      data['fecha_inicio'] =
+                          '${fechaInicio!.year}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}';
                     }
                     if (fechaFin != null) {
-                      data['fecha_fin'] = '${fechaFin!.year}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}';
+                      data['fecha_fin'] =
+                          '${fechaFin!.year}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}';
                     }
 
                     try {
-                      final funcionarioRepo = Modular.get<FuncionarioRepository>();
-                      await funcionarioRepo.createTarea(widget.proyectoId, data);
+                      final funcionarioRepo =
+                          Modular.get<FuncionarioRepository>();
+                      await funcionarioRepo.createTarea(
+                        widget.proyectoId,
+                        data,
+                      );
                       Navigator.pop(dialogContext, true);
                     } catch (e) {
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
                       }
                     }
                   },
@@ -389,72 +414,105 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1A1A1A),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Tareas'),
+            const Text(
+              'Vista Kanban',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+            ),
             if (_proyecto != null)
               Text(
                 _proyecto!.nombre,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF757575),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.table_chart),
-            onPressed: () {
-              Modular.to.pushNamed('/proyectos/${widget.proyectoId}/tareas');
-            },
-            tooltip: 'Vista de tabla',
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.table_chart_rounded,
+                color: Color(0xFF1976D2),
+              ),
+              onPressed: () {
+                Modular.to.pushNamed('/proyectos/${widget.proyectoId}/tareas');
+              },
+              tooltip: 'Vista de tabla',
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-            tooltip: 'Actualizar',
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF1976D2)),
+              onPressed: _loadData,
+              tooltip: 'Actualizar',
+            ),
           ),
         ],
       ),
       floatingActionButton: widget.isFuncionario
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
               onPressed: _showCreateTareaDialog,
-              child: const Icon(Icons.add),
+              icon: const Icon(Icons.add_task_rounded),
+              label: const Text(
+                'Nueva Tarea',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              backgroundColor: const Color(0xFF1976D2),
+              foregroundColor: Colors.white,
+              elevation: 4,
             )
           : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error: $_error'),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _loadData,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text('Error: $_error'),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _loadData,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
                   ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: _estados.map((estadoInfo) {
-                    final tareas = _getTareasPorEstado(estadoInfo['key']);
-                    return _buildEstadoSection(
-                      estadoInfo['label'],
-                      estadoInfo['color'],
-                      estadoInfo['icon'],
-                      tareas,
-                    );
-                  }).toList(),
-                ),
+                ],
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: _estados.map((estadoInfo) {
+                final tareas = _getTareasPorEstado(estadoInfo['key']);
+                return _buildEstadoSection(
+                  estadoInfo['label'],
+                  estadoInfo['color'],
+                  estadoInfo['icon'],
+                  tareas,
+                );
+              }).toList(),
+            ),
     );
   }
 
@@ -465,168 +523,263 @@ class _TareasKanbanPageState extends State<TareasKanbanPage> {
     List<Tarea> tareas,
   ) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final estadoInfo = _estados.firstWhere((e) => e['label'] == label);
+    final bgColor = estadoInfo['bgColor'] as Color;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header de la sección
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  tareas.length.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (tareas.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            child: Text(
-              'No hay tareas en este estado',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-          )
-        else
-          ...tareas.map((tarea) => _buildTareaCard(tarea, color)),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildTareaCard(Tarea tarea, Color estadoColor) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () {
-          Modular.to.pushNamed(
-            '/proyectos/tarea/${tarea.idTarea}?role=${widget.isFuncionario ? 'funcionario' : 'voluntario'}',
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Círculo de estado (clickeable para cambiar)
-              GestureDetector(
-                onTap: widget.isFuncionario ? () => _mostrarMenuEstado(tarea) : null,
-                child: Container(
-                  width: 24,
-                  height: 24,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: estadoColor,
-                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: estadoColor.withOpacity(0.3),
-                        blurRadius: 4,
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: tarea.estado == 'completada'
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                      : null,
+                  child: Text(
+                    tareas.length.toString(),
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Contenido de la tarea
-              Expanded(
+              ],
+            ),
+          ),
+          // Contenido
+          if (tareas.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Icon(
+                      Icons.inbox_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      tarea.nombre,
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      'No hay tareas aquí',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
-                        decoration: tarea.estado == 'completada'
-                            ? TextDecoration.lineThrough
-                            : null,
                       ),
                     ),
-                    if (tarea.descripcion != null && tarea.descripcion!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
+                  ],
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: tareas
+                    .map((tarea) => _buildTareaCard(tarea, color, bgColor))
+                    .toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTareaCard(Tarea tarea, Color estadoColor, Color bgColor) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: bgColor.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: estadoColor.withOpacity(0.3), width: 1.5),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Modular.to.pushNamed(
+              '/proyectos/tarea/${tarea.idTarea}?role=${widget.isFuncionario ? 'funcionario' : 'voluntario'}',
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                // Círculo de estado (clickeable para cambiar)
+                GestureDetector(
+                  onTap: widget.isFuncionario
+                      ? () => _mostrarMenuEstado(tarea)
+                      : null,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: estadoColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: estadoColor.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: tarea.estado == 'completada'
+                        ? const Icon(
+                            Icons.check_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Contenido de la tarea
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tarea.nombre,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1A1A1A),
+                          decoration: tarea.estado == 'completada'
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (tarea.descripcion != null &&
+                          tarea.descripcion!.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
                           tarea.descripcion!,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                            color: const Color(0xFF616161),
+                            height: 1.4,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    if (tarea.fechaInicio != null || tarea.fechaFin != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              tarea.fechaFin != null
-                                  ? DateFormat('dd MMM').format(tarea.fechaFin!)
-                                  : DateFormat('dd MMM').format(tarea.fechaInicio!),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                      ],
+                      if (tarea.fechaInicio != null ||
+                          tarea.fechaFin != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 14,
+                                color: estadoColor,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Text(
+                                tarea.fechaFin != null
+                                    ? DateFormat(
+                                        'dd MMM',
+                                      ).format(tarea.fechaFin!)
+                                    : DateFormat(
+                                        'dd MMM',
+                                      ).format(tarea.fechaInicio!),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: estadoColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              // Prioridad
-              if (tarea.prioridad != null)
-                Container(
-                  width: 8,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _getPrioridadColor(tarea.prioridad),
-                    borderRadius: BorderRadius.circular(4),
+                      ],
+                    ],
                   ),
                 ),
-            ],
+                // Prioridad
+                if (tarea.prioridad != null)
+                  Container(
+                    width: 5,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: _getPrioridadColor(tarea.prioridad),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

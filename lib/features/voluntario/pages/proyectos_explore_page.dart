@@ -77,9 +77,30 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
     int index,
     int total,
   ) {
+    final org = proyecto.organizacion;
+    final String? orgLogo = org != null ? org['logo']?.toString() : null;
+    final String orgNombre = org != null
+        ? (org['nombre']?.toString() ??
+            org['nombre_legal']?.toString() ??
+            org['nombre_corto']?.toString() ??
+            'Organización')
+        : 'Organización';
+    final int? orgId = org != null
+        ? (org['id_organizacion'] is int
+            ? org['id_organizacion'] as int
+            : int.tryParse(org['id_organizacion']?.toString() ?? ''))
+        : null;
+
     return GestureDetector(
       onTap: () {
         Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
+      },
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity > 0 && orgId != null) {
+          // Swipe hacia la derecha: ir a la organización
+          Modular.to.pushNamed('/voluntario/organizaciones/$orgId');
+        }
       },
       child: Container(
         color: colorScheme.surface,
@@ -174,6 +195,63 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                 ),
               ),
             ),
+
+            // Avatar de organización en el lateral derecho (estilo TikTok)
+            if (org != null)
+              Positioned(
+                right: 12,
+                bottom: 260,
+                child: GestureDetector(
+                  onTap: () {
+                    if (orgId != null) {
+                      Modular.to.pushNamed('/voluntario/organizaciones/$orgId');
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: colorScheme.primaryContainer,
+                          child: ClipOval(
+                            child: (orgLogo != null && orgLogo.isNotEmpty)
+                                ? ImageBase64Widget(
+                                    base64String: orgLogo,
+                                    width: 48,
+                                    height: 48,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Icon(
+                                    Icons.business,
+                                    size: 26,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 72,
+                        child: Text(
+                          orgNombre,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // Botones de acción en la derecha (estilo TikTok)
             Positioned(

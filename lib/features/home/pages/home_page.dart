@@ -12,6 +12,8 @@ import '../../../core/models/inscripcion.dart';
 import '../../../core/models/perfil_voluntario.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import '../widgets/funcionario_dashboard.dart';
+import '../widgets/voluntario_dashboard.dart';
+import '../widgets/mi_actividad_widget.dart';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -556,6 +558,21 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA HOME VOLUNTARIO - MATERIAL 3 ==========
   Widget _buildHomeView() {
+    return VoluntarioDashboard(userName: _userName);
+  }
+
+  // ========== VISTA FUNCIONARIO - MATERIAL 3 ==========
+  Widget _buildFuncionarioHomeView() {
+    return const FuncionarioDashboard();
+  }
+
+  // ========== VISTA EXPLORAR VOLUNTARIO ==========
+  Widget _buildExplorarView() {
+    // Usar directamente la vista de exploración tipo TikTok para proyectos de voluntario
+    return const ProyectosExplorePage();
+  }
+
+  Widget _buildHomeViewOldBackup() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
@@ -1005,14 +1022,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  
-
-
-  // ========== VISTA FUNCIONARIO - MATERIAL 3 ==========
-  Widget _buildFuncionarioHomeView() {
-    return const FuncionarioDashboard();
-  }
-  
   Widget _buildOrganizacionCard(ThemeData theme, ColorScheme colorScheme) {
     return FutureBuilder<Organizacion?>(
       future: _loadOrganizacion(),
@@ -1670,12 +1679,6 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
-  }
-
-  // ========== VISTA EXPLORAR VOLUNTARIO ==========
-  Widget _buildExplorarView() {
-    // Usar directamente la vista de exploración tipo TikTok para proyectos de voluntario
-    return const ProyectosExplorePage();
   }
 
   bool _showMapView = false;
@@ -2480,6 +2483,10 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA MI ACTIVIDAD VOLUNTARIO ==========
   Widget _buildMiActividadView() {
+    return const MiActividadWidget();
+  }
+
+  Widget _buildMiActividadViewOld() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     

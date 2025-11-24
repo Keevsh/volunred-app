@@ -69,7 +69,14 @@ class ApiConfig {
   static String opinion(int id) => '$opiniones/$id';
   static String opinionesByProyecto(int proyectoId) => '$opiniones/proyecto/$proyectoId';
   static String opinionesByVoluntario(int perfilVolId) => '$opiniones/voluntario/$perfilVolId';
-  
+
+  // Endpoints de voluntarios (tareas del voluntario autenticado)
+  static const String voluntariosBase = '/voluntarios';
+  static const String voluntariosMyTasks = '$voluntariosBase/my/tasks';
+  static String voluntariosMyTask(int tareaId) => '$voluntariosMyTasks/$tareaId';
+  static String voluntariosMyTaskStatus(int tareaId) => '$voluntariosMyTasks/$tareaId/status';
+  static String voluntariosMyTaskEvidences(int tareaId) => '$voluntariosMyTasks/$tareaId/evidences';
+
   // Endpoints de bitácoras
   static const String bitacorasOperaciones = '/administracion/bitacoras-operaciones';
   static const String bitacorasAutores = '/administracion/bitacoras-autores';

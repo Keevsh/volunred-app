@@ -4,6 +4,7 @@ import 'pages/proyecto_detail_page.dart';
 import 'pages/tareas_management_page.dart';
 import 'pages/tareas_kanban_page.dart';
 import 'pages/tarea_detail_page.dart';
+import 'pages/asignar_voluntarios_page.dart';
 
 class ProyectosModule extends Module {
   @override
@@ -39,6 +40,13 @@ class ProyectosModule extends Module {
           child: (_, args) => TareaDetailPage(
             tareaId: int.parse(args.params['tareaId']!),
             isFuncionario: args.queryParams['role'] == 'funcionario',
+          ),
+        ),
+        ChildRoute(
+          '/tarea/:tareaId/asignar-voluntarios',
+          child: (_, args) => AsignarVoluntariosPage(
+            tareaId: int.parse(args.params['tareaId']!),
+            tareaNombre: args.queryParams['nombre'] ?? 'Tarea',
           ),
         ),
       ];

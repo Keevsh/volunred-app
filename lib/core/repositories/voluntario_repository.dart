@@ -904,6 +904,79 @@ class VoluntarioRepository {
     }
   }
 
+  // ==================== MIS TAREAS (VOLUNTARIO AUTENTICADO) ====================
+
+  /// Obtener las tareas asignadas al voluntario autenticado
+  /// Usa el endpoint GET /voluntarios/my/tasks con filtros opcionales
+  Future<List<Map<String, dynamic>>> getMyTasks({
+    String? estado,
+    int? proyectoId,
+  }) async {
+    try {
+      final queryParameters = <String, dynamic>{};
+      if (estado != null && estado.isNotEmpty) {
+        queryParameters['estado'] = estado;
+      }
+      if (proyectoId != null) {
+        queryParameters['proyectoId'] = proyectoId;
+      }
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyTasks,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+      );
+
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : [];
+      return data
+          .whereType<Map>()
+          .map((json) => Map<String, dynamic>.from(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener el detalle de una tarea asignada al voluntario autenticado
+  /// Incluye información de la asignación, la tarea y las evidencias
+  Future<Map<String, dynamic>> getMyTaskDetail(int tareaId) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyTask(tareaId),
+      );
+      return response.data is Map
+          ? Map<String, dynamic>.from(response.data as Map)
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar el estado de una tarea asignada al voluntario autenticado
+  /// Usa PATCH /voluntarios/my/tasks/:tareaId/status
+  Future<void> updateMyTaskStatus(
+    int tareaId,
+    String estado, {
+    String? comentario,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'estado': estado,
+      };
+      if (comentario != null && comentario.isNotEmpty) {
+        body['comentario'] = comentario;
+      }
+
+      await _dioClient.dio.patch(
+        ApiConfig.voluntariosMyTaskStatus(tareaId),
+        data: body,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== ASIGNACIONES DE TAREAS ====================
 
   /// Obtener todas las asignaciones de tareas

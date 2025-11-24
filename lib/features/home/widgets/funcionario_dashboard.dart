@@ -4,7 +4,6 @@ import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
-import '../../../core/models/tarea.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -21,7 +20,6 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   Organizacion? _organizacion;
   List<Proyecto> _proyectos = [];
   List<Inscripcion> _inscripciones = [];
-  List<Tarea> _tareasPendientes = [];
   bool _isLoading = true;
   String? _error;
 
@@ -41,23 +39,11 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       final org = await _repository.getMiOrganizacion();
       final proyectos = await _repository.getProyectos();
       final inscripciones = await _repository.getInscripcionesPendientes();
-      
-      // Cargar tareas pendientes de todos los proyectos
-      List<Tarea> todasTareas = [];
-      for (var proyecto in proyectos) {
-        try {
-          final tareas = await _repository.getTareasByProyecto(proyecto.idProyecto);
-          todasTareas.addAll(tareas.where((t) => t.estado == 'pendiente' || t.estado == 'en_progreso'));
-        } catch (e) {
-          // Continuar si falla algún proyecto
-        }
-      }
 
       setState(() {
         _organizacion = org;
         _proyectos = proyectos;
         _inscripciones = inscripciones;
-        _tareasPendientes = todasTareas;
         _isLoading = false;
       });
     } catch (e) {
@@ -100,6 +86,35 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       onRefresh: _loadData,
       child: CustomScrollView(
         slivers: [
+          // AppBar moderno
+          SliverAppBar(
+            expandedHeight: 120,
+            pinned: true,
+            backgroundColor: colorScheme.surface,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'Panel de Control',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primaryContainer.withOpacity(0.3),
+                      colorScheme.secondaryContainer.withOpacity(0.3),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Header con información de la organización
           SliverToBoxAdapter(
             child: _buildOrganizacionHeader(theme, colorScheme),
@@ -115,76 +130,68 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             child: _buildQuickActions(theme, colorScheme),
           ),
 
-          // Proyectos activos
+          // Proyectos recientes
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Proyectos Activos',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      // Ver todos los proyectos
-                    },
-                    icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Ver todos'),
-                  ),
-                ],
+              child: Text(
+                'Proyectos Recientes',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
 
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 400,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.2,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final proyecto = _proyectos[index];
-                  return _buildProyectoCard(proyecto, theme, colorScheme);
-                },
-                childCount: _proyectos.length > 6 ? 6 : _proyectos.length,
-              ),
-            ),
-          ),
-
-          // Tareas pendientes
-          if (_tareasPendientes.isNotEmpty) ...[
+          if (_proyectos.isEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                child: Text(
-                  'Tareas Pendientes',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.folder_open_rounded,
+                        size: 64,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No tienes proyectos',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        onPressed: () => Modular.to.pushNamed('/proyectos/create'),
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Crear Proyecto'),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+            )
+          else
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 400,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.2,
+                ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final tarea = _tareasPendientes[index];
-                    return _buildTareaCard(tarea, theme, colorScheme);
+                    final proyecto = _proyectos[index];
+                    return _buildProyectoCard(proyecto, theme, colorScheme);
                   },
-                  childCount: _tareasPendientes.length > 5 ? 5 : _tareasPendientes.length,
+                  childCount: _proyectos.length > 6 ? 6 : _proyectos.length,
                 ),
               ),
             ),
-          ],
 
           // Inscripciones pendientes
           if (_inscripciones.isNotEmpty) ...[
@@ -243,51 +250,62 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     if (_organizacion == null) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.6),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primaryContainer,
+            colorScheme.secondaryContainer,
+          ],
         ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: colorScheme.primary.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorScheme.primary.withOpacity(0.06),
+                color: colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.all(3),
+              padding: const EdgeInsets.all(4),
               child: ClipOval(
                 child: SizedBox(
-                  width: 72,
-                  height: 72,
+                  width: 80,
+                  height: 80,
                   child: (_organizacion!.logo != null && _organizacion!.logo!.isNotEmpty)
                       ? ImageBase64Widget(
                           base64String: _organizacion!.logo!,
-                          width: 72,
-                          height: 72,
+                          width: 80,
+                          height: 80,
                           fit: BoxFit.cover,
                         )
                       : Container(
                           decoration: BoxDecoration(
                             color: colorScheme.primary,
-                            borderRadius: BorderRadius.circular(72),
+                            borderRadius: BorderRadius.circular(80),
                           ),
                           child: Icon(
                             Icons.apartment_rounded,
-                            size: 38,
+                            size: 42,
                             color: colorScheme.onPrimary,
                           ),
                         ),
@@ -308,19 +326,20 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                           children: [
                             Text(
                               _organizacion!.nombre,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.onSurface,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: colorScheme.onPrimaryContainer,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             if (_organizacion!.descripcion != null && _organizacion!.descripcion!.isNotEmpty)
                               Text(
                                 _organizacion!.descripcion!,
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
+                                  color: colorScheme.onSecondaryContainer,
+                                  fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -414,51 +433,47 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
 
   Widget _buildQuickStats(ThemeData theme, ColorScheme colorScheme) {
     final proyectosActivos = _proyectos.where((p) => p.estado == 'activo').length;
-    // Contar participaciones activas (esto requeriría una consulta adicional)
-    final totalVoluntarios = 0; // Placeholder
+    final proyectosTotal = _proyectos.length;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: _buildStatCard(
-              'Proyectos Activos',
-              proyectosActivos.toString(),
-              Icons.folder_open,
-              Colors.blue,
-              theme,
+          Text(
+            'Resumen',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Voluntarios',
-              totalVoluntarios.toString(),
-              Icons.people,
-              Colors.green,
-              theme,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Tareas',
-              _tareasPendientes.length.toString(),
-              Icons.task,
-              Colors.orange,
-              theme,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              'Solicitudes',
-              _inscripciones.length.toString(),
-              Icons.notifications,
-              Colors.red,
-              theme,
-            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Proyectos Activos',
+                  proyectosActivos.toString(),
+                  '$proyectosTotal total',
+                  Icons.folder_open_rounded,
+                  colorScheme.primary,
+                  theme,
+                  colorScheme,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Solicitudes',
+                  _inscripciones.length.toString(),
+                  _inscripciones.isEmpty ? 'Sin pendientes' : 'Por revisar',
+                  Icons.notifications_active_rounded,
+                  _inscripciones.isNotEmpty ? colorScheme.error : Colors.green,
+                  theme,
+                  colorScheme,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -468,33 +483,66 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   Widget _buildStatCard(
     String label,
     String value,
+    String subtitle,
     IconData icon,
     Color color,
     ThemeData theme,
+    ColorScheme colorScheme,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const Spacer(),
+              Text(
+                value,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 12),
           Text(
             label,
-            style: theme.textTheme.bodySmall,
-            textAlign: TextAlign.center,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -504,39 +552,27 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   Widget _buildQuickActions(ThemeData theme, ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildActionButton(
-            'Nuevo Proyecto',
-            Icons.add_circle,
-            colorScheme.primary,
-            () => Modular.to.pushNamed('/proyectos/create'),
+          Text(
+            'Acciones Rápidas',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
-          _buildActionButton(
-            'Ver Solicitudes',
-            Icons.inbox,
-            Colors.orange,
-            () {
-              // Navegar a solicitudes
-            },
-          ),
-          _buildActionButton(
-            'Gestionar Equipo',
-            Icons.groups,
-            Colors.blue,
-            () {
-              // Navegar a equipo
-            },
-          ),
-          _buildActionButton(
-            'Reportes',
-            Icons.analytics,
-            Colors.purple,
-            () {
-              // Navegar a reportes
-            },
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: _buildActionButton(
+              'Crear Nuevo Proyecto',
+              Icons.add_circle_rounded,
+              colorScheme.primary,
+              () => Modular.to.pushNamed('/proyectos/create'),
+              theme,
+              colorScheme,
+            ),
           ),
         ],
       ),
@@ -548,133 +584,56 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     IconData icon,
     Color color,
     VoidCallback onTap,
+    ThemeData theme,
+    ColorScheme colorScheme,
   ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProyectoCard(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 230,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withOpacity(0.15),
+                color.withOpacity(0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 2,
+            ),
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: ImageBase64Widget(
-                    base64String: proyecto.imagen!,
-                    width: double.infinity,
-                    height: 110,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              else
-                Container(
-                  height: 110,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [colorScheme.primaryContainer, colorScheme.secondaryContainer],
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Center(
-                    child: Icon(Icons.folder, size: 40, color: colorScheme.primary),
-                  ),
+                  ],
                 ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              proyecto.nombre,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: proyecto.estado == 'activo' ? Colors.green : Colors.grey,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              proyecto.estado.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.people, size: 16, color: colorScheme.onSurfaceVariant),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Ver voluntarios',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                      if (proyecto.fechaFin != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text(
-                              DateFormat('dd MMM yyyy').format(proyecto.fechaFin!),
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -683,84 +642,199 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     );
   }
 
-  Widget _buildTareaCard(Tarea tarea, ThemeData theme, ColorScheme colorScheme) {
-    final estadoColor = tarea.estado == 'pendiente' ? Colors.grey : Colors.blue;
-    
+  Widget _buildProyectoCard(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: estadoColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            tarea.estado == 'pendiente' ? Icons.radio_button_unchecked : Icons.pending,
-            color: estadoColor,
-          ),
-        ),
-        title: Text(
-          tarea.nombre,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: tarea.proyecto != null
-            ? Text(tarea.proyecto!['nombre']?.toString() ?? '')
-            : null,
-        trailing: tarea.prioridad != null
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getPrioridadColor(tarea.prioridad).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tarea.prioridad!.toUpperCase(),
-                  style: TextStyle(
-                    color: _getPrioridadColor(tarea.prioridad),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+      elevation: 3,
+      shadowColor: colorScheme.primary.withOpacity(0.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: ImageBase64Widget(
+                      base64String: proyecto.imagen!,
+                      width: double.infinity,
+                      height: 140,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  Container(
+                    height: 140,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.primaryContainer,
+                          colorScheme.secondaryContainer,
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.folder_open_rounded,
+                        size: 48,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: proyecto.estado == 'activo'
+                          ? Colors.green
+                          : colorScheme.outline,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      proyecto.estado.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-              )
-            : null,
-        onTap: () {
-          Modular.to.pushNamed('/proyectos/tarea/${tarea.idTarea}?role=funcionario');
-        },
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      proyecto.nombre,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    if (proyecto.fechaFin != null)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            DateFormat('dd MMM yyyy').format(proyecto.fechaFin!),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInscripcionCard(Inscripcion inscripcion, ThemeData theme, ColorScheme colorScheme) {
+    final usuario = inscripcion.usuario;
+    final nombreUsuario = usuario != null
+        ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
+        : 'Usuario';
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            'V',
-            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Text(
-          'Solicitud de inscripción #${inscripcion.idInscripcion}',
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text('Solicitud de inscripción'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.check_circle, color: Colors.green),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.primaryContainer,
+                    colorScheme.secondaryContainer,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Text(
+                  nombreUsuario.isNotEmpty ? nombreUsuario[0].toUpperCase() : 'V',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nombreUsuario,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Solicitud de inscripción',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              icon: const Icon(Icons.check_rounded, size: 20),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
-                // Aprobar inscripción
                 try {
                   await _repository.aprobarInscripcion(inscripcion.idInscripcion);
                   _loadData();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Inscripción aprobada')),
+                      const SnackBar(content: Text('✓ Inscripción aprobada')),
                     );
                   }
                 } catch (e) {
@@ -772,12 +846,19 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                 }
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.cancel, color: Colors.red),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              icon: const Icon(Icons.close_rounded, size: 20),
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.errorContainer,
+                foregroundColor: colorScheme.error,
+              ),
               onPressed: () async {
-                // Rechazar inscripción
                 try {
-                  await _repository.rechazarInscripcion(inscripcion.idInscripcion, 'Rechazado desde dashboard');
+                  await _repository.rechazarInscripcion(
+                    inscripcion.idInscripcion,
+                    'Rechazado desde dashboard',
+                  );
                   _loadData();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -823,16 +904,4 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     );
   }
 
-  Color _getPrioridadColor(String? prioridad) {
-    switch (prioridad?.toLowerCase()) {
-      case 'alta':
-        return Colors.red;
-      case 'media':
-        return Colors.orange;
-      case 'baja':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
 }

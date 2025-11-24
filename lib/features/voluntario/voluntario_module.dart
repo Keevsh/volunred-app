@@ -4,6 +4,8 @@ import 'pages/organizacion_detail_page.dart';
 import 'pages/proyectos_explore_page.dart';
 import 'pages/proyecto_detail_voluntario_page.dart';
 import 'pages/participaciones_page.dart';
+import 'pages/my_tasks_page.dart';
+import 'pages/my_task_detail_page.dart';
 
 class VoluntarioModule extends Module {
   @override
@@ -41,6 +43,17 @@ class VoluntarioModule extends Module {
           '/participaciones/:id',
           child: (_, args) => const ParticipacionesPage(), // TODO: Crear página de detalle
         ),
+        
+        // Mis tareas
+        ChildRoute(
+          '/my-tasks',
+          child: (_, __) => const MyTasksPage(),
+        ),
+        ChildRoute(
+          '/my-tasks/:tareaId',
+          child: (_, args) => MyTaskDetailPage(
+            tareaId: int.parse(args.params['tareaId']),
+          ),
+        ),
       ];
 }
-

@@ -30,6 +30,8 @@ class _HomePageState extends State<HomePage> {
   int _selectedProjectTab = 0;
   bool _isProfileLoading = true;
   PerfilVoluntario? _perfilVoluntario;
+  Map<String, dynamic>? _perfilFuncionario;
+  Organizacion? _organizacionFuncionario;
 
   @override
   void initState() {
@@ -80,6 +82,11 @@ class _HomePageState extends State<HomePage> {
             // Cargar el perfil del voluntario para mostrar en la vista
             await _loadPerfilVoluntario();
           }
+          
+          // Cargar perfil de funcionario si corresponde
+          if (usuario.isFuncionario) {
+            await _loadPerfilFuncionario();
+          }
         } catch (e) {
           print('❌ Error verificando perfil en home: $e');
         }
@@ -107,6 +114,39 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       print('❌ Error cargando perfil del voluntario: $e');
+    }
+  }
+
+  Future<void> _loadPerfilFuncionario() async {
+    try {
+      final authRepo = Modular.get<AuthRepository>();
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      final usuario = await authRepo.getStoredUser();
+
+      if (usuario != null) {
+        // Cargar perfil de funcionario desde storage
+        final perfilJson = await StorageService.getString(ApiConfig.perfilFuncionarioKey);
+        if (perfilJson != null) {
+          final perfil = jsonDecode(perfilJson);
+          // Cargar organización
+          try {
+            final organizacion = await funcionarioRepo.getMiOrganizacion();
+            if (!mounted) return;
+            setState(() {
+              _perfilFuncionario = perfil;
+              _organizacionFuncionario = organizacion;
+            });
+          } catch (e) {
+            print('❌ Error cargando organización: $e');
+            if (!mounted) return;
+            setState(() {
+              _perfilFuncionario = perfil;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Error cargando perfil del funcionario: $e');
     }
   }
 
@@ -458,7 +498,11 @@ class _HomePageState extends State<HomePage> {
           setState(() => _currentIndex = index);
           // Recargar perfil cuando se selecciona la pestaña del perfil
           if (index == 3 && !_isAdmin) {
-            await _loadPerfilVoluntario();
+            if (_isFuncionario) {
+              await _loadPerfilFuncionario();
+            } else {
+              await _loadPerfilVoluntario();
+            }
           }
         },
         destinations: _isFuncionario
@@ -1222,76 +1266,114 @@ class _HomePageState extends State<HomePage> {
     final colorScheme = theme.colorScheme;
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Proyectos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Modular.to.pushNamed('/proyectos/create'),
-          ),
-        ],
-      ),
-      body: FutureBuilder<List<Proyecto>>(
-        future: _loadProyectosOrganizacion(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          final proyectos = snapshot.data ?? [];
-          
-          if (proyectos.isEmpty) {
-            return Center(
-              child: Card(
-                margin: const EdgeInsets.all(24),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.folder_outlined,
-                        size: 64,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No tienes proyectos',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Crea tu primer proyecto para comenzar',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: () => Modular.to.pushNamed('/proyectos/create'),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Crear Proyecto'),
-                      ),
-                    ],
+      backgroundColor: colorScheme.surfaceContainerLow,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: const Text('Mis Proyectos'),
+            backgroundColor: colorScheme.surface,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilledButton.icon(
+                  onPressed: () => Modular.to.pushNamed('/proyectos/create'),
+                  icon: const Icon(Icons.add_rounded, size: 20),
+                  label: const Text('Nuevo'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
                 ),
               ),
-            );
-          }
-          
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: proyectos.length,
-            itemBuilder: (context, index) {
-              final proyecto = proyectos[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Gestiona tus proyectos y tareas',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+          FutureBuilder<List<Proyecto>>(
+            future: _loadProyectosOrganizacion(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              
+              final proyectos = snapshot.data ?? [];
+              
+              if (proyectos.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.folder_open_rounded,
+                            size: 80,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No tienes proyectos',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Crea tu primer proyecto para comenzar',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          onPressed: () => Modular.to.pushNamed('/proyectos/create'),
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Crear Proyecto'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final proyecto = proyectos[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
+                      );
+                    },
+                    childCount: proyectos.length,
+                  ),
+                ),
               );
             },
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -1302,64 +1384,146 @@ class _HomePageState extends State<HomePage> {
     final colorScheme = theme.colorScheme;
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inscripciones'),
-      ),
-      body: FutureBuilder<List<Inscripcion>>(
-        future: _loadInscripcionesOrganizacion(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          final inscripciones = snapshot.data ?? [];
-          
-          if (inscripciones.isEmpty) {
-            return Center(
-              child: Card(
-                margin: const EdgeInsets.all(24),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.person_add_outlined,
-                        size: 64,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No hay inscripciones',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Las solicitudes de voluntarios aparecerán aquí',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+      backgroundColor: colorScheme.surfaceContainerLow,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: const Text('Solicitudes'),
+            backgroundColor: colorScheme.surface,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Revisa y gestiona las solicitudes de inscripción',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-            );
-          }
-          
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: inscripciones.length,
-            itemBuilder: (context, index) {
-              final inscripcion = inscripciones[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildInscripcionCard(inscripcion, theme, colorScheme),
+            ),
+          ),
+          FutureBuilder<List<Inscripcion>>(
+            future: _loadInscripcionesOrganizacion(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              
+              final inscripciones = snapshot.data ?? [];
+              final pendientes = inscripciones.where((i) => i.estado.toUpperCase() == 'PENDIENTE').toList();
+              final procesadas = inscripciones.where((i) => i.estado.toUpperCase() != 'PENDIENTE').toList();
+              
+              if (inscripciones.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.person_add_rounded,
+                            size: 80,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No hay solicitudes',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Las solicitudes de voluntarios aparecerán aquí',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index == 0 && pendientes.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Pendientes',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.error,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      pendientes.length.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ...pendientes.map((inscripcion) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildInscripcionCard(inscripcion, theme, colorScheme),
+                            )),
+                            if (procesadas.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  'Procesadas',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              ...procesadas.map((inscripcion) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildInscripcionCard(inscripcion, theme, colorScheme),
+                              )),
+                            ],
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                    childCount: 1,
+                  ),
+                ),
               );
             },
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -2559,12 +2723,23 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Voluntario',
+                    _isFuncionario ? 'Funcionario' : 'Voluntario',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  if (_isFuncionario && _organizacionFuncionario != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _organizacionFuncionario!.nombre,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
 
                   const SizedBox(height: 16),
 
@@ -2581,7 +2756,16 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
 
                   // Bio corta
-                  if (_perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty)
+                  if (_isFuncionario)
+                    Text(
+                      _perfilFuncionario?['cargo']?.toString() ?? 'Funcionario de la organización',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                  else if (_perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty)
                     Text(
                       _perfilVoluntario!.bio!,
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -2619,46 +2803,152 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 24),
 
                   // ACERCA DE - ESTILO LINKEDIN
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Acerca de',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                  if (!_isFuncionario)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 24,
                                 color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Acerca de',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
+                                ? _perfilVoluntario!.bio!
+                                : 'Apasionado por el voluntariado y el impacto social. Creo en el poder de las comunidades para transformar vidas. Especializado en proyectos ambientales y educativos. ¡Siempre dispuesto a ayudar! 🌱📚',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface,
+                              height: 1.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  
+                  // INFORMACIÓN DE ORGANIZACIÓN - PARA FUNCIONARIOS
+                  if (_isFuncionario && _organizacionFuncionario != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.business,
+                                size: 24,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Mi Organización',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          if (_organizacionFuncionario!.logo != null && _organizacionFuncionario!.logo!.isNotEmpty)
+                            Center(
+                              child: ImageBase64Widget(
+                                base64String: _organizacionFuncionario!.logo!,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          if (_organizacionFuncionario!.logo != null && _organizacionFuncionario!.logo!.isNotEmpty)
+                            const SizedBox(height: 16),
+                          Text(
+                            _organizacionFuncionario!.nombre,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          if (_organizacionFuncionario!.descripcion != null && _organizacionFuncionario!.descripcion!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _organizacionFuncionario!.descripcion!,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.onSurface,
+                                height: 1.6,
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
-                              ? _perfilVoluntario!.bio!
-                              : 'Apasionado por el voluntariado y el impacto social. Creo en el poder de las comunidades para transformar vidas. Especializado en proyectos ambientales y educativos. ¡Siempre dispuesto a ayudar! 🌱📚',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            height: 1.6,
-                          ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          if (_organizacionFuncionario!.email.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(Icons.email_outlined, size: 18, color: colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _organizacionFuncionario!.email,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          if (_organizacionFuncionario!.telefono != null && _organizacionFuncionario!.telefono!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.phone_outlined, size: 18, color: colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _organizacionFuncionario!.telefono!,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (_organizacionFuncionario!.direccion != null && _organizacionFuncionario!.direccion!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.location_on_outlined, size: 18, color: colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _organizacionFuncionario!.direccion!,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                  if (!_isFuncionario)
+                    const SizedBox(height: 24),
 
-                  // EXPERIENCIA - ESTILO LINKEDIN
-                  Padding(
+                  // EXPERIENCIA - ESTILO LINKEDIN (solo voluntarios)
+                  if (!_isFuncionario)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2698,10 +2988,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  if (!_isFuncionario)
+                    const SizedBox(height: 24),
 
-                  // ESTADÍSTICAS DE IMPACTO - ESTILO LINKEDIN
-                  Padding(
+                  // ESTADÍSTICAS DE IMPACTO - ESTILO LINKEDIN (solo voluntarios)
+                  if (!_isFuncionario)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2744,10 +3036,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  if (!_isFuncionario)
+                    const SizedBox(height: 24),
 
-                  // ORGANIZACIONES - ESTILO LINKEDIN
-                  Padding(
+                  // ORGANIZACIONES - ESTILO LINKEDIN (solo voluntarios)
+                  if (!_isFuncionario)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2812,10 +3106,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  if (!_isFuncionario)
+                    const SizedBox(height: 24),
 
-                  // APTITUDES Y HABILIDADES - ESTILO LINKEDIN
-                  Padding(
+                  // APTITUDES Y HABILIDADES - ESTILO LINKEDIN (solo voluntarios)
+                  if (!_isFuncionario)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2855,10 +3151,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  if (!_isFuncionario)
+                    const SizedBox(height: 24),
 
-                  // LOGROS E INSIGNIAS - ESTILO LINKEDIN
-                  Padding(
+                  // LOGROS E INSIGNIAS - ESTILO LINKEDIN (solo voluntarios)
+                  if (!_isFuncionario)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

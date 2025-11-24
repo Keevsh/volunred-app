@@ -4,7 +4,6 @@ import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/models/tarea.dart';
 import '../../../core/models/asignacion_tarea.dart';
-import '../../../core/models/participacion.dart';
 import 'package:intl/intl.dart';
 
 class TareaDetailPage extends StatefulWidget {
@@ -24,7 +23,6 @@ class TareaDetailPage extends StatefulWidget {
 class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProviderStateMixin {
   Tarea? _tarea;
   List<AsignacionTarea> _asignaciones = [];
-  List<Participacion> _participantes = [];
   bool _isLoading = true;
   String? _error;
   late TabController _tabController;
@@ -60,15 +58,6 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
           });
         } catch (e) {
           // Si falla, continuar sin asignaciones
-        }
-        // Cargar participantes del proyecto para poder asignarlos
-        try {
-          final participantes = await funcionarioRepo.getParticipacionesByProyecto(tarea.proyectoId);
-          setState(() {
-            _participantes = participantes;
-          });
-        } catch (e) {
-          print('Error cargando participantes: $e');
         }
         setState(() {
           _tarea = tarea;
@@ -323,7 +312,11 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
           if (widget.isFuncionario)
             IconButton(
               icon: const Icon(Icons.person_add),
-              onPressed: _showAsignarVoluntarioDialog,
+              onPressed: () {
+                Modular.to.pushNamed(
+                  '/proyectos/tarea/${widget.tareaId}/asignar-voluntarios?nombre=${Uri.encodeComponent(_tarea?.nombre ?? 'Tarea')}',
+                ).then((_) => _loadData());
+              },
               tooltip: 'Asignar Voluntario',
             ),
         ],
@@ -742,108 +735,4 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
     );
   }
 
-  Future<void> _showAsignarVoluntarioDialog() async {
-    if (_tarea == null) return;
-
-    // Filtrar voluntarios que ya están asignados
-    final idsAsignados = _asignaciones.map((a) => a.perfilVolId).toSet();
-    final participantesDisponibles = _participantes.where((p) {
-      // Obtener perfil_vol_id desde inscripcion -> perfil_voluntario -> id_perfil_vol
-      final inscripcion = p.inscripcion;
-      if (inscripcion == null) return false;
-      final perfilVol = inscripcion['perfil_voluntario'] as Map<String, dynamic>?;
-      if (perfilVol == null) return false;
-      final perfilVolId = perfilVol['id_perfil_vol'] as int?;
-      return perfilVolId != null && !idsAsignados.contains(perfilVolId);
-    }).toList();
-
-    if (participantesDisponibles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay voluntarios disponibles para asignar'),
-        ),
-      );
-      return;
-    }
-
-    final selected = await showDialog<Participacion>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Asignar Voluntario'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: participantesDisponibles.length,
-            itemBuilder: (context, index) {
-              final participante = participantesDisponibles[index];
-              final inscripcion = participante.inscripcion;
-              final perfilVol = inscripcion?['perfil_voluntario'] as Map<String, dynamic>?;
-              final usuario = perfilVol?['usuario'] as Map<String, dynamic>?;
-              final nombres = usuario?['nombres']?.toString() ?? '';
-              final apellidos = usuario?['apellidos']?.toString() ?? '';
-              final email = usuario?['email']?.toString() ?? '';
-
-              return ListTile(
-                leading: CircleAvatar(
-                  child: Text(
-                    nombres.isNotEmpty ? nombres[0].toUpperCase() : 'V',
-                  ),
-                ),
-                title: Text('$nombres $apellidos'),
-                subtitle: Text(email),
-                onTap: () => Navigator.pop(context, participante),
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-        ],
-      ),
-    );
-
-    if (selected != null) {
-      // Obtener perfil_vol_id desde la participación seleccionada
-      final inscripcion = selected.inscripcion;
-      final perfilVol = inscripcion?['perfil_voluntario'] as Map<String, dynamic>?;
-      final perfilVolId = perfilVol?['id_perfil_vol'] as int?;
-      if (perfilVolId != null) {
-        await _asignarVoluntario(perfilVolId);
-      }
-    }
-  }
-
-  Future<void> _asignarVoluntario(int perfilVolId) async {
-    try {
-      final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      
-      await funcionarioRepo.asignarTareaVoluntario(
-        widget.tareaId,
-        {
-          'perfil_vol_id': perfilVolId,
-          'titulo': _tarea!.nombre,
-          'descripcion': _tarea!.descripcion,
-        },
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Voluntario asignado exitosamente')),
-        );
-      }
-
-      // Recargar datos
-      await _loadData();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al asignar voluntario: $e')),
-        );
-      }
-    }
-  }
 }

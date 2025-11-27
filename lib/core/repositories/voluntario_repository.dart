@@ -1038,6 +1038,47 @@ class VoluntarioRepository {
     }
   }
 
+  // ==================== EVIDENCIAS DE TAREAS ====================
+
+  /// Obtener evidencias de una tarea del voluntario autenticado
+  Future<List<Map<String, dynamic>>> getMyTaskEvidences(int tareaId) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyTaskEvidences(tareaId),
+      );
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear evidencia para una tarea del voluntario autenticado
+  Future<Map<String, dynamic>> createMyTaskEvidence(
+    int tareaId, {
+    required String comentario,
+    String? fotoBase64,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'comentario': comentario,
+      };
+      if (fotoBase64 != null && fotoBase64.isNotEmpty) {
+        body['foto'] = fotoBase64;
+      }
+      
+      final response = await _dioClient.dio.post(
+        ApiConfig.voluntariosMyTaskEvidences(tareaId),
+        data: body,
+      );
+      return response.data is Map
+          ? Map<String, dynamic>.from(response.data as Map)
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== OPINIONES ====================
 
   /// Crear opinión sobre un proyecto

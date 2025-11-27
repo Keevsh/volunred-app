@@ -10,6 +10,9 @@ import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/perfil_voluntario.dart';
+import '../../../core/models/experiencia_voluntario.dart';
+import '../../../core/models/aptitud.dart';
+import '../../../core/models/participacion.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import '../widgets/funcionario_dashboard.dart';
 import '../widgets/voluntario_dashboard.dart';
@@ -34,6 +37,14 @@ class _HomePageState extends State<HomePage> {
   PerfilVoluntario? _perfilVoluntario;
   Map<String, dynamic>? _perfilFuncionario;
   Organizacion? _organizacionFuncionario;
+  List<Aptitud> _aptitudesVoluntario = [];
+  bool _isLoadingAptitudes = false;
+  String? _aptitudesError;
+  List<ExperienciaVoluntario> _experienciasVoluntario = [];
+  bool _isLoadingExperiencias = false;
+  String? _experienciasError;
+  List<Participacion> _participacionesVoluntario = [];
+  bool _isLoadingParticipaciones = false;
 
   @override
   void initState() {
@@ -113,10 +124,594 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _perfilVoluntario = perfil;
         });
+
+        if (perfil != null) {
+          await _loadAptitudesVoluntario(perfil.idPerfilVoluntario);
+          await _loadExperienciasVoluntario(perfil.idPerfilVoluntario);
+          await _loadParticipacionesVoluntario(perfil.idPerfilVoluntario);
+        }
       }
     } catch (e) {
       print('❌ Error cargando perfil del voluntario: $e');
     }
+  }
+
+  Future<void> _loadAptitudesVoluntario(int perfilVolId) async {
+    try {
+      setState(() {
+        _isLoadingAptitudes = true;
+        _aptitudesError = null;
+      });
+
+      final voluntarioRepo = Modular.get<VoluntarioRepository>();
+      final aptitudes = await voluntarioRepo.getAptitudesByVoluntario(perfilVolId);
+
+      if (!mounted) return;
+      setState(() {
+        _aptitudesVoluntario = aptitudes;
+        _isLoadingAptitudes = false;
+      });
+    } catch (e) {
+      print('❌ Error cargando aptitudes del voluntario: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoadingAptitudes = false;
+        _aptitudesError = 'No se pudieron cargar tus aptitudes';
+      });
+    }
+  }
+
+  Future<void> _loadExperienciasVoluntario(int perfilVolId) async {
+    try {
+      setState(() {
+        _isLoadingExperiencias = true;
+        _experienciasError = null;
+      });
+
+      final voluntarioRepo = Modular.get<VoluntarioRepository>();
+      final todas = await voluntarioRepo.getExperiencias();
+      final filtradas = todas
+          .where((exp) => exp.perfilVolId == perfilVolId)
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _experienciasVoluntario = filtradas;
+        _isLoadingExperiencias = false;
+      });
+    } catch (e) {
+      print('❌ Error cargando experiencias del voluntario: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoadingExperiencias = false;
+        _experienciasError = 'No se pudieron cargar tus experiencias';
+      });
+    }
+  }
+
+  Future<void> _loadParticipacionesVoluntario(int perfilVolId) async {
+    try {
+      setState(() {
+        _isLoadingParticipaciones = true;
+      });
+
+      final voluntarioRepo = Modular.get<VoluntarioRepository>();
+      final participaciones = await voluntarioRepo.getParticipaciones();
+      final activas = participaciones
+          .where((p) => p.estado == 'activo' || p.estado == 'ACTIVO')
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _participacionesVoluntario = activas;
+        _isLoadingParticipaciones = false;
+      });
+    } catch (e) {
+      print('❌ Error cargando participaciones del voluntario: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoadingParticipaciones = false;
+      });
+    }
+  }
+
+  void _showAddExperienciaSheet() {
+    final areaController = TextEditingController();
+    final organizacionController = TextEditingController();
+    final descripcionController = TextEditingController();
+    DateTime? fechaInicio;
+    DateTime? fechaFin;
+    bool isLoading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Añadir Experiencia',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: organizacionController,
+                    decoration: InputDecoration(
+                      labelText: 'Organización *',
+                      hintText: 'Ej: Fundación Verde',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: const Icon(Icons.business),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: areaController,
+                    decoration: InputDecoration(
+                      labelText: 'Área / Rol *',
+                      hintText: 'Ej: Voluntario Ambiental',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: const Icon(Icons.work_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setSheetState(() {
+                                fechaInicio = picked;
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Fecha inicio *',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.calendar_today),
+                            ),
+                            child: Text(
+                              fechaInicio != null
+                                  ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
+                                  : 'Seleccionar',
+                              style: TextStyle(
+                                color: fechaInicio != null
+                                    ? Colors.black
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: fechaInicio ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setSheetState(() {
+                                fechaFin = picked;
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Fecha fin',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.event),
+                            ),
+                            child: Text(
+                              fechaFin != null
+                                  ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
+                                  : 'Opcional',
+                              style: TextStyle(
+                                color: fechaFin != null
+                                    ? Colors.black
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: descripcionController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Descripción (opcional)',
+                      hintText: 'Describe brevemente tu experiencia...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: const Icon(Icons.description),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              if (areaController.text.trim().isEmpty ||
+                                  organizacionController.text.trim().isEmpty ||
+                                  fechaInicio == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Completa los campos obligatorios (*)'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setSheetState(() {
+                                isLoading = true;
+                              });
+
+                              try {
+                                final voluntarioRepo =
+                                    Modular.get<VoluntarioRepository>();
+                                await voluntarioRepo.createExperiencia({
+                                  'perfil_vol_id':
+                                      _perfilVoluntario!.idPerfilVoluntario,
+                                  'organizacion_id': 1, // TODO: selector real
+                                  'area': areaController.text.trim(),
+                                  'descripcion':
+                                      descripcionController.text.trim().isEmpty
+                                          ? null
+                                          : descripcionController.text.trim(),
+                                  'fecha_inicio':
+                                      fechaInicio!.toIso8601String(),
+                                  if (fechaFin != null)
+                                    'fecha_fin': fechaFin!.toIso8601String(),
+                                });
+
+                                if (!mounted) return;
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Experiencia agregada a tu perfil'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                // Recargar experiencias
+                                await _loadExperienciasVoluntario(
+                                    _perfilVoluntario!.idPerfilVoluntario);
+                              } catch (e) {
+                                setSheetState(() {
+                                  isLoading = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1976D2),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Guardar Experiencia',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRealOrganizationsSection(ThemeData theme, ColorScheme colorScheme) {
+    if (_isLoadingParticipaciones) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (_participacionesVoluntario.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Aún no estás participando en ninguna organización.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _participacionesVoluntario.map((participacion) {
+        final proyecto = participacion.proyecto;
+        String orgName = 'Organización';
+        if (proyecto != null && proyecto['organizacion'] != null) {
+          final org = proyecto['organizacion'];
+          orgName = org['nombre'] ?? org['nombre_legal'] ?? 'Organización';
+        }
+        final proyectoNombre = proyecto?['nombre'] ?? 'Proyecto';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colorScheme.outline.withOpacity(0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.business,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      orgName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      proyectoNombre,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Activo',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  int _getOrganizacionesCount() {
+    final orgIds = <int>{};
+    for (final p in _participacionesVoluntario) {
+      final proyecto = p.proyecto;
+      if (proyecto != null && proyecto['organizacion'] != null) {
+        final org = proyecto['organizacion'];
+        if (org['id_organizacion'] != null) {
+          orgIds.add(org['id_organizacion'] as int);
+        }
+      }
+    }
+    return orgIds.length;
+  }
+
+  Widget _buildMyProjectsSection(ThemeData theme, ColorScheme colorScheme) {
+    if (_isLoadingParticipaciones) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (_participacionesVoluntario.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Aún no estás participando en ningún proyecto.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _participacionesVoluntario.map((participacion) {
+        final proyecto = participacion.proyecto;
+        final proyectoNombre = proyecto?['nombre'] ?? 'Proyecto';
+        final proyectoDesc = proyecto?['descripcion'] ?? '';
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colorScheme.outline.withOpacity(0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.folder_special,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      proyectoNombre,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (proyectoDesc.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        proyectoDesc,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Activo',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 
   Future<void> _loadPerfilFuncionario() async {
@@ -2798,9 +3393,7 @@ class _HomePageState extends State<HomePage> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Editar perfil próximamente')),
-                        );
+                        Modular.to.pushNamed('/profile/edit');
                       },
                       icon: const Icon(Icons.edit, size: 18),
                       label: const Text('Editar perfil'),
@@ -2837,12 +3430,77 @@ class _HomePageState extends State<HomePage> {
                           Text(
                             _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
                                 ? _perfilVoluntario!.bio!
-                                : 'Apasionado por el voluntariado y el impacto social. Creo en el poder de las comunidades para transformar vidas. Especializado en proyectos ambientales y educativos. ¡Siempre dispuesto a ayudar! 🌱📚',
+                                : 'Sin biografía registrada.',
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: colorScheme.onSurface,
                               height: 1.6,
                             ),
                           ),
+                          
+                          // Disponibilidad
+                          if (_perfilVoluntario?.disponibilidad != null && 
+                              _perfilVoluntario!.disponibilidad!.isNotEmpty) ...[
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule,
+                                  size: 20,
+                                  color: colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Disponibilidad',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _perfilVoluntario!.disponibilidad!
+                                  .split(',')
+                                  .map((d) => d.trim())
+                                  .where((d) => d.isNotEmpty)
+                                  .map((disponibilidad) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.secondary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: colorScheme.secondary.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 14,
+                                        color: colorScheme.secondary,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        disponibilidad,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.secondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -2982,9 +3640,7 @@ class _HomePageState extends State<HomePage> {
                                 color: colorScheme.primary,
                               ),
                               onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Agregar experiencia próximamente')),
-                                );
+                                _showAddExperienciaSheet();
                               },
                             ),
                           ],
@@ -2998,120 +3654,83 @@ class _HomePageState extends State<HomePage> {
                   if (!_isFuncionario)
                     const SizedBox(height: 24),
 
-                  // ESTADÍSTICAS DE IMPACTO - ESTILO LINKEDIN (solo voluntarios)
+                  // RESUMEN DE PARTICIPACIÓN - DATOS REALES (solo voluntarios)
                   if (!_isFuncionario)
                     Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Mi Impacto',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildEnhancedStatItem(
-                              count: '127',
-                              label: 'Horas\nVoluntariado',
-                              icon: Icons.access_time,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Mi Resumen',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
                               color: colorScheme.primary,
-                              theme: theme,
                             ),
-                            _buildEnhancedStatItem(
-                              count: '8',
-                              label: 'Proyectos\nCompletados',
-                              icon: Icons.check_circle,
-                              color: colorScheme.secondary,
-                              theme: theme,
-                            ),
-                            _buildEnhancedStatItem(
-                              count: '342',
-                              label: 'Personas\nImpactadas',
-                              icon: Icons.people,
-                              color: colorScheme.tertiary,
-                              theme: theme,
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildEnhancedStatItem(
+                                count: _participacionesVoluntario.length.toString(),
+                                label: 'Proyectos\nActivos',
+                                icon: Icons.folder_special,
+                                color: colorScheme.primary,
+                                theme: theme,
+                              ),
+                              _buildEnhancedStatItem(
+                                count: _getOrganizacionesCount().toString(),
+                                label: 'Organizaciones\nInscritas',
+                                icon: Icons.business,
+                                color: colorScheme.secondary,
+                                theme: theme,
+                              ),
+                              _buildEnhancedStatItem(
+                                count: _aptitudesVoluntario.length.toString(),
+                                label: 'Aptitudes\nRegistradas',
+                                icon: Icons.lightbulb,
+                                color: colorScheme.tertiary,
+                                theme: theme,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
                   if (!_isFuncionario)
                     const SizedBox(height: 24),
 
-                  // ORGANIZACIONES - ESTILO LINKEDIN (solo voluntarios)
+                  // ORGANIZACIONES INSCRITAS - DATOS REALES (solo voluntarios)
                   if (!_isFuncionario)
                     Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.business,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Organizaciones',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.business,
+                                size: 24,
                                 color: colorScheme.primary,
                               ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '3 inscritas',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w600,
+                              const SizedBox(width: 8),
+                              Text(
+                                'Mis Organizaciones',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildOrganizationItem(
-                          name: 'Fundación Verde Esperanza',
-                          role: 'Voluntario Ambiental',
-                          since: '2023',
-                          colorScheme: colorScheme,
-                          theme: theme,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildOrganizationItem(
-                          name: 'Centro Educativo Futuro',
-                          role: 'Mentor Educativo',
-                          since: '2024',
-                          colorScheme: colorScheme,
-                          theme: theme,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildOrganizationItem(
-                          name: 'Refugio Animal Amigo',
-                          role: 'Cuidador de Animales',
-                          since: '2024',
-                          colorScheme: colorScheme,
-                          theme: theme,
-                        ),
-                      ],
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildRealOrganizationsSection(theme, colorScheme),
+                        ],
+                      ),
                     ),
-                  ),
 
                   if (!_isFuncionario)
                     const SizedBox(height: 24),
@@ -3119,171 +3738,75 @@ class _HomePageState extends State<HomePage> {
                   // APTITUDES Y HABILIDADES - ESTILO LINKEDIN (solo voluntarios)
                   if (!_isFuncionario)
                     Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.lightbulb_outline,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Aptitudes y Habilidades',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline,
+                                size: 24,
                                 color: colorScheme.primary,
                               ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                Icons.add_circle_outline,
-                                color: colorScheme.primary,
+                              const SizedBox(width: 8),
+                              Text(
+                                'Aptitudes y Habilidades',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
                               ),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Agregar aptitud próximamente')),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSkillsSection(theme, colorScheme),
-                      ],
+                              const Spacer(),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: colorScheme.primary,
+                                ),
+                                onPressed: () {
+                                  Modular.to.pushNamed('/profile/aptitudes');
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSkillsSection(theme, colorScheme),
+                        ],
+                      ),
                     ),
-                  ),
 
                   if (!_isFuncionario)
                     const SizedBox(height: 24),
 
-                  // LOGROS E INSIGNIAS - ESTILO LINKEDIN (solo voluntarios)
+                  // PROYECTOS EN LOS QUE PARTICIPO - DATOS REALES
                   if (!_isFuncionario)
                     Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.emoji_events,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Logros e Insignias',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.folder_special,
+                                size: 24,
                                 color: colorScheme.primary,
                               ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '4/4 desbloqueadas',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w600,
+                              const SizedBox(width: 8),
+                              Text(
+                                'Proyectos en los que participo',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Carrusel horizontal de fotos de voluntarios (assets/images)
-                        SizedBox(
-                          height: 220,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            itemCount: 3,
-                            itemBuilder: (context, index) {
-                              final imagePaths = [
-                                'assets/images/voluntarios.jpg',
-                                'assets/images/lapaz.jpg',
-                                'assets/images/animal.jpg',
-                              ];
-
-                              final path = imagePaths[index];
-
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: AspectRatio(
-                                    // Más alto que ancho
-                                    aspectRatio: 3 / 4,
-                                    child: Image.asset(
-                                      path,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                            ],
                           ),
-                        ),
-
-
-                      ],
+                          const SizedBox(height: 16),
+                          _buildMyProjectsSection(theme, colorScheme),
+                        ],
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // PROYECTOS - ESTILO LINKEDIN
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Mis Proyectos',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SegmentedButton<int>(
-                          segments: const [
-                            ButtonSegment<int>(
-                              value: 0,
-                              label: Text('Futuros'),
-                              icon: Icon(Icons.schedule),
-                            ),
-                            ButtonSegment<int>(
-                              value: 1,
-                              label: Text('Completados'),
-                              icon: Icon(Icons.check_circle),
-                            ),
-                          ],
-                          selected: {_selectedProjectTab},
-                          onSelectionChanged: (Set<int> newSelection) {
-                            setState(() {
-                              _selectedProjectTab = newSelection.first;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _selectedProjectTab == 0
-                            ? _buildFutureProjects()
-                            : _buildCompletedProjects(),
-                      ],
-                    ),
-                  ),
 
                   const SizedBox(height: 32),
 
@@ -3298,9 +3821,7 @@ class _HomePageState extends State<HomePage> {
                           label: 'Editar Perfil',
                           color: colorScheme.primary,
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Editar perfil próximamente')),
-                            );
+                            Modular.to.pushNamed('/profile/edit');
                           },
                         ),
                         _buildSocialAction(
@@ -3385,68 +3906,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildOrganizationItem({
-    required String name,
-    required String role,
-    required String since,
-    required ColorScheme colorScheme,
-    required ThemeData theme,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.business,
-              color: colorScheme.primary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  role,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Miembro desde $since',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.verified,
-            color: colorScheme.primary,
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildCarouselBadge({
     required IconData icon,
@@ -3642,40 +4101,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ========== ROADMAP DE EXPERIENCIA ==========
+  // ========== ROADMAP DE EXPERIENCIA (DATOS REALES) ==========
   Widget _buildExperienceRoadmap(ThemeData theme, ColorScheme colorScheme) {
-    final experiences = [
-      {
-        'year': '2024',
-        'title': 'Coordinador de Proyecto Ambiental',
-        'organization': 'Fundación Verde Esperanza',
-        'description': 'Lideré un equipo de 15 voluntarios en la reforestación de 500 hectáreas',
-        'icon': Icons.eco,
-        'color': colorScheme.primary,
-      },
-      {
-        'year': '2023',
-        'title': 'Mentor Educativo',
-        'organization': 'Centro Educativo Futuro',
-        'description': 'Apoyé a 50 estudiantes en programas de alfabetización digital',
-        'icon': Icons.school,
-        'color': colorScheme.secondary,
-      },
-      {
-        'year': '2023',
-        'title': 'Cuidador de Animales',
-        'organization': 'Refugio Animal Amigo',
-        'description': 'Cuidé de más de 200 animales en situación de abandono',
-        'icon': Icons.pets,
-        'color': colorScheme.tertiary,
-      },
-    ];
+    if (_isLoadingExperiencias) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (_experienciasError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          _experienciasError!,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.error,
+          ),
+        ),
+      );
+    }
+
+    if (_experienciasVoluntario.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Aún no registraste experiencias de voluntariado en tu perfil.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    // Ordenar por fecha de inicio descendente
+    final experiences = List<ExperienciaVoluntario>.from(_experienciasVoluntario)
+      ..sort((a, b) => b.fechaInicio.compareTo(a.fechaInicio));
 
     return Column(
       children: experiences.asMap().entries.map((entry) {
         final index = entry.key;
         final exp = entry.value;
         final isLast = index == experiences.length - 1;
+
+        final year = exp.fechaInicio.year.toString();
+        final title = exp.area;
+        final organizationName = exp.organizacion != null
+            ? (exp.organizacion!['nombre'] ??
+                exp.organizacion!['nombre_legal'] ??
+                'Organización').toString()
+            : 'Organización';
+        final description = exp.descripcion ?? '';
+        final color = colorScheme.primary;
+        final icon = Icons.volunteer_activism_rounded;
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3689,7 +4173,7 @@ class _HomePageState extends State<HomePage> {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: exp['color'] as Color,
+                      color: color,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: colorScheme.surface,
@@ -3697,7 +4181,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (exp['color'] as Color).withOpacity(0.3),
+                          color: color.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -3726,17 +4210,17 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: (exp['color'] as Color).withOpacity(0.1),
+                        color: color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: (exp['color'] as Color).withOpacity(0.3),
+                          color: color.withOpacity(0.3),
                           width: 1,
                         ),
                       ),
                       child: Text(
-                        exp['year'] as String,
+                        year,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: exp['color'] as Color,
+                          color: color,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -3749,9 +4233,9 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       children: [
                         Icon(
-                          exp['icon'] as IconData,
+                          icon,
                           size: 20,
-                          color: exp['color'] as Color,
+                          color: color,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -3759,7 +4243,7 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                exp['title'] as String,
+                                title,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: colorScheme.onSurface,
@@ -3767,7 +4251,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                exp['organization'] as String,
+                                organizationName,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.primary,
                                   fontWeight: FontWeight.w500,
@@ -3783,7 +4267,7 @@ class _HomePageState extends State<HomePage> {
 
                     // Description
                     Text(
-                      exp['description'] as String,
+                      description,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         height: 1.5,
@@ -3798,7 +4282,7 @@ class _HomePageState extends State<HomePage> {
                         TextButton.icon(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Ver detalles de ${exp['title']}')),
+                              SnackBar(content: Text('Ver detalles de $title')),
                             );
                           },
                           icon: Icon(
@@ -3847,145 +4331,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ========== SECCIÓN DE APTITUDES ==========
+  // ========== SECCIÓN DE APTITUDES ========== 
   Widget _buildSkillsSection(ThemeData theme, ColorScheme colorScheme) {
-    final skills = [
-      {'name': 'Liderazgo', 'level': 'Avanzado', 'color': colorScheme.primary},
-      {'name': 'Trabajo en Equipo', 'level': 'Experto', 'color': colorScheme.secondary},
-      {'name': 'Comunicación', 'level': 'Avanzado', 'color': colorScheme.tertiary},
-      {'name': 'Empatía', 'level': 'Experto', 'color': colorScheme.primary},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Skills grid
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: skills.map((skill) {
-            final color = skill['color'] as Color;
-            final level = skill['level'] as String;
-
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: color.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    skill['name'] as String,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      level,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Add new skill button
-        InkWell(
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Agregar nueva aptitud próximamente')),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(
-                color: colorScheme.outline.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add,
-                  size: 18,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Agregar aptitud',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+    if (_isLoadingAptitudes) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
+      );
+    }
 
-        const SizedBox(height: 16),
+    if (_aptitudesError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(
+          _aptitudesError!,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.error,
+          ),
+        ),
+      );
+    }
 
-        // Skills insights
-        Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    if (_aptitudesVoluntario.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(
+          'Todavía no has agregado aptitudes a tu perfil. Toca el lápiz para comenzar.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _aptitudesVoluntario.map((aptitud) {
+        final color = colorScheme.primary;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: color.withOpacity(0.25),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.insights,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Tus fortalezas destacadas',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.check_circle_rounded,
+                size: 16,
+                color: color,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(width: 8),
               Text(
-                'Basado en tus experiencias y evaluaciones, destacas en habilidades de liderazgo y trabajo en equipo. Las organizaciones buscan voluntarios con tu perfil.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.5,
+                aptitud.nombre,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 

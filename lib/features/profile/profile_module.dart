@@ -4,6 +4,7 @@ import '../../core/repositories/voluntario_repository.dart';
 import 'bloc/profile_bloc.dart';
 import 'pages/create_profile_page.dart';
 import 'pages/create_funcionario_profile_page.dart';
+import 'pages/edit_profile_page.dart';
 import 'pages/select_aptitudes_page.dart';
 import 'pages/create_organizacion_page.dart';
 import 'pages/funcionario_options_page.dart';
@@ -41,6 +42,10 @@ class ProfileModule extends Module {
             create: (_) => Modular.get<ProfileBloc>(),
             child: const SelectAptitudesPage(),
           ),
+        ),
+        ChildRoute(
+          '/edit',
+          child: (_, __) => const EditProfilePage(),
         ),
       ];
 }

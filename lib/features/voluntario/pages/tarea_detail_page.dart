@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/repositories/voluntario_repository.dart';
+import '../../../core/utils/image_utils.dart';
+import '../../../core/widgets/image_base64_widget.dart';
 
 class TareaDetailPage extends StatefulWidget {
   final int tareaId;
@@ -18,25 +20,23 @@ class TareaDetailPage extends StatefulWidget {
 
 class _TareaDetailPageState extends State<TareaDetailPage> {
   final VoluntarioRepository _repository = Modular.get<VoluntarioRepository>();
-  final TextEditingController _comentarioController = TextEditingController();
-  final ImagePicker _picker = ImagePicker();
   
   Map<String, dynamic>? _tareaDetail;
+  List<Map<String, dynamic>> _evidencias = [];
   bool _isLoading = true;
-  String? _error;
+  bool _isLoadingEvidencias = false;
   bool _isUpdating = false;
-  List<XFile> _selectedImages = [];
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadTareaDetail();
+    _loadData();
   }
 
-  @override
-  void dispose() {
-    _comentarioController.dispose();
-    super.dispose();
+  Future<void> _loadData() async {
+    await _loadTareaDetail();
+    await _loadEvidencias();
   }
 
   Future<void> _loadTareaDetail() async {
@@ -46,121 +46,69 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
     });
 
     try {
-      print('🔍 Cargando detalle de tarea ID: ${widget.tareaId}');
-      
       Map<String, dynamic>? detail;
       try {
         detail = await _repository.getMyTaskDetail(widget.tareaId);
-        print('✅ Detalle de tarea cargado con getMyTaskDetail: $detail');
       } catch (e) {
-        print('⚠️ getMyTaskDetail falló, intentando con getTareaById: $e');
         final tarea = await _repository.getTareaById(widget.tareaId);
         detail = tarea.toJson();
-        print('✅ Detalle de tarea cargado con getTareaById: $detail');
       }
       
-      setState(() {
-        _tareaDetail = detail;
-        _isLoading = false;
-      });
-    } catch (e, stackTrace) {
-      print('❌ Error cargando detalle de tarea: $e');
-      print('❌ StackTrace: $stackTrace');
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _pickImages() async {
-    try {
-      final List<XFile> images = await _picker.pickMultiImage();
-      if (images.isNotEmpty) {
+      if (mounted) {
         setState(() {
-          _selectedImages.addAll(images);
+          _tareaDetail = detail;
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al seleccionar imágenes: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
       }
     }
   }
 
-  Future<void> _pickCamera() async {
+  Future<void> _loadEvidencias() async {
+    setState(() => _isLoadingEvidencias = true);
+    
     try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
-      if (photo != null) {
+      final evidencias = await _repository.getMyTaskEvidences(widget.tareaId);
+      if (mounted) {
         setState(() {
-          _selectedImages.add(photo);
+          _evidencias = evidencias;
+          _isLoadingEvidencias = false;
         });
       }
     } catch (e) {
+      print('Error cargando evidencias: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al tomar foto: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        setState(() => _isLoadingEvidencias = false);
       }
     }
-  }
-
-  void _removeImage(int index) {
-    setState(() {
-      _selectedImages.removeAt(index);
-    });
   }
 
   Future<void> _updateEstado(String nuevoEstado) async {
-    setState(() {
-      _isUpdating = true;
-    });
-
+    setState(() => _isUpdating = true);
+    
     try {
-      print('🔄 Actualizando estado de tarea ${widget.tareaId} a $nuevoEstado');
-      
       try {
-        await _repository.updateMyTaskStatus(
-          widget.tareaId,
-          nuevoEstado,
-          comentario: _comentarioController.text.isNotEmpty 
-              ? _comentarioController.text 
-              : null,
-        );
-        print('✅ Estado actualizado con updateMyTaskStatus');
+        await _repository.updateMyTaskStatus(widget.tareaId, nuevoEstado);
       } catch (e) {
-        print('⚠️ updateMyTaskStatus falló, intentando con updateTarea: $e');
-        final data = <String, dynamic>{
-          'estado': nuevoEstado,
-        };
-        if (_comentarioController.text.isNotEmpty) {
-          data['comentario'] = _comentarioController.text;
-        }
-        await _repository.updateTarea(widget.tareaId, data);
-        print('✅ Estado actualizado con updateTarea');
+        await _repository.updateTarea(widget.tareaId, {'estado': nuevoEstado});
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Estado actualizado a ${nuevoEstado.toUpperCase()}'),
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            content: Text('Estado actualizado a ${_getEstadoLabel(nuevoEstado)}'),
+            backgroundColor: Colors.green,
           ),
         );
-        _comentarioController.clear();
-        _selectedImages.clear();
         _loadTareaDetail();
       }
     } catch (e) {
-      print('❌ Error al actualizar estado: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -171,83 +119,429 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
+        setState(() => _isUpdating = false);
       }
     }
   }
 
   void _showEstadoDialog() {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentEstado = _tareaDetail?['estado']?.toString().toLowerCase() ?? 'pendiente';
+    final currentEstado = _tareaDetail?['estado']?.toString().toLowerCase().replaceAll(' ', '_') ?? 'pendiente';
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cambiar Estado'),
-        content: Column(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (currentEstado == 'pendiente')
-              ListTile(
-                leading: Icon(Icons.play_arrow, color: colorScheme.tertiary),
-                title: const Text('Iniciar Tarea'),
-                subtitle: const Text('Marcar como en progreso'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _updateEstado('en_progreso');
-                },
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            if (currentEstado == 'en_progreso' || currentEstado == 'en progreso')
-              ListTile(
-                leading: Icon(Icons.check_circle, color: colorScheme.primary),
-                title: const Text('Completar Tarea'),
-                subtitle: const Text('Marcar como completada'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _updateEstado('completada');
-                },
+            ),
+            const SizedBox(height: 20),
+            
+            Text(
+              'Cambiar Estado',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Estado actual: ${_getEstadoLabel(currentEstado)}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            _buildEstadoOption(
+              icon: Icons.play_circle_filled,
+              label: 'En Progreso',
+              description: 'Comenzar a trabajar en esta tarea',
+              color: Colors.orange,
+              isSelected: currentEstado == 'en_progreso',
+              isDisabled: currentEstado == 'completada',
+              onTap: () {
+                Navigator.pop(context);
+                _updateEstado('en_progreso');
+              },
+            ),
+            
+            const SizedBox(height: 12),
+            
+            _buildEstadoOption(
+              icon: Icons.check_circle,
+              label: 'Completada',
+              description: 'Marcar la tarea como terminada',
+              color: Colors.green,
+              isSelected: currentEstado == 'completada',
+              isDisabled: false,
+              onTap: () {
+                Navigator.pop(context);
+                _updateEstado('completada');
+              },
+            ),
+            
+            const SizedBox(height: 24),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+      ),
+    );
+  }
+
+  void _showCrearEvidenciaSheet() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final comentarioController = TextEditingController();
+    String? fotoBase64;
+    XFile? selectedImage;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outline.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              Row(
+                children: [
+                  Icon(Icons.add_photo_alternate, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Crear Evidencia',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Selector de imagen
+              Text(
+                'Foto (opcional)',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              if (selectedImage != null) ...[
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(selectedImage!.path),
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        onPressed: () {
+                          setModalState(() {
+                            selectedImage = null;
+                            fotoBase64 = null;
+                          });
+                        },
+                        icon: const Icon(Icons.close),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final image = await picker.pickImage(
+                            source: ImageSource.gallery,
+                            maxWidth: 800,
+                            maxHeight: 800,
+                            imageQuality: 50,
+                          );
+                          if (image != null) {
+                            try {
+                              final base64 = await ImageUtils.convertXFileToBase64(image);
+                              setModalState(() {
+                                selectedImage = image;
+                                fotoBase64 = base64;
+                              });
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text('Galería'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final image = await picker.pickImage(
+                            source: ImageSource.camera,
+                            maxWidth: 800,
+                            maxHeight: 800,
+                            imageQuality: 50,
+                          );
+                          if (image != null) {
+                            try {
+                              final base64 = await ImageUtils.convertXFileToBase64(image);
+                              setModalState(() {
+                                selectedImage = image;
+                                fotoBase64 = base64;
+                              });
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Cámara'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              
+              const SizedBox(height: 24),
+              
+              // Comentario
+              Text(
+                'Comentario *',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: comentarioController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Describe el avance o resultado de la tarea...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Botón guardar
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    if (comentarioController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('El comentario es obligatorio'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    Navigator.pop(context);
+                    
+                    try {
+                      await _repository.createMyTaskEvidence(
+                        widget.tareaId,
+                        comentario: comentarioController.text.trim(),
+                        fotoBase64: fotoBase64,
+                      );
+                      
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Evidencia creada exitosamente'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        _loadEvidencias();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error al crear evidencia: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Guardar Evidencia'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getEstadoLabel(String estado) {
+    switch (estado.toLowerCase().replaceAll(' ', '_')) {
+      case 'pendiente':
+        return 'Pendiente';
+      case 'en_progreso':
+        return 'En Progreso';
+      case 'completada':
+        return 'Completada';
+      case 'cancelada':
+        return 'Cancelada';
+      default:
+        return estado;
+    }
+  }
+
+  Widget _buildEstadoOption({
+    required IconData icon,
+    required String label,
+    required String description,
+    required Color color,
+    required bool isSelected,
+    required bool isDisabled,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return InkWell(
+      onTap: isDisabled ? null : onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? color.withOpacity(0.15) 
+              : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : colorScheme.outline.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDisabled 
+                    ? Colors.grey.withOpacity(0.2)
+                    : color.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isDisabled ? Colors.grey : color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isDisabled ? Colors.grey : colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDisabled ? Colors.grey : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, color: color, size: 24),
+          ],
+        ),
       ),
     );
   }
 
   Color _getEstadoColor(String estado, ColorScheme colorScheme) {
-    switch (estado.toLowerCase()) {
+    switch (estado.toLowerCase().replaceAll(' ', '_')) {
       case 'pendiente':
-        return colorScheme.errorContainer;
+        return Colors.orange;
       case 'en_progreso':
-      case 'en progreso':
-        return colorScheme.tertiaryContainer;
+        return Colors.blue;
       case 'completada':
-      case 'completado':
-        return colorScheme.primaryContainer;
+        return Colors.green;
       default:
-        return colorScheme.surfaceVariant;
-    }
-  }
-
-  Color _getEstadoTextColor(String estado, ColorScheme colorScheme) {
-    switch (estado.toLowerCase()) {
-      case 'pendiente':
-        return colorScheme.onErrorContainer;
-      case 'en_progreso':
-      case 'en progreso':
-        return colorScheme.onTertiaryContainer;
-      case 'completada':
-      case 'completado':
-        return colorScheme.onPrimaryContainer;
-      default:
-        return colorScheme.onSurfaceVariant;
+        return colorScheme.surfaceContainerHighest;
     }
   }
 
@@ -274,15 +568,11 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          _error!,
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
+                        child: Text(_error!, textAlign: TextAlign.center),
                       ),
                       const SizedBox(height: 16),
                       FilledButton(
-                        onPressed: _loadTareaDetail,
+                        onPressed: _loadData,
                         child: const Text('Reintentar'),
                       ),
                     ],
@@ -295,38 +585,37 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Título y estado
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _tareaDetail!['titulo']?.toString() ?? 'Sin título',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          // Título
+                          Text(
+                            _tareaDetail!['titulo']?.toString() ?? 
+                            _tareaDetail!['nombre']?.toString() ?? 
+                            'Sin título',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
 
                           const SizedBox(height: 12),
 
                           // Estado
-                          Chip(
-                            label: Text(
-                              (_tareaDetail!['estado']?.toString() ?? 'pendiente').toUpperCase(),
-                            ),
-                            backgroundColor: _getEstadoColor(
-                              _tareaDetail!['estado']?.toString() ?? 'pendiente',
-                              colorScheme,
-                            ),
-                            labelStyle: TextStyle(
-                              color: _getEstadoTextColor(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _getEstadoColor(
                                 _tareaDetail!['estado']?.toString() ?? 'pendiente',
                                 colorScheme,
+                              ).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _getEstadoLabel(_tareaDetail!['estado']?.toString() ?? 'pendiente'),
+                              style: TextStyle(
+                                color: _getEstadoColor(
+                                  _tareaDetail!['estado']?.toString() ?? 'pendiente',
+                                  colorScheme,
+                                ),
+                                fontWeight: FontWeight.w600,
                               ),
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
 
@@ -349,7 +638,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                             const SizedBox(height: 24),
                           ],
 
-                          // Información adicional
+                          // Información
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16),
@@ -370,30 +659,25 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                                       _tareaDetail!['prioridad'].toString().toUpperCase(),
                                       theme,
                                     ),
-                                  if (_tareaDetail!['fechaAsignacion'] != null) ...[
+                                  if (_tareaDetail!['fecha_inicio'] != null ||
+                                      _tareaDetail!['fechaAsignacion'] != null) ...[
                                     const SizedBox(height: 12),
                                     _buildInfoRow(
                                       Icons.calendar_today,
-                                      'Asignada',
-                                      _formatDate(_tareaDetail!['fechaAsignacion'].toString()),
+                                      'Fecha inicio',
+                                      _formatDate(_tareaDetail!['fecha_inicio']?.toString() ??
+                                          _tareaDetail!['fechaAsignacion']?.toString() ?? ''),
                                       theme,
                                     ),
                                   ],
-                                  if (_tareaDetail!['fechaVencimiento'] != null) ...[
+                                  if (_tareaDetail!['fecha_fin'] != null ||
+                                      _tareaDetail!['fechaVencimiento'] != null) ...[
                                     const SizedBox(height: 12),
                                     _buildInfoRow(
                                       Icons.event,
-                                      'Vencimiento',
-                                      _formatDate(_tareaDetail!['fechaVencimiento'].toString()),
-                                      theme,
-                                    ),
-                                  ],
-                                  if (_tareaDetail!['proyecto'] != null) ...[
-                                    const SizedBox(height: 12),
-                                    _buildInfoRow(
-                                      Icons.folder,
-                                      'Proyecto',
-                                      (_tareaDetail!['proyecto'] as Map)['nombre']?.toString() ?? 'Proyecto',
+                                      'Fecha fin',
+                                      _formatDate(_tareaDetail!['fecha_fin']?.toString() ??
+                                          _tareaDetail!['fechaVencimiento']?.toString() ?? ''),
                                       theme,
                                     ),
                                   ],
@@ -404,117 +688,147 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
 
                           const SizedBox(height: 24),
 
-                          // Comentario
-                          Text(
-                            'Agregar Comentario',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _comentarioController,
-                            maxLines: 4,
-                            decoration: const InputDecoration(
-                              hintText: 'Escribe un comentario sobre tu progreso...',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Evidencias
-                          Text(
-                            'Evidencias',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          
+                          // EVIDENCIAS
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _pickImages,
-                                  icon: const Icon(Icons.photo_library),
-                                  label: const Text('Galería'),
+                              Text(
+                                'Evidencias',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _pickCamera,
-                                  icon: const Icon(Icons.camera_alt),
-                                  label: const Text('Cámara'),
-                                ),
+                              FilledButton.icon(
+                                onPressed: _showCrearEvidenciaSheet,
+                                icon: const Icon(Icons.add_photo_alternate, size: 18),
+                                label: const Text('Crear'),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
 
-                          // Preview de imágenes
-                          if (_selectedImages.isNotEmpty) ...[
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              height: 120,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _selectedImages.length,
-                                itemBuilder: (context, index) {
-                                  return Stack(
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.only(right: 12),
-                                        width: 120,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          image: DecorationImage(
-                                            image: FileImage(File(_selectedImages[index].path)),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 4,
-                                        right: 16,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.close),
-                                          onPressed: () => _removeImage(index),
-                                          style: IconButton.styleFrom(
-                                            backgroundColor: colorScheme.error,
-                                            foregroundColor: colorScheme.onError,
-                                            padding: const EdgeInsets.all(4),
-                                            minimumSize: const Size(32, 32),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                          if (_isLoadingEvidencias)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24),
+                                child: CircularProgressIndicator(),
                               ),
+                            )
+                          else if (_evidencias.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.photo_library_outlined,
+                                    size: 48,
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No hay evidencias',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Agrega fotos y comentarios de tu avance',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _evidencias.length,
+                              itemBuilder: (context, index) {
+                                final evidencia = _evidencias[index];
+                                return _buildEvidenciaCard(evidencia, theme, colorScheme);
+                              },
                             ),
-                          ],
 
                           const SizedBox(height: 32),
 
-                          // Botón de cambiar estado
+                          // Botón cambiar estado
                           SizedBox(
                             width: double.infinity,
-                            child: FilledButton.icon(
+                            child: OutlinedButton.icon(
                               onPressed: _isUpdating ? null : _showEstadoDialog,
-                              icon: _isUpdating
+                              icon: _isUpdating 
                                   ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
+                                      width: 18,
+                                      height: 18,
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     )
-                                  : const Icon(Icons.update),
+                                  : const Icon(Icons.swap_horiz),
                               label: Text(_isUpdating ? 'Actualizando...' : 'Cambiar Estado'),
                             ),
                           ),
+                          
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
+    );
+  }
+
+  Widget _buildEvidenciaCard(
+    Map<String, dynamic> evidencia,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    final foto = evidencia['foto']?.toString();
+    final comentario = evidencia['comentario']?.toString() ?? '';
+    final fecha = evidencia['creado_en']?.toString() ?? evidencia['fecha']?.toString();
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (foto != null && foto.isNotEmpty)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: ImageBase64Widget(
+                base64String: foto,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  comentario,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (fecha != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _formatDate(fecha),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -530,10 +844,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
           ),
         ),
         const Spacer(),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium,
-        ),
+        Text(value, style: theme.textTheme.bodyMedium),
       ],
     );
   }

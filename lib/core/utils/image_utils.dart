@@ -15,15 +15,15 @@ class ImageUtils {
     'image/gif',
   ];
 
-  /// Tamaño máximo del archivo en bytes (2MB para evitar "entity too large")
-  static const int maxFileSize = 2 * 1024 * 1024; // Reducido de 5MB a 2MB
+  /// Tamaño máximo del archivo en bytes (500KB para evitar "entity too large" en Vercel)
+  static const int maxFileSize = 500 * 1024; // Reducido a 500KB para Vercel
 
-  /// Calidad de compresión por defecto (70% para buen balance calidad/tamaño)
-  static const int defaultQuality = 70;
+  /// Calidad de compresión por defecto (50% para reducir tamaño)
+  static const int defaultQuality = 50;
 
   /// Dimensiones máximas para redimensionar imágenes grandes
-  static const int maxWidth = 1200;
-  static const int maxHeight = 1200;
+  static const int maxWidth = 800;
+  static const int maxHeight = 800;
 
   /// Convierte un archivo de imagen a base64 con data URI
   /// 
@@ -44,7 +44,7 @@ class ImageUtils {
     final fileSize = await file.length();
     if (fileSize > maxFileSize) {
       throw Exception(
-        'El archivo es demasiado grande. Tamaño máximo: 2MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
+        'El archivo es demasiado grande. Tamaño máximo: 500KB. Tamaño actual: ${(fileSize / 1024).toStringAsFixed(0)}KB',
       );
     }
 
@@ -94,13 +94,7 @@ class ImageUtils {
       throw Exception('Tipo de archivo no permitido. Use: JPEG, PNG, WEBP o GIF');
     }
 
-    // Verificar tamaño del archivo
-    final fileSize = await xFile.length();
-    if (fileSize > maxFileSize) {
-      throw Exception(
-        'El archivo es demasiado grande. Tamaño máximo: 2MB. Tamaño actual: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
-      );
-    }
+    // La compresión se encargará de reducir el tamaño
 
     // Determinar el tipo MIME
     String mimeType = xFile.mimeType ?? 'image/jpeg';
@@ -249,31 +243,29 @@ class ImageUtils {
 
       // Verificar que el archivo comprimido no exceda el límite
       if (compressedBytes.length > maxFileSize) {
-        // Si aún es muy grande, reducir más la calidad
-        if (mimeType == 'image/jpeg' || mimeType == 'image/jpg') {
-          compressedBytes = img.encodeJpg(image, quality: 50); // Reducir calidad a 50%
-        } else if (mimeType == 'image/png') {
-          compressedBytes = img.encodePng(image, level: 9); // Máxima compresión PNG
-        } else {
-          compressedBytes = img.encodeJpg(image, quality: 50);
-        }
+        // Reducir calidad a 30%
+        compressedBytes = img.encodeJpg(image, quality: 30);
 
-        // Si aún es grande, redimensionar a un tamaño más pequeño
+        // Si aún es grande, redimensionar a 600px
         if (compressedBytes.length > maxFileSize) {
           image = img.copyResize(
             image,
-            width: image.width > image.height ? 800 : null,
-            height: image.height > image.width ? 800 : null,
+            width: image.width > image.height ? 600 : null,
+            height: image.height >= image.width ? 600 : null,
             maintainAspect: true,
           );
-          
-          if (mimeType == 'image/jpeg' || mimeType == 'image/jpg') {
-            compressedBytes = img.encodeJpg(image, quality: 50);
-          } else if (mimeType == 'image/png') {
-            compressedBytes = img.encodePng(image, level: 9); // Máxima compresión
-          } else {
-            compressedBytes = img.encodeJpg(image, quality: 50);
-          }
+          compressedBytes = img.encodeJpg(image, quality: 30);
+        }
+
+        // Si aún es grande, redimensionar a 400px con calidad 20%
+        if (compressedBytes.length > maxFileSize) {
+          image = img.copyResize(
+            image,
+            width: image.width > image.height ? 400 : null,
+            height: image.height >= image.width ? 400 : null,
+            maintainAspect: true,
+          );
+          compressedBytes = img.encodeJpg(image, quality: 20);
         }
       }
 

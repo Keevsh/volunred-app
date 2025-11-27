@@ -1408,9 +1408,28 @@ class VoluntarioRepository {
       print('📤 Creando solicitud de participación...');
       print('📤 Proyecto ID: ${request.proyectoId}');
       
+      // Construir body y asegurar que incluimos perfil_vol_id
+      final body = Map<String, dynamic>.from(request.toJson());
+
+      if (!body.containsKey('perfil_vol_id') || body['perfil_vol_id'] == null) {
+        try {
+          final perfilJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+          if (perfilJson != null) {
+            final Map<String, dynamic> perfilMap = jsonDecode(perfilJson) as Map<String, dynamic>;
+            final perfil = PerfilVoluntario.fromJson(perfilMap);
+            body['perfil_vol_id'] = perfil.idPerfilVoluntario;
+            print('👤 perfil_vol_id detectado desde storage: ${perfil.idPerfilVoluntario}');
+          } else {
+            print('⚠️ No se encontró perfil_voluntario en storage, se enviará sin perfil_vol_id');
+          }
+        } catch (e) {
+          print('⚠️ Error obteniendo perfil_voluntario desde storage: $e');
+        }
+      }
+
       final response = await _dioClient.dio.post(
         ApiConfig.voluntariosMyParticipaciones,
-        data: request.toJson(),
+        data: body,
       );
       
       print('📥 Crear participación response: ${response.statusCode}');

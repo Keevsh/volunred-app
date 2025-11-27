@@ -79,7 +79,16 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
     }
 
     return Container(
-      color: const Color(0xFFF8F9FA),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFF5F7FA),
+            Color(0xFFFFFFFF),
+          ],
+        ),
+      ),
       child: RefreshIndicator(
         onRefresh: _loadData,
         child: CustomScrollView(
@@ -87,13 +96,29 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             // Header
             SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                child: Text(
-                  'Mi Actividad',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1A1A1A),
-                  ),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Mi Actividad',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1A1A1A),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Resumen de tu participación',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -127,29 +152,33 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
   Widget _buildQuickStats(ThemeData theme) {
     final participacionesActivas =
         _misParticipaciones.where((p) => p.estado == 'activo').length;
+    final tareasPendientes = _misTareas.where((t) {
+      final estado = t['estado']?.toString().toLowerCase();
+      return estado == 'pendiente' || estado == 'en_progreso' || estado == 'en progreso';
+    }).length;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Row(
         children: [
           Expanded(
             child: _buildStatCard(
-              'Participando',
+              'Proyectos',
               participacionesActivas.toString(),
-              Icons.handshake_rounded,
+              Icons.volunteer_activism_rounded,
               const Color(0xFF1976D2),
               const Color(0xFFE3F2FD),
               theme,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: _buildStatCard(
-              'Mis tareas',
-              _misTareas.length.toString(),
-              Icons.checklist_rounded,
-              _misTareas.isNotEmpty ? const Color(0xFF388E3C) : const Color(0xFF9E9E9E),
-              _misTareas.isNotEmpty ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
+              'Tareas',
+              tareasPendientes > 0 ? tareasPendientes.toString() : _misTareas.length.toString(),
+              Icons.assignment_rounded,
+              tareasPendientes > 0 ? const Color(0xFFFF9800) : const Color(0xFF4CAF50),
+              tareasPendientes > 0 ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
               theme,
             ),
           ),
@@ -170,28 +199,27 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
         child: Container(
           decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(22),
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colorScheme.primaryContainer.withOpacity(0.16),
-                colorScheme.secondaryContainer.withOpacity(0.10),
+                Color(0xFF1976D2),
+                Color(0xFF42A5F5),
               ],
             ),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: const Color(0xFF1976D2).withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -201,27 +229,57 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Mis tareas',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                        const Text(
+                          'Mis Tareas',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
-                          'Revisa rápido lo pendiente y en progreso.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                          'Revisa rápido lo pendiente y en progreso',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Modular.to.pushNamed('/voluntario/tareas');
-                    },
-                    child: const Text('Ver todas'),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Modular.to.pushNamed('/voluntario/tareas');
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            'Ver todas',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -291,11 +349,18 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                     }
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surface.withOpacity(0.96),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,8 +371,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                               children: [
                                 Text(
                                   titulo,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1A1A1A),
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -359,10 +426,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: chipColor,
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -406,15 +473,22 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
     ThemeData theme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            bgColor,
+            bgColor.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: iconColor.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -422,28 +496,38 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: iconColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: Icon(icon, color: Colors.white, size: 28),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1A1A1A),
-              fontSize: 26,
+            style: const TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1A1A1A),
+              height: 1,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF757575),
-              fontWeight: FontWeight.w500,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -461,14 +545,15 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             child: Row(
               children: [
-                Text(
+                const Text(
                   'Participando Actualmente',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A1A1A),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A1A),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -491,7 +576,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: participacionesActivas
                   .map((participacion) => _buildParticipacionCard(participacion, theme))
@@ -509,17 +594,16 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         : 'Proyecto';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE3F2FD), width: 1.5),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

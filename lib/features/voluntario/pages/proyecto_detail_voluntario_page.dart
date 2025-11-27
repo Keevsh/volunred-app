@@ -160,18 +160,30 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: const Color(0xFFF5F7FA),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
         elevation: 0,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        title: Text(
-          _proyecto?.nombre ?? 'Proyecto',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+            onPressed: () => Navigator.pop(context),
+            color: const Color(0xFF1976D2),
           ),
         ),
       ),
@@ -220,120 +232,191 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Imagen principal full-width sin bordes redondeados
-                                AspectRatio(
-                                  aspectRatio: 16 / 9,
-                                  child: _proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty
-                                      ? ImageBase64Widget(
-                                          base64String: _proyecto!.imagen!,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                colorScheme.primaryContainer,
-                                                colorScheme.secondaryContainer,
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.volunteer_activism,
-                                            size: 56,
-                                            color: colorScheme.onPrimaryContainer,
-                                          ),
+                                // Imagen principal con hero animation
+                                Hero(
+                                  tag: 'proyecto_${_proyecto!.idProyecto}',
+                                  child: Container(
+                                    height: 320,
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(32),
+                                        bottomRight: Radius.circular(32),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 10),
                                         ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(32),
+                                        bottomRight: Radius.circular(32),
+                                      ),
+                                      child: Stack(
+                                        fit: StackFit.expand,
                                         children: [
-                                          Expanded(
-                                            child: Text(
-                                              _proyecto!.nombre,
-                                              style: theme.textTheme.titleLarge?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                letterSpacing: -0.2,
+                                          _proyecto!.imagen != null && _proyecto!.imagen!.isNotEmpty
+                                              ? ImageBase64Widget(
+                                                  base64String: _proyecto!.imagen!,
+                                                  width: double.infinity,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Container(
+                                                  decoration: const BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      colors: [
+                                                        Color(0xFF1976D2),
+                                                        Color(0xFF42A5F5),
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end: Alignment.bottomRight,
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.volunteer_activism_rounded,
+                                                    size: 80,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                          // Gradient overlay
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Colors.transparent,
+                                                  Colors.black.withOpacity(0.6),
+                                                ],
+                                                stops: const [0.5, 1.0],
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 6,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _proyecto!.estado == 'activo'
-                                                  ? colorScheme.primaryContainer
-                                                  : colorScheme.errorContainer,
-                                              borderRadius: BorderRadius.circular(999),
-                                            ),
-                                            child: Text(
-                                              _proyecto!.estado.toUpperCase(),
-                                              style: theme.textTheme.labelSmall?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.6,
-                                                color: _proyecto!.estado == 'activo'
-                                                    ? colorScheme.onPrimaryContainer
-                                                    : colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                ),
+                                Transform.translate(
+                                  offset: const Offset(0, -40),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(24),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(24),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.08),
+                                                blurRadius: 20,
+                                                offset: const Offset(0, 8),
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 8),
-                                          if (_proyecto!.categoriasProyectos != null &&
-                                              _proyecto!.categoriasProyectos!.isNotEmpty)
-                                            Flexible(
-                                              child: Wrap(
-                                                spacing: 6,
-                                                runSpacing: 4,
-                                                children: _proyecto!.categoriasProyectos!.take(2).map((catProy) {
-                                                  String categoriaNombre = 'Categoría';
-                                                  if (catProy is Map && catProy['categoria'] is Map) {
-                                                    categoriaNombre =
-                                                        catProy['categoria']['nombre']?.toString() ?? 'Categoría';
-                                                  }
-                                                  return Container(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _proyecto!.nombre,
+                                                style: theme.textTheme.headlineSmall?.copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: -0.5,
+                                                  color: const Color(0xFF1A1A1A),
+                                                  height: 1.2,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  Container(
                                                     padding: const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 4,
+                                                      horizontal: 12,
+                                                      vertical: 6,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: colorScheme.secondaryContainer,
-                                                      borderRadius: BorderRadius.circular(999),
+                                                      color: _proyecto!.estado == 'activo'
+                                                          ? const Color(0xFF1976D2)
+                                                          : const Color(0xFFEF5350),
+                                                      borderRadius: BorderRadius.circular(20),
                                                     ),
-                                                    child: Text(
-                                                      categoriaNombre,
-                                                      style: theme.textTheme.labelSmall?.copyWith(
-                                                        color: colorScheme.onSecondaryContainer,
-                                                      ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Container(
+                                                          width: 6,
+                                                          height: 6,
+                                                          decoration: const BoxDecoration(
+                                                            color: Colors.white,
+                                                            shape: BoxShape.circle,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 6),
+                                                        Text(
+                                                          _proyecto!.estado.toUpperCase(),
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 11,
+                                                            fontWeight: FontWeight.w700,
+                                                            letterSpacing: 0.8,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  );
-                                                }).toList(),
+                                                  ),
+                                                  if (_proyecto!.categoriasProyectos != null &&
+                                                      _proyecto!.categoriasProyectos!.isNotEmpty)
+                                                    ..._proyecto!.categoriasProyectos!.take(2).map((catProy) {
+                                                      String categoriaNombre = 'Categoría';
+                                                      if (catProy is Map && catProy['categoria'] is Map) {
+                                                        categoriaNombre =
+                                                            catProy['categoria']['nombre']?.toString() ?? 'Categoría';
+                                                      }
+                                                      return Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 6,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFE3F2FD),
+                                                          borderRadius: BorderRadius.circular(20),
+                                                        ),
+                                                        child: Text(
+                                                          categoriaNombre,
+                                                          style: const TextStyle(
+                                                            color: Color(0xFF1976D2),
+                                                            fontSize: 11,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                ],
                                               ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty)
-                                        Text(
-                                          _proyecto!.objetivo!,
-                                          style: theme.textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                            height: 1.5,
+                                              if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty) ...[
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  _proyecto!.objetivo!,
+                                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                                    color: const Color(0xFF616161),
+                                                    height: 1.6,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                         ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -343,7 +426,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -402,53 +485,72 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                         );
                                       }
 
-                                      return Material(
-                                        color: colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(18),
-                                        child: InkWell(
-                                          onTap: () {
-                                            Modular.to.pushNamed(
-                                              '/voluntario/organizaciones/${_proyecto!.organizacionId}',
-                                            );
-                                          },
-                                          borderRadius: BorderRadius.circular(18),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 12,
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.06),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 4),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                avatar,
-                                                const SizedBox(width: 12),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        organizacionNombre,
-                                                        style: theme.textTheme.titleMedium?.copyWith(
-                                                          fontWeight: FontWeight.w600,
+                                          ],
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () {
+                                              Modular.to.pushNamed(
+                                                '/voluntario/organizaciones/${_proyecto!.organizacionId}',
+                                              );
+                                            },
+                                            borderRadius: BorderRadius.circular(20),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Row(
+                                                children: [
+                                                  avatar,
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          organizacionNombre,
+                                                          style: const TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w700,
+                                                            color: Color(0xFF1A1A1A),
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
                                                         ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                      ),
-                                                      const SizedBox(height: 2),
-                                                      Text(
-                                                        'Ver perfil de la organización',
-                                                        style: theme.textTheme.labelSmall?.copyWith(
-                                                          color: colorScheme.onSurfaceVariant,
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          'Ver perfil de la organización',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: Colors.grey[600],
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
-                                                Icon(
-                                                  Icons.chevron_right,
-                                                  size: 20,
-                                                  color: colorScheme.onSurfaceVariant,
-                                                ),
-                                              ],
+                                                  Container(
+                                                    padding: const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFE3F2FD),
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.arrow_forward_ios,
+                                                      size: 16,
+                                                      color: Color(0xFF1976D2),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -461,67 +563,53 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                   // Fechas y ubicación
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(18),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.06),
+                                          blurRadius: 16,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                    padding: const EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(20),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'Detalles',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.w600,
+                                        const Text(
+                                          'Detalles del Proyecto',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF1A1A1A),
                                           ),
                                         ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          children: [
-                                            Icon(Icons.event, size: 18, color: colorScheme.primary),
-                                            const SizedBox(width: 8),
-                                            Text('Inicio', style: theme.textTheme.bodyMedium),
-                                            const Spacer(),
-                                            Text(
-                                              _proyecto!.fechaInicio != null
-                                                  ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
-                                                  : 'No especificada',
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                color: colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
+                                        const SizedBox(height: 20),
+                                        _buildDetailRow(
+                                          Icons.calendar_today_rounded,
+                                          'Fecha de Inicio',
+                                          _proyecto!.fechaInicio != null
+                                              ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
+                                              : 'No especificada',
+                                          theme,
                                         ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Icon(Icons.event_busy, size: 18, color: colorScheme.primary),
-                                            const SizedBox(width: 8),
-                                            Text('Fin', style: theme.textTheme.bodyMedium),
-                                            const Spacer(),
-                                            Text(
-                                              _proyecto!.fechaFin != null
-                                                  ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
-                                                  : 'No especificada',
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                color: colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
+                                        const SizedBox(height: 16),
+                                        _buildDetailRow(
+                                          Icons.event_available_rounded,
+                                          'Fecha de Fin',
+                                          _proyecto!.fechaFin != null
+                                              ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
+                                              : 'No especificada',
+                                          theme,
                                         ),
                                         if (_proyecto!.ubicacion != null && _proyecto!.ubicacion!.isNotEmpty) ...[
-                                          const SizedBox(height: 12),
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Icon(Icons.location_on, size: 18, color: colorScheme.primary),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  _proyecto!.ubicacion!,
-                                                  style: theme.textTheme.bodyMedium,
-                                                ),
-                                              ),
-                                            ],
+                                          const SizedBox(height: 16),
+                                          _buildDetailRow(
+                                            Icons.location_on_rounded,
+                                            'Ubicación',
+                                            _proyecto!.ubicacion!,
+                                            theme,
                                           ),
                                         ],
                                       ],
@@ -530,99 +618,30 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
                                   const SizedBox(height: 20),
 
-                                  // Insights placeholder
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Insights del proyecto',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Inscritos', style: theme.textTheme.labelSmall),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    'Próximamente',
-                                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                                      color: colorScheme.onSurfaceVariant,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Reseñas', style: theme.textTheme.labelSmall),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    'Próximamente',
-                                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                                      color: colorScheme.onSurfaceVariant,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Puntaje', style: theme.textTheme.labelSmall),
-                                                  const SizedBox(height: 4),
-                                                  Row(
-                                                    children: [
-                                                      Icon(Icons.star_border, size: 18, color: colorScheme.primary),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        'Próx.',
-                                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                                          color: colorScheme.onSurfaceVariant,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
                                   const SizedBox(height: 20),
 
                                   // Sección de tareas (solo si está participando)
                                   if (_participacion != null && _futureProjectTasks != null) ...[
                                     Container(
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(22),
-                                        gradient: LinearGradient(
+                                        borderRadius: BorderRadius.circular(24),
+                                        gradient: const LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            colorScheme.primaryContainer.withOpacity(0.18),
-                                            colorScheme.secondaryContainer.withOpacity(0.10),
+                                            Color(0xFF1976D2),
+                                            Color(0xFF42A5F5),
                                           ],
                                         ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF1976D2).withOpacity(0.3),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
                                       ),
-                                      padding: const EdgeInsets.all(16),
+                                      padding: const EdgeInsets.all(24),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -632,35 +651,58 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(
-                                                      'Mis tareas en este proyecto',
-                                                      style: theme.textTheme.titleMedium?.copyWith(
-                                                        fontWeight: FontWeight.w700,
+                                                    const Text(
+                                                      'Mis Tareas',
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.w800,
+                                                        color: Colors.white,
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 4),
+                                                    const SizedBox(height: 6),
                                                     Text(
-                                                      'Revisa rápidamente qué tienes pendiente y toca para ver el detalle.',
-                                                      style: theme.textTheme.bodySmall?.copyWith(
-                                                        color: colorScheme.onSurfaceVariant,
+                                                      'Revisa rápidamente qué tienes pendiente',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.white.withOpacity(0.9),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
-                                              FilledButton.tonal(
-                                                onPressed: () {
-                                                  Modular.to.pushNamed('/voluntario/tareas');
-                                                },
-                                                style: FilledButton.styleFrom(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 14,
-                                                    vertical: 8,
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(
+                                                    color: Colors.white.withOpacity(0.3),
+                                                    width: 1.5,
                                                   ),
-                                                  minimumSize: const Size(0, 0),
                                                 ),
-                                                child: const Text('Ver todas'),
+                                                child: Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      Modular.to.pushNamed('/voluntario/tareas');
+                                                    },
+                                                    borderRadius: BorderRadius.circular(16),
+                                                    child: const Padding(
+                                                      padding: EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 10,
+                                                      ),
+                                                      child: Text(
+                                                        'Ver todas',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -776,10 +818,21 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                                   }
 
                                                   return Container(
-                                                    margin: const EdgeInsets.only(bottom: 10),
+                                                    margin: const EdgeInsets.only(bottom: 12),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(20),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black.withOpacity(0.08),
+                                                          blurRadius: 12,
+                                                          offset: const Offset(0, 4),
+                                                        ),
+                                                      ],
+                                                    ),
                                                     child: Material(
-                                                      color: colorScheme.surface.withOpacity(0.95),
-                                                      borderRadius: BorderRadius.circular(18),
+                                                      color: Colors.transparent,
+                                                      borderRadius: BorderRadius.circular(20),
                                                       child: InkWell(
                                                         onTap: () {
                                                           print('👆 Click en tarea: id=$tareaId');
@@ -923,5 +976,50 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                     print('Error cargando organización: $e');
                     return null;
                   }
+                }
+
+                Widget _buildDetailRow(IconData icon, String label, String value, ThemeData theme) {
+                  return Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 20,
+                          color: const Color(0xFF1976D2),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              value,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
                 }
               }

@@ -100,13 +100,28 @@ class _MisTareasPageState extends State<MisTareasPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Mis Tareas'),
+        title: const Text(
+          'Mis Tareas',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 24,
+          ),
+        ),
         elevation: 0,
+        backgroundColor: const Color(0xFFF5F7FA),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadTareas,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF1976D2)),
+              onPressed: _loadTareas,
+            ),
           ),
         ],
       ),
@@ -141,17 +156,17 @@ class _MisTareasPageState extends State<MisTareasPage> {
                   children: [
                     // Filtros
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
                             _buildFiltroChip('Todas', 'todas', colorScheme),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             _buildFiltroChip('Pendientes', 'pendiente', colorScheme),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             _buildFiltroChip('En Progreso', 'en_progreso', colorScheme),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             _buildFiltroChip('Completadas', 'completada', colorScheme),
                           ],
                         ),
@@ -181,7 +196,7 @@ class _MisTareasPageState extends State<MisTareasPage> {
                           : RefreshIndicator(
                               onRefresh: _loadTareas,
                               child: ListView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                                 itemCount: _tareasFiltradas.length,
                                 itemBuilder: (context, index) {
                                   final tarea = _tareasFiltradas[index];
@@ -197,20 +212,42 @@ class _MisTareasPageState extends State<MisTareasPage> {
 
   Widget _buildFiltroChip(String label, String valor, ColorScheme colorScheme) {
     final isSelected = _filtroEstado == valor;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
+    return GestureDetector(
+      onTap: () {
         setState(() {
           _filtroEstado = valor;
         });
       },
-      backgroundColor: colorScheme.surface,
-      selectedColor: colorScheme.primaryContainer,
-      checkmarkColor: colorScheme.onPrimaryContainer,
-      labelStyle: TextStyle(
-        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1976D2) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1976D2).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF616161),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }
@@ -232,10 +269,25 @@ class _MisTareasPageState extends State<MisTareasPage> {
 
     print('🔍 Tarea card: id=$tareaId, titulo=$titulo, keys=${tarea.keys.toList()}');
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
           print('👆 Click en tarea card: id=$tareaId');
           if (tareaId != null) {
             print('✅ Navegando a /voluntario/tareas/$tareaId');
@@ -250,116 +302,143 @@ class _MisTareasPageState extends State<MisTareasPage> {
             );
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Título y estado
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      titulo,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Título y estado
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        titulo,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A1A),
+                          height: 1.3,
+                        ),
                       ),
                     ),
-                  ),
-                  Chip(
-                    label: Text(estado.toUpperCase()),
-                    backgroundColor: _getEstadoColor(estado, colorScheme),
-                    labelStyle: TextStyle(
-                      color: _getEstadoTextColor(estado, colorScheme),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getEstadoColor(estado, colorScheme),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        estado.toUpperCase(),
+                        style: TextStyle(
+                          color: _getEstadoTextColor(estado, colorScheme),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
+                  ],
+                ),
+
+                if (descripcion != null && descripcion.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    descripcion,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
-              ),
 
-              if (descripcion != null && descripcion.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  descripcion,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                const SizedBox(height: 16),
+
+                // Footer: Proyecto, prioridad y fecha
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 10,
+                    children: [
+                      if (proyecto != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.folder_rounded, size: 16, color: Color(0xFF1976D2)),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                proyecto['nombre']?.toString() ?? 'Proyecto',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF1976D2),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (prioridad != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              prioridad.toLowerCase() == 'alta'
+                                  ? Icons.flag_rounded
+                                  : prioridad.toLowerCase() == 'media'
+                                      ? Icons.flag_outlined
+                                      : Icons.outlined_flag,
+                              size: 16,
+                              color: prioridad.toLowerCase() == 'alta'
+                                  ? const Color(0xFFEF5350)
+                                  : const Color(0xFF616161),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              prioridad,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (fechaVencimiento != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey[600]),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${fechaVencimiento.day}/${fechaVencimiento.month}/${fechaVencimiento.year}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
               ],
-
-              const SizedBox(height: 12),
-
-              // Footer: Proyecto, prioridad y fecha
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  if (proyecto != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.folder_outlined, size: 16, color: colorScheme.primary),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            proyecto['nombre']?.toString() ?? 'Proyecto',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (prioridad != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          prioridad.toLowerCase() == 'alta'
-                              ? Icons.priority_high
-                              : prioridad.toLowerCase() == 'media'
-                                  ? Icons.remove
-                                  : Icons.arrow_downward,
-                          size: 16,
-                          color: prioridad.toLowerCase() == 'alta'
-                              ? colorScheme.error
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          prioridad,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (fechaVencimiento != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${fechaVencimiento.day}/${fechaVencimiento.month}/${fechaVencimiento.year}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),

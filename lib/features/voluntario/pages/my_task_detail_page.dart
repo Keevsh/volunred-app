@@ -109,6 +109,24 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
               ? (proyectoMap['nombre']?.toString() ?? 'Proyecto')
               : 'Proyecto';
 
+          int? proyectoId;
+          if (tareaMap != null) {
+            final rawProyectoId = tareaMap['proyecto_id'];
+            if (rawProyectoId is int) {
+              proyectoId = rawProyectoId;
+            } else if (rawProyectoId is String) {
+              proyectoId = int.tryParse(rawProyectoId);
+            }
+          }
+          if (proyectoId == null && proyectoMap != null) {
+            final rawProyectoId = proyectoMap['id_proyecto'] ?? proyectoMap['proyecto_id'];
+            if (rawProyectoId is int) {
+              proyectoId = rawProyectoId;
+            } else if (rawProyectoId is String) {
+              proyectoId = int.tryParse(rawProyectoId);
+            }
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -143,6 +161,81 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                   const SizedBox(height: 4),
                   Text(descripcion, style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 16),
+                ],
+                if (proyectoId != null) ...[
+                  Text('Otras tareas de este proyecto', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _repository.getMyTasks(proyectoId: proyectoId),
+                    builder: (context, tasksSnapshot) {
+                      if (tasksSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: LinearProgressIndicator(minHeight: 2),
+                        );
+                      }
+
+                      if (tasksSnapshot.hasError) {
+                        return Text(
+                          'Error al cargar otras tareas del proyecto',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.error,
+                          ),
+                        );
+                      }
+
+                      final tasks = tasksSnapshot.data ?? [];
+                      if (tasks.isEmpty) {
+                        return Text(
+                          'No tienes más tareas asignadas en este proyecto.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: tasks.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = tasks[index];
+                          final otherTareaMap = item['tarea'] is Map
+                              ? Map<String, dynamic>.from(item['tarea'] as Map)
+                              : null;
+                          final tareaNombre = otherTareaMap != null
+                              ? (otherTareaMap['nombre']?.toString() ?? 'Tarea')
+                              : 'Tarea';
+                          final otherEstado = (item['estado'] ?? otherTareaMap?['estado'] ?? 'pendiente')
+                              .toString();
+
+                          int? otherTareaId;
+                          if (otherTareaMap != null) {
+                            final rawId = otherTareaMap['id_tarea'] ?? otherTareaMap['id'];
+                            if (rawId is int) {
+                              otherTareaId = rawId;
+                            } else if (rawId is String) {
+                              otherTareaId = int.tryParse(rawId);
+                            }
+                          }
+                          otherTareaId ??= item['tarea_id'] is int ? item['tarea_id'] as int : null;
+
+                          return ListTile(
+                            title: Text(tareaNombre),
+                            subtitle: Text('Estado: ${otherEstado.toUpperCase()}'),
+                            onTap: otherTareaId == null
+                                ? null
+                                : () {
+                                    if (otherTareaId == widget.tareaId) return;
+                                    Modular.to.pushReplacementNamed('/voluntario/my-tasks/$otherTareaId');
+                                  },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
                 ],
                 Text('Evidencias (${evidencias.length})', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),

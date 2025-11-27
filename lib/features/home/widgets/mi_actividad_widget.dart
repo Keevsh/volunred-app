@@ -16,6 +16,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
 
   List<Inscripcion> _misInscripciones = [];
   List<Participacion> _misParticipaciones = [];
+  List<Map<String, dynamic>> _misTareas = [];
   bool _isLoading = true;
   String? _error;
 
@@ -34,10 +35,12 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
     try {
       final inscripciones = await _repository.getInscripciones();
       final participaciones = await _repository.getParticipaciones();
+      final tareas = await _repository.getMyTasks();
 
       setState(() {
         _misInscripciones = inscripciones;
         _misParticipaciones = participaciones;
+        _misTareas = tareas;
         _isLoading = false;
       });
     } catch (e) {
@@ -100,6 +103,9 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
               child: _buildQuickStats(theme),
             ),
 
+            // Resumen de mis tareas
+            if (_misTareas.isNotEmpty) _buildMyTasksSummary(theme),
+
             // Participaciones activas
             if (_misParticipaciones.isNotEmpty) _buildMyParticipations(theme),
 
@@ -119,8 +125,8 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
   }
 
   Widget _buildQuickStats(ThemeData theme) {
-    final participacionesActivas = _misParticipaciones.where((p) => p.estado == 'activo').length;
-    final inscripcionesPendientes = _misInscripciones.where((i) => i.estado == 'pendiente').length;
+    final participacionesActivas =
+        _misParticipaciones.where((p) => p.estado == 'activo').length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -139,15 +145,254 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildStatCard(
-              'Pendientes',
-              inscripcionesPendientes.toString(),
-              Icons.pending_actions_rounded,
-              inscripcionesPendientes > 0 ? const Color(0xFFFF9800) : const Color(0xFF4CAF50),
-              inscripcionesPendientes > 0 ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
+              'Mis tareas',
+              _misTareas.length.toString(),
+              Icons.checklist_rounded,
+              _misTareas.isNotEmpty ? const Color(0xFF388E3C) : const Color(0xFF9E9E9E),
+              _misTareas.isNotEmpty ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
               theme,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMyTasksSummary(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final tareasOrdenadas = List<Map<String, dynamic>>.from(_misTareas);
+    tareasOrdenadas.sort((a, b) {
+      final estadoA = a['estado']?.toString().toLowerCase() ?? '';
+      final estadoB = b['estado']?.toString().toLowerCase() ?? '';
+      return estadoA.compareTo(estadoB);
+    });
+    final tareasMostrar = tareasOrdenadas.take(3).toList();
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(22),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primaryContainer.withOpacity(0.16),
+                colorScheme.secondaryContainer.withOpacity(0.10),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mis tareas',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Revisa rápido lo pendiente y en progreso.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Modular.to.pushNamed('/voluntario/tareas');
+                    },
+                    child: const Text('Ver todas'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (tareasMostrar.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: 20,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Aún no tienes tareas asignadas.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Column(
+                  children: tareasMostrar.map((tarea) {
+                    final titulo = tarea['titulo']?.toString() ?? 'Tarea sin título';
+                    final estado = tarea['estado']?.toString() ?? 'pendiente';
+                    final proyectoNombre =
+                        tarea['proyecto_nombre']?.toString() ?? tarea['proyecto']?.toString();
+                    final fechaLimite =
+                        tarea['fecha_limite']?.toString() ?? tarea['fechaLimite']?.toString();
+
+                    Color chipColor;
+                    Color chipTextColor;
+                    String estadoLabel;
+                    IconData? estadoIcon;
+
+                    switch (estado.toLowerCase()) {
+                      case 'pendiente':
+                        chipColor = colorScheme.errorContainer;
+                        chipTextColor = colorScheme.onErrorContainer;
+                        estadoLabel = 'Pendiente';
+                        estadoIcon = Icons.schedule;
+                        break;
+                      case 'en_progreso':
+                      case 'en progreso':
+                        chipColor = colorScheme.tertiaryContainer;
+                        chipTextColor = colorScheme.onTertiaryContainer;
+                        estadoLabel = 'En progreso';
+                        estadoIcon = Icons.timelapse;
+                        break;
+                      case 'completada':
+                      case 'completado':
+                        chipColor = colorScheme.primaryContainer;
+                        chipTextColor = colorScheme.onPrimaryContainer;
+                        estadoLabel = 'Completada';
+                        estadoIcon = Icons.check_circle;
+                        break;
+                      default:
+                        chipColor = colorScheme.surfaceVariant;
+                        chipTextColor = colorScheme.onSurfaceVariant;
+                        estadoLabel = estado;
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface.withOpacity(0.96),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  titulo,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (proyectoNombre != null && proyectoNombre.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.volunteer_activism,
+                                        size: 14,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          proyectoNombre,
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                if (fechaLimite != null && fechaLimite.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.event,
+                                        size: 14,
+                                        color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Entrega: $fechaLimite',
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: chipColor,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (estadoIcon != null) ...[
+                                  Icon(
+                                    estadoIcon,
+                                    size: 14,
+                                    color: chipTextColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  estadoLabel,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: chipTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -790,19 +790,23 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
     final foto = evidencia['foto']?.toString();
     final comentario = evidencia['comentario']?.toString() ?? '';
     final fecha = evidencia['creado_en']?.toString() ?? evidencia['fecha']?.toString();
+    final tipoRaw = evidencia['tipo']?.toString() ?? '';
+    final tipo = tipoRaw.isEmpty ? 'EVIDENCIA' : tipoRaw.toUpperCase();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1.5,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (foto != null && foto.isNotEmpty)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: ImageBase64Widget(
                 base64String: foto,
                 width: double.infinity,
-                height: 200,
+                height: 180,
                 fit: BoxFit.cover,
               ),
             ),
@@ -811,19 +815,56 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header: tipo + fecha
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            foto != null && foto.isNotEmpty
+                                ? Icons.photo_library_outlined
+                                : Icons.notes_outlined,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            tipo,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (fecha != null)
+                      Text(
+                        _formatDate(fecha),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // Comentario
                 Text(
                   comentario,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                if (fecha != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _formatDate(fecha),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
                   ),
-                ],
+                ),
               ],
             ),
           ),

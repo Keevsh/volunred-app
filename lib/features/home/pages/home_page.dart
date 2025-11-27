@@ -411,9 +411,9 @@ class _HomePageState extends State<HomePage> {
                                           ? null
                                           : descripcionController.text.trim(),
                                   'fecha_inicio':
-                                      fechaInicio!.toIso8601String(),
+                                      fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
                                   if (fechaFin != null)
-                                    'fecha_fin': fechaFin!.toIso8601String(),
+                                    'fecha_fin': fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
                                 });
 
                                 if (!mounted) return;
@@ -1825,41 +1825,141 @@ class _HomePageState extends State<HomePage> {
   }
   
   Widget _buildProyectoCardCompact(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+    final fechaInicio = proyecto.fechaInicio;
+    final fechaFin = proyecto.fechaFin;
+    final bool isActivo = proyecto.estado.toLowerCase() == 'activo';
+
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.secondaryContainer,
-          child: Icon(
-            Icons.folder,
-            color: colorScheme.onSecondaryContainer,
-          ),
-        ),
-        title: Text(
-          proyecto.nombre,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty
-            ? Text(
-                proyecto.objetivo!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              )
-            : null,
-        trailing: Chip(
-          label: Text(proyecto.estado),
-          backgroundColor: proyecto.estado == 'activo'
-              ? colorScheme.primaryContainer
-              : colorScheme.surfaceContainerHighest,
-          labelStyle: TextStyle(
-            color: proyecto.estado == 'activo'
-                ? colorScheme.onPrimaryContainer
-                : colorScheme.onSurfaceVariant,
-          ),
-        ),
+      elevation: 1.5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.folder_open_rounded,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          proyecto.nombre,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
+                          Text(
+                            proyecto.objetivo!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Chip(
+                    label: Text(
+                      isActivo ? 'Activo' : proyecto.estado,
+                    ),
+                    backgroundColor: isActivo
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHighest,
+                    labelStyle: TextStyle(
+                      color: isActivo
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  const SizedBox(width: 8),
+                  if (fechaInicio != null)
+                    Chip(
+                      avatar: const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                      ),
+                      label: Text(
+                        '${fechaInicio.day.toString().padLeft(2, '0')}/${fechaInicio.month.toString().padLeft(2, '0')}/${fechaInicio.year}',
+                      ),
+                      backgroundColor: colorScheme.surfaceContainerHighest,
+                      labelStyle: theme.textTheme.bodySmall,
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  if (fechaFin != null) ...[
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${fechaFin.day.toString().padLeft(2, '0')}/${fechaFin.month.toString().padLeft(2, '0')}/${fechaFin.year}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    proyecto.ubicacion ?? 'Sin ubicación definida',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                    label: const Text('Ver detalles'),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1911,7 +2011,7 @@ class _HomePageState extends State<HomePage> {
               }
               
               final proyectos = snapshot.data ?? [];
-              
+
               if (proyectos.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
@@ -1959,21 +2059,104 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               }
-              
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final proyecto = proyectos[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
-                      );
-                    },
-                    childCount: proyectos.length,
+
+              final total = proyectos.length;
+              final activos = proyectos.where((p) => p.estado.toLowerCase() == 'activo').length;
+              final inactivos = total - activos;
+
+              return SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$total',
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Proyectos totales',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: colorScheme.outline.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$activos activos',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$inactivos inactivos',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Proyectos de tu organización',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      children: proyectos.map((proyecto) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ]),
               );
             },
           ),

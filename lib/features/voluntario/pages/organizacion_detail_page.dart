@@ -82,6 +82,199 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
     }
   }
 
+  /// Muestra el modal de confirmación antes de inscribirse
+  Future<void> _mostrarConfirmacionInscripcion() async {
+    if (_organizacion == null) return;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Icono y título
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.privacy_tip_outlined,
+                    color: colorScheme.onPrimaryContainer,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    'Solicitar inscripción',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Aviso de privacidad
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Información importante',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Al inscribirte a "${_organizacion!.nombre}", la organización podrá ver tu información de perfil, incluyendo:',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPrivacyItem(Icons.person, 'Tu nombre completo', theme),
+                  _buildPrivacyItem(Icons.email, 'Tu correo electrónico', theme),
+                  _buildPrivacyItem(Icons.phone, 'Tu número de teléfono', theme),
+                  _buildPrivacyItem(Icons.badge, 'Tu perfil de voluntario', theme),
+                  _buildPrivacyItem(Icons.star, 'Tus aptitudes y experiencias', theme),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Nota sobre el proceso
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Tu solicitud quedará pendiente hasta que la organización la revise y apruebe.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Botones
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.pop(context, true),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Acepto, inscribirme'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed == true) {
+      await _inscribirse();
+    }
+  }
+
+  Widget _buildPrivacyItem(IconData icon, String text, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _inscribirse() async {
     if (_organizacion == null) return;
 
@@ -135,21 +328,37 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Inscripción enviada exitosamente'),
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          const SnackBar(
+            content: Text('¡Solicitud enviada! La organización revisará tu inscripción.'),
+            backgroundColor: Colors.green,
           ),
         );
         _loadData(); // Recargar para actualizar el estado
       }
     } catch (e) {
       if (mounted) {
+        // Limpiar el mensaje de error (remover "Exception: " prefix)
+        String errorMessage = e.toString().replaceFirst('Exception: ', '');
+        
+        // Verificar si es un error de inscripción duplicada (409)
+        final bool isDuplicateError = errorMessage.toLowerCase().contains('ya existe') ||
+            errorMessage.toLowerCase().contains('pendiente') ||
+            errorMessage.toLowerCase().contains('solicitud');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al inscribirse: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Text(errorMessage),
+            backgroundColor: isDuplicateError 
+                ? Colors.orange 
+                : Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
           ),
         );
+        
+        // Si ya existe una inscripción pendiente, recargar datos para actualizar UI
+        if (isDuplicateError) {
+          _loadData();
+        }
       }
     } finally {
       if (mounted) {
@@ -361,7 +570,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
                                     Expanded(
                                       child: FilledButton(
                                         onPressed: _inscripcion == null && !_isInscribiendo
-                                            ? _inscribirse
+                                            ? _mostrarConfirmacionInscripcion
                                             : null,
                                         style: FilledButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(vertical: 10),

@@ -734,6 +734,26 @@ class VoluntarioRepository {
         throw Exception(errorMessage);
       }
       
+      // Manejar errores 409 (Conflict) - inscripción duplicada
+      if (e.response?.statusCode == 409) {
+        final errorData = e.response?.data;
+        print('🔍 Error Response Data: $errorData');
+        print('🔍 Error Response Type: ${errorData.runtimeType}');
+        
+        String errorMessage = 'Ya tienes una solicitud pendiente para esta organización';
+        
+        if (errorData is Map<String, dynamic>) {
+          if (errorData.containsKey('message')) {
+            final message = errorData['message'];
+            if (message is String) {
+              errorMessage = message;
+            }
+          }
+        }
+        
+        throw Exception(errorMessage);
+      }
+      
       throw _handleError(e);
     } catch (e, stackTrace) {
       print('❌ Error general: $e');
@@ -1070,8 +1090,12 @@ class VoluntarioRepository {
   }) async {
     try {
       final body = <String, dynamic>{
+        // El backend espera 'comentario' (no 'descripcion')
         'comentario': comentario,
+        // Enviar siempre un tipo válido y corto
+        'tipo': (fotoBase64 != null && fotoBase64.isNotEmpty) ? 'FOTO' : 'TEXTO',
       };
+
       if (fotoBase64 != null && fotoBase64.isNotEmpty) {
         body['foto'] = fotoBase64;
       }

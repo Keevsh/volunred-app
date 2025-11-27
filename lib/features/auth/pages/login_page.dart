@@ -115,26 +115,32 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Logo/Icon
-                      Icon(
-                        Icons.volunteer_activism,
-                        size: 80,
-                        color: colorScheme.primary,
+                      // Logo + Title inline
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.volunteer_activism,
+                            size: 40,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'VolunRed',
+                            style: theme.textTheme.headlineLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              // Un poco más grande y ancha visualmente
+                              fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 4,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 32),
-                      
-                      // Title
-                      Text(
-                        'Bienvenido',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
                       const SizedBox(height: 8),
                       
                       Text(
-                        'Inicia sesión para continuar',
+                        'Plataforma de voluntariado y organizaciones solidarias. Inicia sesión para continuar.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

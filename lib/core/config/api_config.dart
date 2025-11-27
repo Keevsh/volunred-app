@@ -70,12 +70,26 @@ class ApiConfig {
   static String opinionesByProyecto(int proyectoId) => '$opiniones/proyecto/$proyectoId';
   static String opinionesByVoluntario(int perfilVolId) => '$opiniones/voluntario/$perfilVolId';
 
-  // Endpoints de voluntarios (tareas del voluntario autenticado)
+  // Endpoints de voluntarios (voluntario autenticado)
   static const String voluntariosBase = '/voluntarios';
+  
+  // Dashboard
+  static const String voluntariosDashboard = '$voluntariosBase/dashboard';
+  
+  // Proyectos del voluntario
+  static const String voluntariosMyProyectos = '$voluntariosBase/my/proyectos';
+  static String voluntariosMyProyecto(int proyectoId) => '$voluntariosMyProyectos/$proyectoId';
+  static String voluntariosMyProyectoTareas(int proyectoId) => '$voluntariosMyProyectos/$proyectoId/tareas';
+  
+  // Tareas del voluntario
   static const String voluntariosMyTasks = '$voluntariosBase/my/tasks';
   static String voluntariosMyTask(int tareaId) => '$voluntariosMyTasks/$tareaId';
   static String voluntariosMyTaskStatus(int tareaId) => '$voluntariosMyTasks/$tareaId/status';
   static String voluntariosMyTaskEvidences(int tareaId) => '$voluntariosMyTasks/$tareaId/evidences';
+  
+  // Participaciones del voluntario
+  static const String voluntariosMyParticipaciones = '$voluntariosBase/my/participaciones';
+  static String voluntariosMyParticipacion(int id) => '$voluntariosMyParticipaciones/$id';
 
   // Endpoints de bitácoras
   static const String bitacorasOperaciones = '/administracion/bitacoras-operaciones';

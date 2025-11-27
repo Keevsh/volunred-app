@@ -384,3 +384,32 @@ class UpdateAptitudRequest {
     };
   }
 }
+
+// ==================== VOLUNTARIO REQUESTS ====================
+
+/// Solicitar participación en un proyecto
+/// POST /voluntarios/my/participaciones
+class CrearParticipacionRequest {
+  /// ID del proyecto al que se quiere unir
+  final int proyectoId;
+  
+  /// ID del perfil de voluntario (opcional, se puede completar en el repositorio)
+  final int? perfilVolId;
+  
+  /// Horas comprometidas por semana (opcional)
+  final double? horasComprometidasSemana;
+
+  CrearParticipacionRequest({
+    required this.proyectoId,
+    this.perfilVolId,
+    this.horasComprometidasSemana,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'proyecto_id': proyectoId,
+      if (perfilVolId != null) 'perfil_vol_id': perfilVolId,
+      if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
+    };
+  }
+}

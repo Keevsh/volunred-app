@@ -173,7 +173,7 @@ enum EstadoInscripcion {
   }
 }
 
-/// Estados de participación
+/// Estados de participación (legacy - para funcionarios)
 enum EstadoParticipacion {
   programada,
   enProgreso,
@@ -219,6 +219,78 @@ enum EstadoParticipacion {
       case EstadoParticipacion.ausente:
         return 'Ausente';
     }
+  }
+}
+
+/// Estados de participación del voluntario (para endpoints /voluntarios/my/*)
+/// Incluye estados de solicitud: pendiente, aprobada, rechazada
+/// y estados de ejecución: programada, en_progreso, completado
+enum EstadoParticipacionVoluntario {
+  pendiente,
+  aprobada,
+  rechazada,
+  programada,
+  enProgreso,
+  completado;
+
+  String get value {
+    switch (this) {
+      case EstadoParticipacionVoluntario.pendiente:
+        return 'pendiente';
+      case EstadoParticipacionVoluntario.aprobada:
+        return 'aprobada';
+      case EstadoParticipacionVoluntario.rechazada:
+        return 'rechazada';
+      case EstadoParticipacionVoluntario.programada:
+        return 'programada';
+      case EstadoParticipacionVoluntario.enProgreso:
+        return 'en_progreso';
+      case EstadoParticipacionVoluntario.completado:
+        return 'completado';
+    }
+  }
+
+  static EstadoParticipacionVoluntario fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'pendiente':
+        return EstadoParticipacionVoluntario.pendiente;
+      case 'aprobada':
+        return EstadoParticipacionVoluntario.aprobada;
+      case 'rechazada':
+        return EstadoParticipacionVoluntario.rechazada;
+      case 'programada':
+        return EstadoParticipacionVoluntario.programada;
+      case 'en_progreso':
+        return EstadoParticipacionVoluntario.enProgreso;
+      case 'completado':
+        return EstadoParticipacionVoluntario.completado;
+      default:
+        return EstadoParticipacionVoluntario.pendiente;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case EstadoParticipacionVoluntario.pendiente:
+        return 'Pendiente';
+      case EstadoParticipacionVoluntario.aprobada:
+        return 'Aprobada';
+      case EstadoParticipacionVoluntario.rechazada:
+        return 'Rechazada';
+      case EstadoParticipacionVoluntario.programada:
+        return 'Programada';
+      case EstadoParticipacionVoluntario.enProgreso:
+        return 'En Progreso';
+      case EstadoParticipacionVoluntario.completado:
+        return 'Completado';
+    }
+  }
+
+  /// Indica si el estado representa una participación activa
+  bool get isActive {
+    return this == EstadoParticipacionVoluntario.aprobada ||
+           this == EstadoParticipacionVoluntario.programada ||
+           this == EstadoParticipacionVoluntario.enProgreso;
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import '../models/aptitud.dart';
 import '../models/dto/request_models.dart';
+import '../models/dto/voluntario_responses.dart';
 import '../models/perfil_voluntario.dart';
 import '../models/experiencia_voluntario.dart';
 import '../models/inscripcion.dart';
@@ -913,6 +914,14 @@ class VoluntarioRepository {
     int? proyectoId,
   }) async {
     try {
+      // Primero verificar si el voluntario participa en algún proyecto
+      // Si no tiene proyectos, no tiene sentido pedir sus tareas
+      final misProyectos = await getMyProyectos();
+      if (misProyectos.isEmpty) {
+        print('ℹ️ getMyTasks: voluntario sin proyectos activos, retornando lista vacía');
+        return [];
+      }
+
       final queryParameters = <String, dynamic>{};
       if (estado != null && estado.isNotEmpty) {
         queryParameters['estado'] = estado;
@@ -1226,6 +1235,275 @@ class VoluntarioRepository {
     try {
       await _dioClient.dio.delete(ApiConfig.calificacionProyecto(id));
     } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== ENDPOINTS VOLUNTARIO AUTENTICADO ====================
+  // Estos endpoints usan el JWT del voluntario para filtrar automáticamente
+
+  /// 1. Dashboard del voluntario
+  /// GET /voluntarios/dashboard
+  /// Devuelve un resumen general del voluntario y sus últimas tareas.
+  Future<VoluntarioDashboardResponse> getDashboard() async {
+    try {
+      print('📊 Obteniendo dashboard del voluntario...');
+      final response = await _dioClient.dio.get(ApiConfig.voluntariosDashboard);
+      
+      print('📥 Dashboard response: ${response.statusCode}');
+      
+      if (response.data is Map<String, dynamic>) {
+        return VoluntarioDashboardResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      
+      // Si la respuesta no es el formato esperado, retornar un dashboard vacío
+      return const VoluntarioDashboardResponse(
+        resumen: ResumenVoluntario(
+          organizacionesInscritas: 0,
+          proyectosParticipando: 0,
+          participacionesPendientes: 0,
+          tareas: ResumenTareas(asignadas: 0, enProgreso: 0, completadas: 0, total: 0),
+        ),
+        ultimasTareas: [],
+      );
+    } on DioException catch (e) {
+      print('❌ Error obteniendo dashboard: ${e.message}');
+      throw _handleError(e);
+    }
+  }
+
+  /// 2. Proyectos en los que participa el voluntario
+  /// GET /voluntarios/my/proyectos
+  /// Lista de proyectos donde el voluntario tiene una participación activa.
+  Future<List<ProyectoVoluntario>> getMyProyectos() async {
+    try {
+      print('📋 Obteniendo proyectos del voluntario...');
+      final response = await _dioClient.dio.get(ApiConfig.voluntariosMyProyectos);
+      
+      print('📥 Proyectos response: ${response.statusCode}');
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => ProyectoVoluntario.fromJson(json))
+            .toList();
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error obteniendo proyectos: ${e.message}');
+      throw _handleError(e);
+    }
+  }
+
+  /// 3. Detalle de un proyecto donde participa
+  /// GET /voluntarios/my/proyectos/:proyectoId
+  /// Devuelve la información del proyecto + las tareas activas.
+  Future<ProyectoDetalleVoluntario> getMyProyectoDetalle(int proyectoId) async {
+    try {
+      print('📋 Obteniendo detalle del proyecto $proyectoId...');
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyProyecto(proyectoId),
+      );
+      
+      print('📥 Proyecto detalle response: ${response.statusCode}');
+      
+      if (response.data is Map<String, dynamic>) {
+        return ProyectoDetalleVoluntario.fromJson(response.data as Map<String, dynamic>);
+      }
+      
+      throw Exception('Formato de respuesta no válido');
+    } on DioException catch (e) {
+      print('❌ Error obteniendo detalle del proyecto: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('No participas en este proyecto o tu participación no está activa.');
+      }
+      throw _handleError(e);
+    }
+  }
+
+  /// 4. Tareas activas de un proyecto
+  /// GET /voluntarios/my/proyectos/:proyectoId/tareas
+  /// Devuelve solo las tareas activas de un proyecto donde el voluntario participa.
+  Future<List<TareaProyecto>> getMyProyectoTareas(int proyectoId) async {
+    try {
+      print('📋 Obteniendo tareas del proyecto $proyectoId...');
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyProyectoTareas(proyectoId),
+      );
+      
+      print('📥 Tareas proyecto response: ${response.statusCode}');
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => TareaProyecto.fromJson(json))
+            .toList();
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error obteniendo tareas del proyecto: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('No participas en este proyecto.');
+      }
+      throw _handleError(e);
+    }
+  }
+
+  /// 5. Todas las tareas del voluntario (todos los proyectos)
+  /// GET /voluntarios/my/tasks
+  /// Devuelve todas las tareas asignadas al voluntario.
+  Future<List<AsignacionTareaVoluntario>> getMyAllTasks({
+    String? estado,
+    int? proyectoId,
+  }) async {
+    try {
+      print('📋 Obteniendo todas las tareas del voluntario...');
+      
+      final queryParameters = <String, dynamic>{};
+      if (estado != null && estado.isNotEmpty) {
+        queryParameters['estado'] = estado;
+      }
+      if (proyectoId != null) {
+        queryParameters['proyectoId'] = proyectoId;
+      }
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyTasks,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+      );
+      
+      print('📥 Todas las tareas response: ${response.statusCode}');
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => AsignacionTareaVoluntario.fromJson(json))
+            .toList();
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error obteniendo todas las tareas: ${e.message}');
+      // Si es error 500, retornar lista vacía en lugar de fallar
+      // (el endpoint puede no estar implementado aún en el backend)
+      if (e.response?.statusCode == 500) {
+        print('⚠️ El endpoint /voluntarios/my/tasks retornó 500 - retornando lista vacía');
+        return [];
+      }
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== PARTICIPACIONES DEL VOLUNTARIO ====================
+
+  /// 6.1 Crear solicitud de participación
+  /// POST /voluntarios/my/participaciones
+  /// El voluntario solicita participar en un proyecto.
+  Future<CrearParticipacionResponse> createMyParticipacion(
+    CrearParticipacionRequest request,
+  ) async {
+    try {
+      print('📤 Creando solicitud de participación...');
+      print('📤 Proyecto ID: ${request.proyectoId}');
+      
+      final response = await _dioClient.dio.post(
+        ApiConfig.voluntariosMyParticipaciones,
+        data: request.toJson(),
+      );
+      
+      print('📥 Crear participación response: ${response.statusCode}');
+      
+      if (response.data is Map<String, dynamic>) {
+        return CrearParticipacionResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      
+      throw Exception('Formato de respuesta no válido');
+    } on DioException catch (e) {
+      print('❌ Error creando participación: ${e.message}');
+      print('❌ Response: ${e.response?.data}');
+      
+      // Manejar errores específicos
+      if (e.response?.statusCode == 400) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] != null) {
+          throw Exception(data['message'].toString());
+        }
+        throw Exception('No tienes una inscripción aprobada en la organización de este proyecto.');
+      }
+      if (e.response?.statusCode == 404) {
+        throw Exception('El proyecto no existe.');
+      }
+      if (e.response?.statusCode == 409) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] != null) {
+          throw Exception(data['message'].toString());
+        }
+        throw Exception('Ya tienes una solicitud pendiente o ya participas en este proyecto.');
+      }
+      
+      throw _handleError(e);
+    }
+  }
+
+  /// 6.2 Listar mis participaciones
+  /// GET /voluntarios/my/participaciones
+  /// Lista todas las participaciones del voluntario.
+  Future<List<ParticipacionVoluntario>> getMyParticipaciones({
+    String? estado,
+  }) async {
+    try {
+      print('📋 Obteniendo participaciones del voluntario...');
+      
+      final queryParameters = <String, dynamic>{};
+      if (estado != null && estado.isNotEmpty) {
+        queryParameters['estado'] = estado;
+      }
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyParticipaciones,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+      );
+      
+      print('📥 Participaciones response: ${response.statusCode}');
+      
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => ParticipacionVoluntario.fromJson(json))
+            .toList();
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error obteniendo participaciones: ${e.message}');
+      throw _handleError(e);
+    }
+  }
+
+  /// 6.3 Cancelar solicitud de participación pendiente
+  /// DELETE /voluntarios/my/participaciones/:id
+  /// Cancela una solicitud de participación solo si está en estado pendiente.
+  Future<void> cancelMyParticipacion(int participacionId) async {
+    try {
+      print('🗑️ Cancelando participación $participacionId...');
+      
+      final response = await _dioClient.dio.delete(
+        ApiConfig.voluntariosMyParticipacion(participacionId),
+      );
+      
+      print('📥 Cancelar participación response: ${response.statusCode}');
+    } on DioException catch (e) {
+      print('❌ Error cancelando participación: ${e.message}');
+      
+      if (e.response?.statusCode == 400) {
+        throw Exception('Solo puedes cancelar solicitudes en estado pendiente.');
+      }
+      if (e.response?.statusCode == 404) {
+        throw Exception('Participación no encontrada.');
+      }
+      
       throw _handleError(e);
     }
   }

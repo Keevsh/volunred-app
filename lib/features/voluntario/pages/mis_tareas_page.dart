@@ -259,12 +259,25 @@ class _MisTareasPageState extends State<MisTareasPage> {
   ) {
     final estado = tarea['estado']?.toString() ?? 'pendiente';
     final prioridad = tarea['prioridad']?.toString();
-    final titulo = tarea['titulo']?.toString() ?? 'Sin título';
+    final titulo = tarea['titulo']?.toString() ?? tarea['nombre']?.toString() ?? 'Sin título';
     final descripcion = tarea['descripcion']?.toString();
     final fechaVencimiento = tarea['fechaVencimiento'] != null
         ? DateTime.tryParse(tarea['fechaVencimiento'].toString())
         : null;
-    final proyecto = tarea['proyecto'] as Map<String, dynamic>?;
+
+    // Soportar distintas formas de venir los datos del proyecto
+    Map<String, dynamic>? proyecto;
+    if (tarea['proyecto'] is Map) {
+      proyecto = Map<String, dynamic>.from(tarea['proyecto'] as Map);
+    } else if (tarea['tarea'] is Map && (tarea['tarea'] as Map)['proyecto'] is Map) {
+      final nested = (tarea['tarea'] as Map)['proyecto'] as Map;
+      proyecto = Map<String, dynamic>.from(nested);
+    }
+
+    // Nombre del proyecto con varios fallbacks
+    final nombreProyecto = proyecto != null
+        ? (proyecto['nombre']?.toString() ?? proyecto['titulo']?.toString() ?? 'Proyecto')
+        : (tarea['proyecto_nombre']?.toString() ?? tarea['nombre_proyecto']?.toString());
     final tareaId = tarea['id'] ?? tarea['tarea_id'] ?? tarea['tareaId'];
 
     print('🔍 Tarea card: id=$tareaId, titulo=$titulo, keys=${tarea.keys.toList()}');
@@ -372,7 +385,7 @@ class _MisTareasPageState extends State<MisTareasPage> {
                     spacing: 16,
                     runSpacing: 10,
                     children: [
-                      if (proyecto != null)
+                      if (nombreProyecto != null && nombreProyecto.isNotEmpty)
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -380,7 +393,7 @@ class _MisTareasPageState extends State<MisTareasPage> {
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
-                                proyecto['nombre']?.toString() ?? 'Proyecto',
+                                nombreProyecto,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Color(0xFF1976D2),

@@ -3543,37 +3543,6 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 16),
 
-                  // Bio corta
-                  if (_isFuncionario)
-                    Text(
-                      _perfilFuncionario?['cargo']?.toString() ?? 'Funcionario de la organización',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
-                  else if (_perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty)
-                    Text(
-                      _perfilVoluntario!.bio!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
-                  else
-                    Text(
-                      'Agrega una biografía para que las organizaciones te conozcan mejor.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                  const SizedBox(height: 16),
-
                   // Botón de editar perfil
                   SizedBox(
                     width: double.infinity,

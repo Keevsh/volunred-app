@@ -324,53 +324,26 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 ],
               ),
             ),
-            Stack(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Modular.to.pushNamed('/profile/edit');
-                  },
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.white,
-                    backgroundImage: widget.photoBase64 != null && widget.photoBase64!.isNotEmpty
-                        ? MemoryImage(
-                            // photoBase64 puede venir con prefijo data:..., nos quedamos con la parte base64
-                            const Base64Decoder().convert(widget.photoBase64!.split(',').last),
-                          )
-                        : null,
-                    child: (widget.photoBase64 == null || widget.photoBase64!.isEmpty)
-                        ? const Icon(
-                            Icons.person,
-                            color: Color(0xFF1976D2),
-                          )
-                        : null,
-                  ),
-                ),
-                if (_misInscripciones.isNotEmpty)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF5252),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        _misInscripciones
-                            .where((i) => i.estado == 'pendiente')
-                            .length
-                            .toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            GestureDetector(
+              onTap: () {
+                Modular.to.pushNamed('/profile/edit');
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.white,
+                backgroundImage: widget.photoBase64 != null && widget.photoBase64!.isNotEmpty
+                    ? MemoryImage(
+                        // photoBase64 puede venir con prefijo data:..., nos quedamos con la parte base64
+                        const Base64Decoder().convert(widget.photoBase64!.split(',').last),
+                      )
+                    : null,
+                child: (widget.photoBase64 == null || widget.photoBase64!.isEmpty)
+                    ? const Icon(
+                        Icons.person,
+                        color: Color(0xFF1976D2),
+                      )
+                    : null,
+              ),
             ),
           ],
         ),

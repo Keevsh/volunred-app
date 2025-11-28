@@ -654,7 +654,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
         centerTitle: false,
         elevation: 0,
@@ -794,7 +794,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                   ),
                                 ),
                                 Transform.translate(
-                                  offset: const Offset(0, -40),
+                                  offset: const Offset(0, -16),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 24),
                                     child: Center(
@@ -805,13 +805,6 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius: BorderRadius.circular(24),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(0.08),
-                                                blurRadius: 20,
-                                                offset: const Offset(0, 8),
-                                              ),
-                                            ],
                                           ),
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -827,10 +820,13 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                                 textAlign: TextAlign.center,
                                               ),
                                               const SizedBox(height: 16),
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                children: [
+                                              SizedBox(
+                                                width: double.infinity,
+                                                child: Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  alignment: WrapAlignment.center,
+                                                  children: [
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(
                                                       horizontal: 12,
@@ -893,7 +889,8 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                                         ),
                                                       );
                                                     }).toList(),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                               if (_proyecto!.objetivo != null && _proyecto!.objetivo!.isNotEmpty) ...[
                                                 const SizedBox(height: 16),
@@ -913,18 +910,17 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 0),
                               ],
                             ),
                           ),
 
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 20),
 
                                   // Organización
                                   FutureBuilder<Organizacion?>(
@@ -932,16 +928,24 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                     builder: (context, snapshot) {
                                       String organizacionNombre = 'Organización';
                                       String? logo;
+
+                                      // 1) Intentar usar datos del backend (Organizacion)
                                       if (snapshot.hasData && snapshot.data != null) {
                                         organizacionNombre = snapshot.data!.nombre;
                                         logo = snapshot.data!.logo;
-                                      } else if (_proyecto!.organizacion != null && _proyecto!.organizacion is Map) {
+                                      }
+
+                                      // 2) Si no hay logo o viene vacío, usar el mapa embebido en el proyecto
+                                      if ((logo == null || logo.isEmpty) &&
+                                          _proyecto!.organizacion != null &&
+                                          _proyecto!.organizacion is Map) {
                                         final orgMap = _proyecto!.organizacion as Map;
                                         organizacionNombre = orgMap['nombre']?.toString() ??
                                             orgMap['nombre_legal']?.toString() ??
                                             orgMap['nombre_corto']?.toString() ??
-                                            'Organización';
-                                        if (orgMap['logo'] != null) {
+                                            organizacionNombre;
+                                        if (orgMap['logo'] != null &&
+                                            orgMap['logo'].toString().isNotEmpty) {
                                           logo = orgMap['logo']?.toString();
                                         }
                                       }
@@ -979,138 +983,100 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                         );
                                       }
 
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(20),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.06),
-                                              blurRadius: 16,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            onTap: () {
-                                              Modular.to.pushNamed(
-                                                '/voluntario/organizaciones/${_proyecto!.organizacionId}',
-                                              );
-                                            },
-                                            borderRadius: BorderRadius.circular(20),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Row(
-                                                children: [
-                                                  avatar,
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          organizacionNombre,
-                                                          style: const TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: Color(0xFF1A1A1A),
-                                                          ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                        ),
-                                                        const SizedBox(height: 4),
-                                                        Text(
-                                                          'Ver perfil de la organización',
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors.grey[600],
-                                                          ),
-                                                        ),
-                                                      ],
+                                      return InkWell(
+                                        onTap: () {
+                                          Modular.to.pushNamed(
+                                            '/voluntario/organizaciones/${_proyecto!.organizacionId}',
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8),
+                                          child: Row(
+                                            children: [
+                                              avatar,
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      organizacionNombre,
+                                                      style: theme.textTheme.titleMedium?.copyWith(
+                                                        fontWeight: FontWeight.w700,
+                                                        fontSize: 16,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
-                                                  ),
-                                                  Container(
-                                                    padding: const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFFE3F2FD),
-                                                      borderRadius: BorderRadius.circular(12),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      'Ver perfil de la organización',
+                                                      style: theme.textTheme.bodySmall?.copyWith(
+                                                        color: colorScheme.primary,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
                                                     ),
-                                                    child: const Icon(
-                                                      Icons.arrow_forward_ios,
-                                                      size: 16,
-                                                      color: Color(0xFF1976D2),
-                                                    ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
-                                            ),
+                                              const SizedBox(width: 8),
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 16,
+                                                color: Color(0xFF1976D2),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       );
                                     },
                                   ),
 
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: 8),
 
-                                  // Fechas y ubicación
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.06),
-                                          blurRadius: 16,
-                                          offset: const Offset(0, 4),
+                                  // Fechas y ubicación (bloque simple, sin card)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Detalles del Proyecto',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF1A1A1A),
                                         ),
-                                      ],
-                                    ),
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Detalles del Proyecto',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800,
-                                            color: Color(0xFF1A1A1A),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildDetailRow(
+                                        Icons.calendar_today_rounded,
+                                        'Fecha de Inicio',
+                                        _proyecto!.fechaInicio != null
+                                            ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
+                                            : 'No especificada',
+                                        theme,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildDetailRow(
+                                        Icons.event_available_rounded,
+                                        'Fecha de Fin',
+                                        _proyecto!.fechaFin != null
+                                            ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
+                                            : 'No especificada',
+                                        theme,
+                                      ),
+                                      if (_proyecto!.ubicacion != null && _proyecto!.ubicacion!.isNotEmpty) ...[
+                                        const SizedBox(height: 12),
                                         _buildDetailRow(
-                                          Icons.calendar_today_rounded,
-                                          'Fecha de Inicio',
-                                          _proyecto!.fechaInicio != null
-                                              ? '${_proyecto!.fechaInicio!.day}/${_proyecto!.fechaInicio!.month}/${_proyecto!.fechaInicio!.year}'
-                                              : 'No especificada',
+                                          Icons.location_on_rounded,
+                                          'Ubicación',
+                                          _proyecto!.ubicacion!,
                                           theme,
                                         ),
-                                        const SizedBox(height: 16),
-                                        _buildDetailRow(
-                                          Icons.event_available_rounded,
-                                          'Fecha de Fin',
-                                          _proyecto!.fechaFin != null
-                                              ? '${_proyecto!.fechaFin!.day}/${_proyecto!.fechaFin!.month}/${_proyecto!.fechaFin!.year}'
-                                              : 'No especificada',
-                                          theme,
-                                        ),
-                                        if (_proyecto!.ubicacion != null && _proyecto!.ubicacion!.isNotEmpty) ...[
-                                          const SizedBox(height: 16),
-                                          _buildDetailRow(
-                                            Icons.location_on_rounded,
-                                            'Ubicación',
-                                            _proyecto!.ubicacion!,
-                                            theme,
-                                          ),
-                                        ],
                                       ],
-                                    ),
+                                    ],
                                   ),
 
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: 16),
 
                                   // Botón de participar o estado de participación
                                   if (_participacion == null) ...[

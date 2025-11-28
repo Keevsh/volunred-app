@@ -158,6 +158,11 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
               // Organizaciones destacadas (carrusel horizontal)
               _buildOrganizacionesCarousel(theme),
 
+              // Espacio extra entre organizaciones y banner
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 24),
+              ),
+
               // Banner principal grande
               SliverToBoxAdapter(
                 child: _buildMainBanner(theme, colorScheme),

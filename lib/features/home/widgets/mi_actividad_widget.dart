@@ -91,12 +91,15 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
       ),
       child: RefreshIndicator(
         onRefresh: _loadData,
-        child: CustomScrollView(
-          slivers: [
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child: CustomScrollView(
+            slivers: [
             // Header
             SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -146,6 +149,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
           ],
         ),
       ),
+    )
     );
   }
 

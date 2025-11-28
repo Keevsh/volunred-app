@@ -102,10 +102,22 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
               children: [
                 Expanded(
                   child: ListView.builder(
-                    itemCount: state.aptitudes.length,
+                    itemCount: state.aptitudes.length + 1,
                     padding: const EdgeInsets.all(16),
                     itemBuilder: (context, index) {
-                      final aptitud = state.aptitudes[index];
+                      if (index == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Selecciona las aptitudes que mejor describen tus habilidades. Esto ayudará a las organizaciones a conocerte mejor.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        );
+                      }
+
+                      final aptitud = state.aptitudes[index - 1];
                       final isSelected =
                           _selectedAptitudes.contains(aptitud.idAptitud);
                       // Verificar si esta aptitud está asignada al perfil
@@ -181,52 +193,117 @@ class _AptitudCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: isSelected ? 4 : 1,
-      color: isSelected 
-          ? Colors.blue[50] 
-          : isAssigned 
-              ? Colors.green[50] 
-              : null,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        title: Row(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    Color bgColor;
+    Color borderColor;
+
+    if (isSelected) {
+      bgColor = colorScheme.primary.withOpacity(0.08);
+      borderColor = colorScheme.primary;
+    } else if (isAssigned) {
+      bgColor = Colors.green.withOpacity(0.06);
+      borderColor = Colors.green.withOpacity(0.4);
+    } else {
+      bgColor = Colors.white;
+      borderColor = Colors.grey.withOpacity(0.2);
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor, width: 1),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(
-                aptitud.nombre,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primary.withOpacity(0.12)
+                    : colorScheme.primary.withOpacity(0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.star_rounded,
+                size: 20,
+                color: colorScheme.primary,
               ),
             ),
-            if (isAssigned && !isSelected)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Ya asignada',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.green[800],
-                    fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          aptitud.nombre,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (isAssigned && !isSelected)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Ya en tu perfil',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.green[800],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
+                  if (aptitud.descripcion != null && aptitud.descripcion!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      aptitud.descripcion!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isSelected
+                  ? Icons.check_circle_rounded
+                  : isAssigned
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.circle_outlined,
+              color: isSelected
+                  ? colorScheme.primary
+                  : isAssigned
+                      ? Colors.green[700]
+                      : colorScheme.onSurfaceVariant,
+              size: 22,
+            ),
           ],
         ),
-        subtitle: aptitud.descripcion != null
-            ? Text(aptitud.descripcion!)
-            : null,
-        trailing: isSelected
-            ? const Icon(Icons.check_circle, color: Colors.blue)
-            : isAssigned
-                ? Icon(Icons.check_circle_outline, color: Colors.green[700])
-                : const Icon(Icons.circle_outlined),
-        onTap: onTap,
       ),
     );
   }

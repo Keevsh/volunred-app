@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/voluntario_repository.dart';
@@ -10,10 +11,12 @@ import 'package:intl/intl.dart';
 
 class VoluntarioDashboard extends StatefulWidget {
   final String userName;
+  final String? photoBase64;
   
   const VoluntarioDashboard({
     super.key,
     required this.userName,
+    this.photoBase64,
   });
 
   @override
@@ -139,29 +142,33 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
       color: const Color(0xFFF8F9FA),
       child: RefreshIndicator(
         onRefresh: _loadData,
-        child: CustomScrollView(
-          slivers: [
-            // Header con saludo
-            _buildWelcomeHeader(theme),
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child: CustomScrollView(
+            slivers: [
+              // Header con saludo
+              _buildWelcomeHeader(theme),
 
-            // Barra de búsqueda
-            SliverToBoxAdapter(
-              child: _buildSearchBar(theme),
-            ),
+              // Barra de búsqueda
+              SliverToBoxAdapter(
+                child: _buildSearchBar(theme),
+              ),
 
-            // Organizaciones destacadas (carrusel horizontal)
-            _buildOrganizacionesCarousel(theme),
+              // Organizaciones destacadas (carrusel horizontal)
+              _buildOrganizacionesCarousel(theme),
 
-            // Banner principal grande
-            SliverToBoxAdapter(
-              child: _buildMainBanner(theme, colorScheme),
-            ),
+              // Banner principal grande
+              SliverToBoxAdapter(
+                child: _buildMainBanner(theme, colorScheme),
+              ),
 
-            // Proyectos destacados
-            _buildFeaturedProjects(theme),
+              // Proyectos destacados
+              _buildFeaturedProjects(theme),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ),
         ),
       ),
     );
@@ -312,49 +319,54 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 ],
               ),
             ),
-            if (_misInscripciones.isNotEmpty)
-              Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: Color(0xFF1976D2),
-                      size: 24,
-                    ),
+            Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Modular.to.pushNamed('/profile/edit');
+                  },
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.white,
+                    backgroundImage: widget.photoBase64 != null && widget.photoBase64!.isNotEmpty
+                        ? MemoryImage(
+                            // photoBase64 puede venir con prefijo data:..., nos quedamos con la parte base64
+                            const Base64Decoder().convert(widget.photoBase64!.split(',').last),
+                          )
+                        : null,
+                    child: (widget.photoBase64 == null || widget.photoBase64!.isEmpty)
+                        ? const Icon(
+                            Icons.person,
+                            color: Color(0xFF1976D2),
+                          )
+                        : null,
                   ),
+                ),
+                if (_misInscripciones.isNotEmpty)
                   Positioned(
                     right: 0,
                     top: 0,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(5),
                       decoration: const BoxDecoration(
                         color: Color(0xFFFF5252),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
-                        _misInscripciones.where((i) => i.estado == 'pendiente').length.toString(),
+                        _misInscripciones
+                            .where((i) => i.estado == 'pendiente')
+                            .length
+                            .toString(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
+            ),
           ],
         ),
       ),
@@ -446,7 +458,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Text(
               'Organizaciones',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -456,7 +468,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
             ),
           ),
           SizedBox(
-            height: 110,
+            height: 96,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
@@ -544,11 +556,11 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
 
   Widget _buildMainBanner(ThemeData theme, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(
-          minHeight: 220,
+          minHeight: 180,
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -586,7 +598,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -646,7 +658,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                           style: FilledButton.styleFrom(
                             foregroundColor: colorScheme.primary,
                             backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),

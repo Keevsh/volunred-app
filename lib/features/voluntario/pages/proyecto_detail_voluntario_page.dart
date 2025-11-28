@@ -797,10 +797,10 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                   offset: const Offset(0, -40),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(maxWidth: 600),
+                                        child: Container(
                                           padding: const EdgeInsets.all(24),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
@@ -814,7 +814,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                             ],
                                           ),
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
                                             children: [
                                               Text(
                                                 _proyecto!.nombre,
@@ -824,6 +824,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                                   color: const Color(0xFF1A1A1A),
                                                   height: 1.2,
                                                 ),
+                                                textAlign: TextAlign.center,
                                               ),
                                               const SizedBox(height: 16),
                                               Wrap(
@@ -908,7 +909,7 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
                                             ],
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),

@@ -4,6 +4,7 @@ import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
+import '../../../core/models/participacion.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -20,6 +21,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   Organizacion? _organizacion;
   List<Proyecto> _proyectos = [];
   List<Inscripcion> _inscripciones = [];
+  List<Participacion> _participaciones = [];
   bool _isLoading = true;
   String? _error;
 
@@ -39,11 +41,13 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       final org = await _repository.getMiOrganizacion();
       final proyectos = await _repository.getProyectos();
       final inscripciones = await _repository.getInscripcionesPendientes();
+      final participaciones = await _repository.getParticipaciones();
 
       setState(() {
         _organizacion = org;
         _proyectos = proyectos;
         _inscripciones = inscripciones;
+        _participaciones = participaciones;
         _isLoading = false;
       });
     } catch (e) {
@@ -109,12 +113,241 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             // Proyectos destacados
             _buildFeaturedProjects(theme),
 
+            if (_participaciones.isNotEmpty) _buildParticipacionesResumen(theme),
+
             // Solicitudes pendientes
             if (_inscripciones.isNotEmpty) _buildPendingRequests(theme),
 
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildParticipacionesResumen(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
+    // Filtrar solo las participaciones en estado pendiente (solicitudes)
+    final participacionesPendientes = _participaciones
+        .where((p) => p.estado.toLowerCase() == 'pendiente')
+        .toList();
+
+    if (participacionesPendientes.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    final participacionesMostrar = participacionesPendientes.take(3).toList();
+
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            child: Row(
+              children: [
+                Text(
+                  'Solicitudes de participación pendientes',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1976D2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    participacionesPendientes.length.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: participacionesMostrar.map((participacion) {
+                final proyecto = participacion.proyecto;
+                final proyectoNombre = proyecto != null
+                    ? (proyecto['nombre'] ?? 'Proyecto').toString()
+                    : 'Proyecto';
+
+                Color chipColor;
+                Color chipTextColor;
+
+                switch (participacion.estado.toLowerCase()) {
+                  case 'pendiente':
+                    chipColor = Colors.amber.withOpacity(0.2);
+                    chipTextColor = Colors.amber[800] ?? colorScheme.onSurfaceVariant;
+                    break;
+                  case 'programada':
+                    chipColor = colorScheme.primaryContainer;
+                    chipTextColor = colorScheme.onPrimaryContainer;
+                    break;
+                  case 'en_progreso':
+                    chipColor = colorScheme.tertiaryContainer;
+                    chipTextColor = colorScheme.onTertiaryContainer;
+                    break;
+                  case 'completado':
+                    chipColor = colorScheme.secondaryContainer;
+                    chipTextColor = colorScheme.onSecondaryContainer;
+                    break;
+                  case 'ausente':
+                    chipColor = colorScheme.errorContainer;
+                    chipTextColor = colorScheme.onErrorContainer;
+                    break;
+                  default:
+                    chipColor = colorScheme.surfaceVariant;
+                    chipTextColor = colorScheme.onSurfaceVariant;
+                }
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              proyectoNombre,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF1A1A1A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Estado: ${participacion.estado.toUpperCase()}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: chipColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              participacion.estado.toUpperCase(),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: chipTextColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Color(0xFF4CAF50),
+                                  ),
+                                  iconSize: 24,
+                                  onPressed: () async {
+                                    try {
+                                      await _repository.updateParticipacion(
+                                        participacion.idParticipacion,
+                                        {'estado': 'PROGRAMADA'},
+                                      );
+                                      await _loadData();
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Solicitud de participación aceptada')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFEBEE),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.cancel_rounded,
+                                    color: Color(0xFFFF5252),
+                                  ),
+                                  iconSize: 24,
+                                  onPressed: () async {
+                                    try {
+                                      await _repository.deleteParticipacion(participacion.idParticipacion);
+                                      await _loadData();
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Solicitud de participación rechazada')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

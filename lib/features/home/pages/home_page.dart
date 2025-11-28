@@ -1153,7 +1153,10 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA HOME VOLUNTARIO - MATERIAL 3 ==========
   Widget _buildHomeView() {
-    return VoluntarioDashboard(userName: _userName);
+    return VoluntarioDashboard(
+      userName: _userName,
+      photoBase64: _perfilVoluntario?.fotoPerfil,
+    );
   }
 
   // ========== VISTA FUNCIONARIO - MATERIAL 3 ==========

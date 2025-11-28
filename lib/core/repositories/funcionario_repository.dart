@@ -555,16 +555,17 @@ class FuncionarioRepository {
   /// Crear participación (asignar voluntario a proyecto)
   Future<Participacion> createParticipacion(Map<String, dynamic> data) async {
     try {
-      // Normalizar el estado a mayúsculas si está presente (el backend espera: PROGRAMADA, EN_PROGRESO, COMPLETADO, AUSENTE)
       final normalizedData = Map<String, dynamic>.from(data);
       if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
-        normalizedData['estado'] = (normalizedData['estado'] as String).toUpperCase();
+        // El backend espera estados en minúsculas: pendiente, aprobada, rechazada, programada, en_progreso, completado, ausente, eliminada
+        normalizedData['estado'] = (normalizedData['estado'] as String).toLowerCase();
       } else if (!normalizedData.containsKey('estado')) {
-        normalizedData['estado'] = 'PROGRAMADA';
+        // Valor por defecto compatible con el backend
+        normalizedData['estado'] = 'programada';
       }
-      
+
       print('📤 Creando participación (funcionario): $normalizedData');
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.funcionariosParticipaciones,
         data: normalizedData,
@@ -578,9 +579,15 @@ class FuncionarioRepository {
   /// Actualizar participación (cambiar estado, rol, horas, etc.)
   Future<Participacion> updateParticipacion(int id, Map<String, dynamic> data) async {
     try {
+      final normalizedData = Map<String, dynamic>.from(data);
+      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
+        // El backend espera estados en minúsculas: pendiente, aprobada, rechazada, programada, en_progreso, completado, ausente, eliminada
+        normalizedData['estado'] = (normalizedData['estado'] as String).toLowerCase();
+      }
+
       final response = await _dioClient.dio.patch(
         ApiConfig.funcionariosParticipacion(id),
-        data: data,
+        data: normalizedData,
       );
       return Participacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

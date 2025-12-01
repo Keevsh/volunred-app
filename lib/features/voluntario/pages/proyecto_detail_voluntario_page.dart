@@ -5,6 +5,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/participacion.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/organizacion.dart';
+import '../../../core/models/dto/request_models.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 
 class ProyectoDetailVoluntarioPage extends StatefulWidget {
@@ -542,15 +543,18 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
         'estado': 'pendiente',
       });
 
-      // 2. Crear solicitud de participación en el proyecto
-      // El backend requiere inscripcion_id para vincular la participación
+      // 2. Crear solicitud de participación en el proyecto (voluntario autenticado)
+      // Para proyectos privados, se requiere una inscripción aprobada. El backend
+      // validará que la inscripción pertenezca a la misma organización y esté aprobada.
       print('📝 Creando solicitud de participación...');
       print('📤 Usando inscripcion_id: ${inscripcion.idInscripcion}');
-      await _repository.createParticipacion({
-        'proyecto_id': widget.proyectoId,
-        'inscripcion_id': inscripcion.idInscripcion,
-        'estado': 'pendiente',
-      });
+
+      final request = CrearParticipacionRequest(
+        proyectoId: widget.proyectoId,
+        inscripcionId: inscripcion.idInscripcion,
+      );
+
+      await _repository.createMyParticipacion(request);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -596,18 +600,33 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
   }
 
   Future<void> _participar() async {
-    if (_proyecto == null || _inscripcionAprobada == null) return;
+    if (_proyecto == null) return;
 
     setState(() {
       _isParticipando = true;
     });
 
     try {
-      await _repository.createParticipacion({
-        'inscripcion_id': _inscripcionAprobada!.idInscripcion,
-        'proyecto_id': widget.proyectoId,
-        'estado': 'pendiente', // Cambiado de 'en_curso' a 'pendiente'
-      });
+      // Determinar si necesitamos una inscripción aprobada según el tipo de proyecto
+      int? inscripcionId;
+
+      if (!_proyecto!.participacionPublica) {
+        // Proyecto privado: requiere inscripción aprobada
+        if (_inscripcionAprobada == null) {
+          throw Exception('Necesitas una inscripción aprobada en la organización para participar en este proyecto.');
+        }
+        inscripcionId = _inscripcionAprobada!.idInscripcion;
+      } else {
+        // Proyecto público: inscripción opcional (si existe una aprobada, se envía)
+        inscripcionId = _inscripcionAprobada?.idInscripcion;
+      }
+
+      final request = CrearParticipacionRequest(
+        proyectoId: widget.proyectoId,
+        inscripcionId: inscripcionId,
+      );
+
+      await _repository.createMyParticipacion(request);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -638,11 +657,19 @@ class _ProyectoDetailVoluntarioPageState extends State<ProyectoDetailVoluntarioP
 
   /// Método principal que decide qué flujo mostrar
   void _handleParticiparButton() {
+    if (_proyecto == null) return;
+
+    if (_proyecto!.participacionPublica) {
+      // Proyecto público: no requiere inscripción, solo confirmación para participar
+      _mostrarConfirmacionParticipacion();
+      return;
+    }
+
     if (_inscripcionAprobada != null) {
-      // Ya está inscrito y aprobado -> mostrar confirmación de participación
+      // Proyecto privado y ya está inscrito/aprobado -> solo participación
       _mostrarConfirmacionParticipacion();
     } else {
-      // No está inscrito -> mostrar flujo combinado
+      // Proyecto privado y sin inscripción aprobada -> flujo combinado
       _mostrarFlujoCombinado();
     }
   }

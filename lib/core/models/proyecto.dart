@@ -44,6 +44,13 @@ class Proyecto extends Equatable {
   /// Estado del proyecto (activo/inactivo)
   final String estado;
   
+  /// Indica si la participación en el proyecto es pública (no requiere inscripción aprobada)
+  ///
+  /// Cuando es `true`, cualquier voluntario puede solicitar participación sin
+  /// estar inscrito en la organización. Cuando es `false`, se requiere una
+  /// inscripción aprobada en la organización del proyecto.
+  final bool participacionPublica;
+  
   /// Imagen representativa del proyecto en formato base64 (opcional)
   final String? imagen;
   
@@ -83,6 +90,7 @@ class Proyecto extends Equatable {
     this.fechaInicio,
     this.fechaFin,
     required this.estado,
+    this.participacionPublica = false,
     this.imagen,
     required this.creadoEn,
     this.actualizadoEn,
@@ -171,6 +179,22 @@ class Proyecto extends Equatable {
         }
       }
       
+      // Manejar participacion_publica (puede venir como bool o 0/1)
+      bool participacionPublica = false;
+      if (json.containsKey('participacion_publica')) {
+        final value = json['participacion_publica'];
+        if (value is bool) {
+          participacionPublica = value;
+        } else if (value is num) {
+          participacionPublica = value != 0;
+        } else {
+          final str = _getString(value)?.toLowerCase();
+          if (str == 'true' || str == '1') {
+            participacionPublica = true;
+          }
+        }
+      }
+      
       return Proyecto(
         idProyecto: _getInt(json['id_proyecto']),
         categoriaProyectoId: categoriaProyectoId,
@@ -181,6 +205,7 @@ class Proyecto extends Equatable {
         fechaInicio: fechaInicio,
         fechaFin: fechaFin,
         estado: _getString(json['estado']) ?? 'activo',
+        participacionPublica: participacionPublica,
         imagen: _getString(json['imagen']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
@@ -211,6 +236,7 @@ class Proyecto extends Equatable {
       if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
       if (fechaFin != null) 'fecha_fin': fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
       'estado': estado,
+      'participacion_publica': participacionPublica,
       if (imagen != null) 'imagen': imagen,
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
@@ -232,6 +258,7 @@ class Proyecto extends Equatable {
         fechaInicio,
         fechaFin,
         estado,
+        participacionPublica,
         imagen,
         creadoEn,
         actualizadoEn,

@@ -396,12 +396,19 @@ class CrearParticipacionRequest {
   /// ID del perfil de voluntario (opcional, se puede completar en el repositorio)
   final int? perfilVolId;
   
+  /// ID de la inscripción aprobada del voluntario en la organización del proyecto (opcional)
+  ///
+  /// Para proyectos privados, el backend requerirá que este campo apunte a una
+  /// inscripción aprobada de la misma organización que el proyecto.
+  final int? inscripcionId;
+  
   /// Horas comprometidas por semana (opcional)
   final double? horasComprometidasSemana;
 
   CrearParticipacionRequest({
     required this.proyectoId,
     this.perfilVolId,
+    this.inscripcionId,
     this.horasComprometidasSemana,
   });
 
@@ -409,6 +416,7 @@ class CrearParticipacionRequest {
     return {
       'proyecto_id': proyectoId,
       if (perfilVolId != null) 'perfil_vol_id': perfilVolId,
+      if (inscripcionId != null) 'inscripcion_id': inscripcionId,
       if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
     };
   }

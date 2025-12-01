@@ -3,6 +3,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/perfil_voluntario.dart';
 import '../../../core/models/asignacion_tarea.dart';
+import '../../../core/models/participacion.dart';
 
 class AsignarVoluntariosPage extends StatefulWidget {
   final int tareaId;
@@ -25,6 +26,7 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
   Set<int> _idsAsignados = {};
   bool _isAssigning = false;
   String _searchQuery = '';
+  bool _tieneParticipantes = true;
 
   @override
   void initState() {
@@ -33,13 +35,54 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
   }
 
   void _loadData() {
-    _futureVoluntarios = _repository.getVoluntariosDeMiOrganizacion();
+    _futureVoluntarios = _fetchEligibleVoluntarios();
     _futureAsignaciones = _repository.getAsignacionesByTarea(widget.tareaId).then((asignaciones) {
       setState(() {
         _idsAsignados = asignaciones.map((a) => a.perfilVolId).toSet();
       });
       return asignaciones;
     });
+  }
+
+  Future<List<PerfilVoluntario>> _fetchEligibleVoluntarios() async {
+    final tarea = await _repository.getTareaById(widget.tareaId);
+    final List<Participacion> participaciones =
+        await _repository.getParticipacionesByProyecto(tarea.proyectoId);
+
+    final participanteUserIds = _extractParticipanteUserIds(participaciones);
+
+    if (mounted) {
+      setState(() {
+        _tieneParticipantes = participanteUserIds.isNotEmpty;
+      });
+    }
+
+    if (participanteUserIds.isEmpty) {
+      return [];
+    }
+
+    final voluntarios = await _repository.getVoluntariosDeMiOrganizacion();
+    return voluntarios
+        .where((voluntario) => participanteUserIds.contains(voluntario.usuarioId))
+        .toList();
+  }
+
+  Set<int> _extractParticipanteUserIds(List<Participacion> participaciones) {
+    final usuarioIds = <int>{};
+    for (final participacion in participaciones) {
+      final inscripcion = participacion.inscripcion;
+      if (inscripcion == null) continue;
+
+      final rawUserId =
+          inscripcion['usuario_id'] ?? inscripcion['usuarioId'] ?? inscripcion['voluntarioId'];
+      if (rawUserId == null) continue;
+
+      final parsedId = rawUserId is int ? rawUserId : int.tryParse(rawUserId.toString());
+      if (parsedId != null) {
+        usuarioIds.add(parsedId);
+      }
+    }
+    return usuarioIds;
   }
 
   Future<void> _refresh() async {
@@ -186,7 +229,9 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                               const SizedBox(height: 12),
                               Text(
                                 _searchQuery.isEmpty
-                                    ? 'No hay voluntarios disponibles'
+                                    ? (_tieneParticipantes
+                                        ? 'No hay voluntarios disponibles'
+                                        : 'No hay voluntarios participando en este proyecto')
                                     : 'No se encontraron voluntarios',
                                 style: theme.textTheme.titleMedium,
                                 textAlign: TextAlign.center,

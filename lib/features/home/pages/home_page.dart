@@ -2225,6 +2225,20 @@ class _HomePageState extends State<HomePage> {
             pinned: true,
             backgroundColor: Colors.white,
             elevation: 0,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  color: const Color(0xFF1976D2),
+                  iconSize: 28,
+                  tooltip: 'Crear Proyecto',
+                  onPressed: () {
+                    Modular.to.pushNamed('/proyectos/create');
+                  },
+                ),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: const Text(
                 'Mis Proyectos',
@@ -2302,6 +2316,21 @@ class _HomePageState extends State<HomePage> {
                               height: 1.5,
                             ),
                             textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          FilledButton.icon(
+                            onPressed: () {
+                              Modular.to.pushNamed('/proyectos/create');
+                            },
+                            icon: const Icon(Icons.add),
+                            label: const Text('Crear mi primer Proyecto'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              backgroundColor: const Color(0xFF1976D2),
+                            ),
                           ),
                         ],
                       ),

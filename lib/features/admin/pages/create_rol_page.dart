@@ -36,10 +36,12 @@ class _CreateRolPageState extends State<CreateRolPage> {
     final nombre = _nombreController.text.trim();
     final descripcion = _descripcionController.text.trim();
 
-    context.read<AdminBloc>().add(CreateRolRequested(
-          nombre: nombre,
-          descripcion: descripcion.isEmpty ? null : descripcion,
-        ));
+    context.read<AdminBloc>().add(
+      CreateRolRequested(
+        nombre: nombre,
+        descripcion: descripcion.isEmpty ? null : descripcion,
+      ),
+    );
   }
 
   @override
@@ -51,10 +53,7 @@ class _CreateRolPageState extends State<CreateRolPage> {
         } else if (state is AdminError) {
           setState(() => _isSubmitting = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -141,18 +140,34 @@ class _CreateRolPageState extends State<CreateRolPage> {
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 textCapitalization: TextCapitalization.none,
                                 autocorrect: false,
@@ -166,7 +181,9 @@ class _CreateRolPageState extends State<CreateRolPage> {
                                   if (value.trim().length > 50) {
                                     return 'Máximo 50 caracteres';
                                   }
-                                  if (!RegExp(r'^[a-z0-9_]+$').hasMatch(value.trim())) {
+                                  if (!RegExp(
+                                    r'^[a-z0-9_]+$',
+                                  ).hasMatch(value.trim())) {
                                     return 'Solo minúsculas, números y guiones bajos';
                                   }
                                   return null;
@@ -207,28 +224,46 @@ class _CreateRolPageState extends State<CreateRolPage> {
                               TextFormField(
                                 controller: _descripcionController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Describe las funciones de este rol',
+                                  hintText:
+                                      'Describe las funciones de este rol',
                                   hintStyle: TextStyle(
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 maxLines: 4,
                                 maxLength: 200,
                                 validator: (value) {
-                                  if (value != null && value.trim().length > 200) {
+                                  if (value != null &&
+                                      value.trim().length > 200) {
                                     return 'Máximo 200 caracteres';
                                   }
                                   return null;

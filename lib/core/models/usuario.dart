@@ -35,7 +35,7 @@ class Usuario extends Equatable {
       if (value is int) return value;
       return int.tryParse(value.toString());
     }
-    
+
     return Usuario(
       idUsuario: _getInt(json['id_usuario']) ?? 0,
       nombres: json['nombres'] as String? ?? '',
@@ -47,7 +47,7 @@ class Usuario extends Equatable {
       tipoUsuario: json['tipo_usuario'] as String?,
       idRol: _getInt(json['id_rol']),
       rol: json['rol'] != null ? Rol.fromJson(json['rol']) : null,
-      creadoEn: json['creado_en'] != null 
+      creadoEn: json['creado_en'] != null
           ? DateTime.parse(json['creado_en'] as String)
           : null,
     );
@@ -77,16 +77,16 @@ class Usuario extends Equatable {
 
   @override
   List<Object?> get props => [
-        idUsuario,
-        nombres,
-        apellidos,
-        email,
-        telefono,
-        ci,
-        sexo,
-        tipoUsuario,
-        idRol,
-        rol,
-        creadoEn,
-      ];
+    idUsuario,
+    nombres,
+    apellidos,
+    email,
+    telefono,
+    ci,
+    sexo,
+    tipoUsuario,
+    idRol,
+    rol,
+    creadoEn,
+  ];
 }

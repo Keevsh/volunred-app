@@ -152,7 +152,7 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
       'Sep',
       'Oct',
       'Nov',
-      'Dic'
+      'Dic',
     ];
     return '${meses[fecha.month - 1]} ${fecha.year}';
   }
@@ -289,7 +289,9 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
                 child: Icon(Icons.description_outlined),
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+                borderRadius: BorderRadius.circular(
+                  AppStyles.borderRadiusMedium,
+                ),
               ),
               filled: true,
               fillColor: AppColors.cardBackground,
@@ -386,8 +388,12 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
                   date != null ? _formatearFecha(date) : 'Seleccionar',
                   style: TextStyle(
                     fontSize: AppStyles.fontSizeBody,
-                    color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
-                    fontWeight: date != null ? FontWeight.w600 : FontWeight.normal,
+                    color: enabled
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
+                    fontWeight: date != null
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
               ],
@@ -414,7 +420,8 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _experiencias.length,
-          separatorBuilder: (_, __) => const SizedBox(height: AppStyles.spacingMedium),
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: AppStyles.spacingMedium),
           itemBuilder: (context, index) {
             final experiencia = _experiencias[index];
             return _buildExperienciaCard(experiencia, index);
@@ -452,7 +459,9 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
                 padding: const EdgeInsets.all(AppStyles.spacingSmall),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppStyles.borderRadiusSmall),
+                  borderRadius: BorderRadius.circular(
+                    AppStyles.borderRadiusSmall,
+                  ),
                 ),
                 child: Icon(
                   Icons.business,
@@ -485,7 +494,11 @@ class _ExperienciasPageState extends State<ExperienciasPage> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${_formatearFecha(fechaInicio)} - ${esActual ? 'Actual' : _formatearFecha(fechaFin!)}',

@@ -20,7 +20,7 @@ class Modulo extends Equatable {
       if (value is int) return value;
       return int.tryParse(value.toString());
     }
-    
+
     return Modulo(
       idModulo: _getInt(json['id_modulo']) ?? 0,
       nombre: json['nombre'] as String? ?? '',

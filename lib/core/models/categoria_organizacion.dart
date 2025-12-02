@@ -22,7 +22,7 @@ class CategoriaOrganizacion extends Equatable {
       if (value is int) return value;
       return int.tryParse(value.toString());
     }
-    
+
     return CategoriaOrganizacion(
       idCategoria: _getInt(json['id_categoria']) ?? 0,
       nombre: json['nombre'] as String? ?? '',
@@ -30,7 +30,7 @@ class CategoriaOrganizacion extends Equatable {
       creadoEn: json['creado_en'] != null
           ? DateTime.parse(json['creado_en'] as String)
           : DateTime.now(),
-      cantidadOrganizaciones: json['_count'] != null 
+      cantidadOrganizaciones: json['_count'] != null
           ? _getInt(json['_count']['organizaciones'])
           : null,
     );
@@ -47,10 +47,10 @@ class CategoriaOrganizacion extends Equatable {
 
   @override
   List<Object?> get props => [
-        idCategoria,
-        nombre,
-        descripcion,
-        creadoEn,
-        cantidadOrganizaciones,
-      ];
+    idCategoria,
+    nombre,
+    descripcion,
+    creadoEn,
+    cantidadOrganizaciones,
+  ];
 }

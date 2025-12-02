@@ -24,25 +24,31 @@ class VoluntarioRepository {
   VoluntarioRepository(this._dioClient);
 
   /// Crear perfil de voluntario
-  /// 
+  ///
   /// Verifica si el usuario ya tiene un perfil antes de intentar crear uno nuevo.
   /// Si ya existe, lo retorna. Si no existe, crea uno nuevo.
   Future<PerfilVoluntario> createPerfil(
-      CreatePerfilVoluntarioRequest request) async {
+    CreatePerfilVoluntarioRequest request,
+  ) async {
     try {
       // Primero verificar si el usuario ya tiene un perfil
-      print('🔍 Verificando si el usuario ${request.usuarioId} ya tiene un perfil...');
+      print(
+        '🔍 Verificando si el usuario ${request.usuarioId} ya tiene un perfil...',
+      );
       final perfilExistente = await getPerfilByUsuario(request.usuarioId);
-      
+
       if (perfilExistente != null) {
-        print('✅ El usuario ya tiene un perfil de voluntario. Retornando perfil existente.');
+        print(
+          '✅ El usuario ya tiene un perfil de voluntario. Retornando perfil existente.',
+        );
         // Actualizar el perfil existente con los nuevos datos si es necesario
         if (request.bio != null || request.disponibilidad != null) {
           final datosActualizacion = <String, dynamic>{};
           if (request.bio != null && request.bio!.isNotEmpty) {
             datosActualizacion['bio'] = request.bio;
           }
-          if (request.disponibilidad != null && request.disponibilidad!.isNotEmpty) {
+          if (request.disponibilidad != null &&
+              request.disponibilidad!.isNotEmpty) {
             datosActualizacion['disponibilidad'] = request.disponibilidad;
           }
           if (datosActualizacion.isNotEmpty) {
@@ -53,7 +59,9 @@ class VoluntarioRepository {
               );
               return perfilActualizado;
             } catch (e) {
-              print('⚠️ No se pudo actualizar el perfil, retornando perfil existente: $e');
+              print(
+                '⚠️ No se pudo actualizar el perfil, retornando perfil existente: $e',
+              );
             }
           }
         }
@@ -62,7 +70,7 @@ class VoluntarioRepository {
 
       print('📤 Creando nuevo perfil de voluntario...');
       print('📤 Request data: ${request.toJson()}');
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.perfilesVoluntarios,
         data: request.toJson(),
@@ -96,15 +104,19 @@ class VoluntarioRepository {
       } else if (response.data is Map<String, dynamic>) {
         // Si la respuesta es un JSON, parseamos normalmente
         final responseData = response.data as Map<String, dynamic>;
-        
+
         // La respuesta puede venir envuelta en una clave 'perfil' o directamente
         if (responseData.containsKey('perfil')) {
-          perfil = PerfilVoluntario.fromJson(responseData['perfil'] as Map<String, dynamic>);
+          perfil = PerfilVoluntario.fromJson(
+            responseData['perfil'] as Map<String, dynamic>,
+          );
         } else {
           perfil = PerfilVoluntario.fromJson(responseData);
         }
       } else {
-        throw Exception('Formato de respuesta no reconocido: ${response.data.runtimeType}');
+        throw Exception(
+          'Formato de respuesta no reconocido: ${response.data.runtimeType}',
+        );
       }
 
       // Guardar perfil en storage
@@ -120,30 +132,36 @@ class VoluntarioRepository {
       print('❌ Response: ${e.response?.data}');
       print('❌ Status Code: ${e.response?.statusCode}');
       print('❌ Request data: ${request.toJson()}');
-      
+
       // Si el error es 409 (Conflict), el usuario ya tiene un perfil
       if (e.response?.statusCode == 409) {
-        print('⚠️ El usuario ya tiene un perfil (409 Conflict). Obteniendo perfil existente...');
+        print(
+          '⚠️ El usuario ya tiene un perfil (409 Conflict). Obteniendo perfil existente...',
+        );
         final perfilExistente = await getPerfilByUsuario(request.usuarioId);
         if (perfilExistente != null) {
           return perfilExistente;
         }
       }
-      
+
       // Si el error es 500, puede ser que el usuario ya tenga un perfil
       if (e.response?.statusCode == 500) {
-        print('⚠️ Error 500 del servidor. Verificando si el usuario ya tiene un perfil...');
+        print(
+          '⚠️ Error 500 del servidor. Verificando si el usuario ya tiene un perfil...',
+        );
         try {
           final perfilExistente = await getPerfilByUsuario(request.usuarioId);
           if (perfilExistente != null) {
-            print('✅ El usuario ya tiene un perfil. Retornando perfil existente.');
+            print(
+              '✅ El usuario ya tiene un perfil. Retornando perfil existente.',
+            );
             return perfilExistente;
           }
         } catch (e2) {
           print('⚠️ No se pudo verificar el perfil existente: $e2');
         }
       }
-      
+
       throw _handleError(e);
     } catch (e, stackTrace) {
       print('❌ Error general: $e');
@@ -176,15 +194,17 @@ class VoluntarioRepository {
   }
 
   /// Asignar múltiples aptitudes
-  /// 
+  ///
   /// Asigna las aptitudes especificadas al perfil de voluntario.
   /// Si alguna aptitud ya está asignada, el backend debería manejar el error 409 o similar.
   Future<void> asignarMultiplesAptitudes(
     int perfilVolId,
     List<int> aptitudesIds,
   ) async {
-    print('📤 Asignando ${aptitudesIds.length} aptitudes al perfil $perfilVolId');
-    
+    print(
+      '📤 Asignando ${aptitudesIds.length} aptitudes al perfil $perfilVolId',
+    );
+
     // Primero, obtener las aptitudes ya asignadas para evitar duplicados
     List<int> aptitudesAsignadas = [];
     try {
@@ -195,26 +215,25 @@ class VoluntarioRepository {
       print('⚠️ No se pudieron obtener las aptitudes asignadas: $e');
       // Continuar con la asignación incluso si no se pudieron obtener las asignadas
     }
-    
+
     // Filtrar solo las aptitudes que no están asignadas
-    final aptitudesNuevas = aptitudesIds.where((id) => !aptitudesAsignadas.contains(id)).toList();
+    final aptitudesNuevas = aptitudesIds
+        .where((id) => !aptitudesAsignadas.contains(id))
+        .toList();
     print('📤 Aptitudes nuevas a asignar: $aptitudesNuevas');
-    
+
     if (aptitudesNuevas.isEmpty) {
       print('ℹ️ Todas las aptitudes ya están asignadas');
       return;
     }
-    
+
     // Asignar solo las nuevas aptitudes
     int asignadas = 0;
     int errores = 0;
     for (final aptitudId in aptitudesNuevas) {
       try {
         await asignarAptitud(
-          AsignarAptitudRequest(
-            perfilVolId: perfilVolId,
-            aptitudId: aptitudId,
-          ),
+          AsignarAptitudRequest(perfilVolId: perfilVolId, aptitudId: aptitudId),
         );
         asignadas++;
       } on DioException catch (e) {
@@ -230,11 +249,13 @@ class VoluntarioRepository {
         errores++;
       }
     }
-    
+
     print('✅ Aptitudes asignadas: $asignadas, Errores: $errores');
-    
+
     if (errores > 0 && asignadas == 0) {
-      throw Exception('No se pudieron asignar las aptitudes. Verifica tu conexión e intenta nuevamente.');
+      throw Exception(
+        'No se pudieron asignar las aptitudes. Verifica tu conexión e intenta nuevamente.',
+      );
     }
   }
 
@@ -250,13 +271,17 @@ class VoluntarioRepository {
       // Si el endpoint no existe o retorna 404, intentar obtener todos y filtrar
       if (e.response?.statusCode == 404) {
         try {
-          final response = await _dioClient.dio.get(ApiConfig.perfilesVoluntarios);
+          final response = await _dioClient.dio.get(
+            ApiConfig.perfilesVoluntarios,
+          );
           final List<dynamic> data = response.data is List
               ? response.data
               : (response.data['perfiles'] ?? []);
-          
+
           for (var json in data) {
-            final perfil = PerfilVoluntario.fromJson(json as Map<String, dynamic>);
+            final perfil = PerfilVoluntario.fromJson(
+              json as Map<String, dynamic>,
+            );
             if (perfil.usuarioId == usuarioId) {
               return perfil;
             }
@@ -270,15 +295,18 @@ class VoluntarioRepository {
         }
       }
       // Para otros errores, también retornar null (no lanzar excepción)
-      print('⚠️ Error obteniendo perfil de voluntario: ${e.response?.statusCode}');
+      print(
+        '⚠️ Error obteniendo perfil de voluntario: ${e.response?.statusCode}',
+      );
       return null;
     }
   }
 
   /// Obtener perfil desde storage
   Future<PerfilVoluntario?> getStoredPerfil() async {
-    final perfilJson =
-        await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+    final perfilJson = await StorageService.getString(
+      ApiConfig.perfilVoluntarioKey,
+    );
     if (perfilJson != null) {
       return PerfilVoluntario.fromJson(jsonDecode(perfilJson));
     }
@@ -288,7 +316,9 @@ class VoluntarioRepository {
   /// Obtener perfil de voluntario por ID
   Future<PerfilVoluntario> getPerfilById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.perfilesVoluntarios}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.perfilesVoluntarios}/$id',
+      );
       return PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -296,20 +326,25 @@ class VoluntarioRepository {
   }
 
   /// Actualizar perfil de voluntario
-  Future<PerfilVoluntario> updatePerfil(int id, Map<String, dynamic> data) async {
+  Future<PerfilVoluntario> updatePerfil(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.perfilesVoluntarios}/$id',
         data: data,
       );
-      final perfil = PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
-      
+      final perfil = PerfilVoluntario.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+
       // Actualizar en storage
       await StorageService.saveString(
         ApiConfig.perfilVoluntarioKey,
         jsonEncode(perfil.toJson()),
       );
-      
+
       return perfil;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -333,16 +368,16 @@ class VoluntarioRepository {
       print('🔍 Obteniendo aptitudes para perfil voluntario: $perfilVolId');
       final url = ApiConfig.aptitudesVoluntarioByVoluntario(perfilVolId);
       print('🔍 URL: $url');
-      
+
       final response = await _dioClient.dio.get(url);
-      
+
       print('📥 Respuesta obtenida: ${response.statusCode}');
       print('📥 Datos: ${response.data}');
       print('📥 Tipo de datos: ${response.data.runtimeType}');
-      
+
       // El backend puede devolver un array directamente o envuelto en un objeto
       List<dynamic> data = [];
-      
+
       if (response.data is List) {
         data = response.data as List<dynamic>;
       } else if (response.data is Map<String, dynamic>) {
@@ -362,20 +397,25 @@ class VoluntarioRepository {
               : [];
         }
       }
-      
+
       print('📥 Datos procesados: ${data.length} aptitudes encontradas');
-      
+
       // Extraer aptitudes de las asignaciones
       final aptitudes = <Aptitud>[];
       for (var item in data) {
         try {
           if (item is Map<String, dynamic>) {
             // Si el item tiene una clave 'aptitud', usar esa
-            if (item.containsKey('aptitud') && item['aptitud'] is Map<String, dynamic>) {
-              aptitudes.add(Aptitud.fromJson(item['aptitud'] as Map<String, dynamic>));
-            } 
+            if (item.containsKey('aptitud') &&
+                item['aptitud'] is Map<String, dynamic>) {
+              aptitudes.add(
+                Aptitud.fromJson(item['aptitud'] as Map<String, dynamic>),
+              );
+            }
             // Si el item tiene 'id_aptitud' o 'aptitud_id', es una aptitud directamente
-            else if (item.containsKey('id_aptitud') || item.containsKey('aptitud_id') || item.containsKey('nombre')) {
+            else if (item.containsKey('id_aptitud') ||
+                item.containsKey('aptitud_id') ||
+                item.containsKey('nombre')) {
               aptitudes.add(Aptitud.fromJson(item));
             }
           }
@@ -384,20 +424,20 @@ class VoluntarioRepository {
           print('⚠️ Item que causó el error: $item');
         }
       }
-      
+
       print('✅ Aptitudes parseadas: ${aptitudes.length}');
       return aptitudes;
     } on DioException catch (e) {
       print('❌ Error al obtener aptitudes del voluntario: ${e.message}');
       print('❌ Status code: ${e.response?.statusCode}');
       print('❌ Response data: ${e.response?.data}');
-      
+
       // Si es 404, el voluntario no tiene aptitudes asignadas (no es un error crítico)
       if (e.response?.statusCode == 404) {
         print('ℹ️ El voluntario no tiene aptitudes asignadas (404)');
         return [];
       }
-      
+
       // Para otros errores, lanzar excepción pero con más información
       throw _handleError(e);
     } catch (e, stackTrace) {
@@ -411,7 +451,9 @@ class VoluntarioRepository {
   /// Eliminar aptitud de voluntario
   Future<void> eliminarAptitud(int idAptitudVol) async {
     try {
-      await _dioClient.dio.delete('${ApiConfig.aptitudesVoluntario}/$idAptitudVol');
+      await _dioClient.dio.delete(
+        '${ApiConfig.aptitudesVoluntario}/$idAptitudVol',
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -420,13 +462,17 @@ class VoluntarioRepository {
   // ==================== EXPERIENCIAS DE VOLUNTARIADO ====================
 
   /// Crear experiencia de voluntariado
-  Future<ExperienciaVoluntario> createExperiencia(Map<String, dynamic> data) async {
+  Future<ExperienciaVoluntario> createExperiencia(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.experienciasVoluntario,
         data: data,
       );
-      return ExperienciaVoluntario.fromJson(response.data as Map<String, dynamic>);
+      return ExperienciaVoluntario.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -435,11 +481,16 @@ class VoluntarioRepository {
   /// Obtener todas las experiencias
   Future<List<ExperienciaVoluntario>> getExperiencias() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.experienciasVoluntario);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => ExperienciaVoluntario.fromJson(json as Map<String, dynamic>)).toList();
+      final response = await _dioClient.dio.get(
+        ApiConfig.experienciasVoluntario,
+      );
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map(
+            (json) =>
+                ExperienciaVoluntario.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -448,21 +499,30 @@ class VoluntarioRepository {
   /// Obtener experiencia por ID
   Future<ExperienciaVoluntario> getExperienciaById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.experienciasVoluntario}/$id');
-      return ExperienciaVoluntario.fromJson(response.data as Map<String, dynamic>);
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.experienciasVoluntario}/$id',
+      );
+      return ExperienciaVoluntario.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   /// Actualizar experiencia
-  Future<ExperienciaVoluntario> updateExperiencia(int id, Map<String, dynamic> data) async {
+  Future<ExperienciaVoluntario> updateExperiencia(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.experienciasVoluntario}/$id',
         data: data,
       );
-      return ExperienciaVoluntario.fromJson(response.data as Map<String, dynamic>);
+      return ExperienciaVoluntario.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -483,10 +543,10 @@ class VoluntarioRepository {
   Future<List<Organizacion>> getOrganizaciones() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.organizaciones);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Organizacion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Organizacion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -495,7 +555,9 @@ class VoluntarioRepository {
   /// Obtener organización por ID
   Future<Organizacion> getOrganizacionById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.organizaciones}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.organizaciones}/$id',
+      );
       return Organizacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -508,10 +570,10 @@ class VoluntarioRepository {
   Future<List<Proyecto>> getProyectos() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.proyectos);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Proyecto.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Proyecto.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -531,10 +593,10 @@ class VoluntarioRepository {
   Future<List<Categoria>> getCategorias() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.categorias);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Categoria.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Categoria.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -557,14 +619,16 @@ class VoluntarioRepository {
     try {
       // Normalizar el estado a minúsculas si está presente (el backend espera: pendiente, aprobado, rechazado)
       final normalizedData = Map<String, dynamic>.from(data);
-      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
-        normalizedData['estado'] = (normalizedData['estado'] as String).toLowerCase();
+      if (normalizedData.containsKey('estado') &&
+          normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String)
+            .toLowerCase();
       } else if (!normalizedData.containsKey('estado')) {
         normalizedData['estado'] = 'pendiente';
       }
-      
+
       print('📤 Creando inscripción: $normalizedData');
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.inscripciones,
         data: normalizedData,
@@ -580,39 +644,45 @@ class VoluntarioRepository {
       // El backend puede devolver un string (mensaje HTML/texto) o un JSON (inscripción)
       // Si el content-type es text/html o text/plain, tratar como string
       final contentType = response.headers.value('content-type') ?? '';
-      final isTextResponse = contentType.contains('text/html') || 
-                             contentType.contains('text/plain') ||
-                             response.data is String;
-      
+      final isTextResponse =
+          contentType.contains('text/html') ||
+          contentType.contains('text/plain') ||
+          response.data is String;
+
       if (isTextResponse || response.data is String) {
         // Si la respuesta es un string, la inscripción se creó exitosamente
         // Intentamos obtener la inscripción recién creada
         print('✅ Inscripción creada exitosamente. Obteniendo inscripción...');
-        
+
         try {
           // Obtener todas las inscripciones del usuario y buscar la más reciente
           final inscripciones = await getInscripciones();
           final usuarioId = normalizedData['usuario_id'] as int?;
           final organizacionId = normalizedData['organizacion_id'] as int?;
-          
+
           if (usuarioId == null || organizacionId == null) {
             throw Exception('usuario_id o organizacion_id no pueden ser null');
           }
-          
+
           // Buscar la inscripción más reciente para este usuario y organización
-          final inscripcionEncontrada = inscripciones
-              .where((ins) => 
-                  ins.usuarioId == usuarioId && 
-                  ins.organizacionId == organizacionId)
-              .toList()
-            ..sort((a, b) => b.creadoEn.compareTo(a.creadoEn));
-          
+          final inscripcionEncontrada =
+              inscripciones
+                  .where(
+                    (ins) =>
+                        ins.usuarioId == usuarioId &&
+                        ins.organizacionId == organizacionId,
+                  )
+                  .toList()
+                ..sort((a, b) => b.creadoEn.compareTo(a.creadoEn));
+
           if (inscripcionEncontrada.isNotEmpty) {
             inscripcion = inscripcionEncontrada.first;
             print('✅ Inscripción encontrada: ID=${inscripcion.idInscripcion}');
           } else {
             // Si no podemos obtenerla, crear una inscripción temporal con los datos del request
-            print('⚠️ No se pudo obtener la inscripción, creando inscripción temporal...');
+            print(
+              '⚠️ No se pudo obtener la inscripción, creando inscripción temporal...',
+            );
             inscripcion = Inscripcion(
               idInscripcion: 0, // Temporal, se actualizará después
               usuarioId: usuarioId,
@@ -620,7 +690,9 @@ class VoluntarioRepository {
               fechaRecepcion: normalizedData['fecha_recepcion'] != null
                   ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
                   : DateTime.now(),
-              estado: (normalizedData['estado'] as String?)?.toUpperCase() ?? 'PENDIENTE', // Normalizar a mayúsculas para el modelo
+              estado:
+                  (normalizedData['estado'] as String?)?.toUpperCase() ??
+                  'PENDIENTE', // Normalizar a mayúsculas para el modelo
               creadoEn: DateTime.now(),
             );
           }
@@ -629,11 +701,11 @@ class VoluntarioRepository {
           // Crear una inscripción temporal con los datos del request
           final usuarioId = normalizedData['usuario_id'] as int?;
           final organizacionId = normalizedData['organizacion_id'] as int?;
-          
+
           if (usuarioId == null || organizacionId == null) {
             throw Exception('usuario_id o organizacion_id no pueden ser null');
           }
-          
+
           inscripcion = Inscripcion(
             idInscripcion: 0, // Temporal, se actualizará después
             usuarioId: usuarioId,
@@ -641,22 +713,28 @@ class VoluntarioRepository {
             fechaRecepcion: normalizedData['fecha_recepcion'] != null
                 ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
                 : DateTime.now(),
-            estado: (normalizedData['estado'] as String?)?.toUpperCase() ?? 'PENDIENTE',
+            estado:
+                (normalizedData['estado'] as String?)?.toUpperCase() ??
+                'PENDIENTE',
             creadoEn: DateTime.now(),
           );
         }
       } else if (response.data is Map<String, dynamic>) {
         // Si la respuesta es un JSON, parseamos normalmente
         final responseData = response.data as Map<String, dynamic>;
-        
+
         // La respuesta puede venir envuelta en una clave 'inscripcion' o directamente
         if (responseData.containsKey('inscripcion')) {
-          inscripcion = Inscripcion.fromJson(responseData['inscripcion'] as Map<String, dynamic>);
+          inscripcion = Inscripcion.fromJson(
+            responseData['inscripcion'] as Map<String, dynamic>,
+          );
         } else {
           inscripcion = Inscripcion.fromJson(responseData);
         }
       } else {
-        throw Exception('Formato de respuesta no reconocido: ${response.data.runtimeType}');
+        throw Exception(
+          'Formato de respuesta no reconocido: ${response.data.runtimeType}',
+        );
       }
 
       print('✅ Inscripción procesada: ID=${inscripcion.idInscripcion}');
@@ -665,12 +743,13 @@ class VoluntarioRepository {
       print('❌ DioException: ${e.message}');
       print('❌ Response: ${e.response?.data}');
       print('❌ Status Code: ${e.response?.statusCode}');
-      
+
       // Proporcionar mensajes de error más descriptivos
       if (e.response?.statusCode == 500) {
         final errorData = e.response?.data;
-        String errorMessage = 'Error del servidor al crear la inscripción. Por favor, intenta nuevamente más tarde.';
-        
+        String errorMessage =
+            'Error del servidor al crear la inscripción. Por favor, intenta nuevamente más tarde.';
+
         if (errorData is Map<String, dynamic>) {
           // Intentar extraer un mensaje más específico
           if (errorData.containsKey('message')) {
@@ -683,41 +762,45 @@ class VoluntarioRepository {
           } else if (errorData.containsKey('error')) {
             errorMessage = errorData['error'] as String;
           }
-          
+
           // Log detallado para debugging
           print('🔍 Error detallado del servidor: $errorData');
         }
-        
+
         // Verificar si podría ser un error de duplicado
         final errorMessageLower = errorMessage.toLowerCase();
-        if (errorMessageLower.contains('duplicate') || 
+        if (errorMessageLower.contains('duplicate') ||
             errorMessageLower.contains('ya existe') ||
             errorMessageLower.contains('already exists') ||
             errorMessageLower.contains('unique constraint')) {
           throw Exception('Ya tienes una inscripción para esta organización');
         }
-        
+
         // Verificar si podría ser un error de foreign key
         if (errorMessageLower.contains('foreign key') ||
             errorMessageLower.contains('constraint') ||
             errorMessageLower.contains('reference')) {
-          throw Exception('Error: La organización o el usuario no existe. Por favor, verifica los datos.');
+          throw Exception(
+            'Error: La organización o el usuario no existe. Por favor, verifica los datos.',
+          );
         }
-        
+
         // Verificar si es un error de truncamiento de datos (columna demasiado pequeña)
         if (errorMessageLower.contains('data truncated') ||
             errorMessageLower.contains('truncated for column')) {
-          throw Exception('Error de configuración del servidor: La base de datos no puede almacenar el estado. Por favor, contacta al administrador.');
+          throw Exception(
+            'Error de configuración del servidor: La base de datos no puede almacenar el estado. Por favor, contacta al administrador.',
+          );
         }
-        
+
         throw Exception(errorMessage);
       }
-      
+
       // Manejar errores 400 (Bad Request) con mensajes más claros
       if (e.response?.statusCode == 400) {
         final errorData = e.response?.data;
         String errorMessage = 'Error en los datos enviados';
-        
+
         if (errorData is Map<String, dynamic>) {
           if (errorData.containsKey('message')) {
             final message = errorData['message'];
@@ -730,18 +813,19 @@ class VoluntarioRepository {
             errorMessage = errorData['error'] as String;
           }
         }
-        
+
         throw Exception(errorMessage);
       }
-      
+
       // Manejar errores 409 (Conflict) - inscripción duplicada
       if (e.response?.statusCode == 409) {
         final errorData = e.response?.data;
         print('🔍 Error Response Data: $errorData');
         print('🔍 Error Response Type: ${errorData.runtimeType}');
-        
-        String errorMessage = 'Ya tienes una solicitud pendiente para esta organización';
-        
+
+        String errorMessage =
+            'Ya tienes una solicitud pendiente para esta organización';
+
         if (errorData is Map<String, dynamic>) {
           if (errorData.containsKey('message')) {
             final message = errorData['message'];
@@ -750,10 +834,10 @@ class VoluntarioRepository {
             }
           }
         }
-        
+
         throw Exception(errorMessage);
       }
-      
+
       throw _handleError(e);
     } catch (e, stackTrace) {
       print('❌ Error general: $e');
@@ -766,10 +850,10 @@ class VoluntarioRepository {
   Future<List<Inscripcion>> getInscripciones() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.inscripciones);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Inscripcion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Inscripcion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -801,14 +885,16 @@ class VoluntarioRepository {
     try {
       // Normalizar el estado a mayúsculas si está presente (el backend espera: PROGRAMADA, EN_PROGRESO, COMPLETADO, AUSENTE)
       final normalizedData = Map<String, dynamic>.from(data);
-      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
-        normalizedData['estado'] = (normalizedData['estado'] as String).toUpperCase();
+      if (normalizedData.containsKey('estado') &&
+          normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String)
+            .toUpperCase();
       } else if (!normalizedData.containsKey('estado')) {
         normalizedData['estado'] = 'PROGRAMADA';
       }
-      
+
       print('📤 Creando participación: $normalizedData');
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.participaciones,
         data: normalizedData,
@@ -823,10 +909,10 @@ class VoluntarioRepository {
   Future<List<Participacion>> getParticipaciones() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.participaciones);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Participacion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Participacion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -843,7 +929,10 @@ class VoluntarioRepository {
   }
 
   /// Actualizar participación
-  Future<Participacion> updateParticipacion(int id, Map<String, dynamic> data) async {
+  Future<Participacion> updateParticipacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         ApiConfig.participacion(id),
@@ -870,10 +959,10 @@ class VoluntarioRepository {
   Future<List<Tarea>> getTareas() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.tareas);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Tarea.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -892,10 +981,7 @@ class VoluntarioRepository {
   /// Crear tarea
   Future<Tarea> createTarea(Map<String, dynamic> data) async {
     try {
-      final response = await _dioClient.dio.post(
-        ApiConfig.tareas,
-        data: data,
-      );
+      final response = await _dioClient.dio.post(ApiConfig.tareas, data: data);
       return Tarea.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -938,7 +1024,9 @@ class VoluntarioRepository {
       // Si no tiene proyectos, no tiene sentido pedir sus tareas
       final misProyectos = await getMyProyectos();
       if (misProyectos.isEmpty) {
-        print('ℹ️ getMyTasks: voluntario sin proyectos activos, retornando lista vacía');
+        print(
+          'ℹ️ getMyTasks: voluntario sin proyectos activos, retornando lista vacía',
+        );
         return [];
       }
 
@@ -955,9 +1043,7 @@ class VoluntarioRepository {
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
       );
 
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
+      final List<dynamic> data = response.data is List ? response.data : [];
       return data
           .whereType<Map>()
           .map((json) => Map<String, dynamic>.from(json))
@@ -990,9 +1076,7 @@ class VoluntarioRepository {
     String? comentario,
   }) async {
     try {
-      final body = <String, dynamic>{
-        'estado': estado,
-      };
+      final body = <String, dynamic>{'estado': estado};
       if (comentario != null && comentario.isNotEmpty) {
         body['comentario'] = comentario;
       }
@@ -1012,10 +1096,10 @@ class VoluntarioRepository {
   Future<List<AsignacionTarea>> getAsignacionesTareas() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.asignacionesTareas);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => AsignacionTarea.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => AsignacionTarea.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1032,7 +1116,9 @@ class VoluntarioRepository {
   }
 
   /// Crear asignación de tarea
-  Future<AsignacionTarea> createAsignacionTarea(Map<String, dynamic> data) async {
+  Future<AsignacionTarea> createAsignacionTarea(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.asignacionesTareas,
@@ -1045,7 +1131,10 @@ class VoluntarioRepository {
   }
 
   /// Actualizar asignación de tarea
-  Future<AsignacionTarea> updateAsignacionTarea(int id, Map<String, dynamic> data) async {
+  Future<AsignacionTarea> updateAsignacionTarea(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         ApiConfig.asignacionTarea(id),
@@ -1060,7 +1149,9 @@ class VoluntarioRepository {
   /// Cancelar asignación de tarea
   Future<Map<String, dynamic>> deleteAsignacionTarea(int id) async {
     try {
-      final response = await _dioClient.dio.delete(ApiConfig.asignacionTarea(id));
+      final response = await _dioClient.dio.delete(
+        ApiConfig.asignacionTarea(id),
+      );
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -1093,13 +1184,15 @@ class VoluntarioRepository {
         // El backend espera 'comentario' (no 'descripcion')
         'comentario': comentario,
         // Enviar siempre un tipo válido y corto
-        'tipo': (fotoBase64 != null && fotoBase64.isNotEmpty) ? 'FOTO' : 'TEXTO',
+        'tipo': (fotoBase64 != null && fotoBase64.isNotEmpty)
+            ? 'FOTO'
+            : 'TEXTO',
       };
 
       if (fotoBase64 != null && fotoBase64.isNotEmpty) {
         body['foto'] = fotoBase64;
       }
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.voluntariosMyTaskEvidences(tareaId),
         data: body,
@@ -1131,26 +1224,29 @@ class VoluntarioRepository {
   Future<List<Opinion>> getOpiniones() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.opiniones);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Opinion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   /// Obtener opiniones por proyecto
-  Future<List<Opinion>> getOpinionesByProyecto(int proyectoId, {bool visibleOnly = false}) async {
+  Future<List<Opinion>> getOpinionesByProyecto(
+    int proyectoId, {
+    bool visibleOnly = false,
+  }) async {
     try {
       final response = await _dioClient.dio.get(
         ApiConfig.opinionesByProyecto(proyectoId),
         queryParameters: visibleOnly ? {'visibleOnly': 'true'} : null,
       );
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Opinion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1162,10 +1258,10 @@ class VoluntarioRepository {
       final response = await _dioClient.dio.get(
         ApiConfig.opinionesByVoluntario(perfilVolId),
       );
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => Opinion.fromJson(json as Map<String, dynamic>)).toList();
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1206,13 +1302,17 @@ class VoluntarioRepository {
   // ==================== CALIFICACIONES ====================
 
   /// Crear calificación de un proyecto
-  Future<CalificacionProyecto> createCalificacion(Map<String, dynamic> data) async {
+  Future<CalificacionProyecto> createCalificacion(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.calificacionesProyectos,
         data: data,
       );
-      return CalificacionProyecto.fromJson(response.data as Map<String, dynamic>);
+      return CalificacionProyecto.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1221,11 +1321,16 @@ class VoluntarioRepository {
   /// Obtener todas las calificaciones
   Future<List<CalificacionProyecto>> getCalificaciones() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.calificacionesProyectos);
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : [];
-      return data.map((json) => CalificacionProyecto.fromJson(json as Map<String, dynamic>)).toList();
+      final response = await _dioClient.dio.get(
+        ApiConfig.calificacionesProyectos,
+      );
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map(
+            (json) =>
+                CalificacionProyecto.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1234,21 +1339,30 @@ class VoluntarioRepository {
   /// Obtener calificación por ID
   Future<CalificacionProyecto> getCalificacionById(int id) async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.calificacionProyecto(id));
-      return CalificacionProyecto.fromJson(response.data as Map<String, dynamic>);
+      final response = await _dioClient.dio.get(
+        ApiConfig.calificacionProyecto(id),
+      );
+      return CalificacionProyecto.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   /// Actualizar calificación
-  Future<CalificacionProyecto> updateCalificacion(int id, Map<String, dynamic> data) async {
+  Future<CalificacionProyecto> updateCalificacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         ApiConfig.calificacionProyecto(id),
         data: data,
       );
-      return CalificacionProyecto.fromJson(response.data as Map<String, dynamic>);
+      return CalificacionProyecto.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -1273,20 +1387,27 @@ class VoluntarioRepository {
     try {
       print('📊 Obteniendo dashboard del voluntario...');
       final response = await _dioClient.dio.get(ApiConfig.voluntariosDashboard);
-      
+
       print('📥 Dashboard response: ${response.statusCode}');
-      
+
       if (response.data is Map<String, dynamic>) {
-        return VoluntarioDashboardResponse.fromJson(response.data as Map<String, dynamic>);
+        return VoluntarioDashboardResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
-      
+
       // Si la respuesta no es el formato esperado, retornar un dashboard vacío
       return const VoluntarioDashboardResponse(
         resumen: ResumenVoluntario(
           organizacionesInscritas: 0,
           proyectosParticipando: 0,
           participacionesPendientes: 0,
-          tareas: ResumenTareas(asignadas: 0, enProgreso: 0, completadas: 0, total: 0),
+          tareas: ResumenTareas(
+            asignadas: 0,
+            enProgreso: 0,
+            completadas: 0,
+            total: 0,
+          ),
         ),
         ultimasTareas: [],
       );
@@ -1302,17 +1423,19 @@ class VoluntarioRepository {
   Future<List<ProyectoVoluntario>> getMyProyectos() async {
     try {
       print('📋 Obteniendo proyectos del voluntario...');
-      final response = await _dioClient.dio.get(ApiConfig.voluntariosMyProyectos);
-      
+      final response = await _dioClient.dio.get(
+        ApiConfig.voluntariosMyProyectos,
+      );
+
       print('📥 Proyectos response: ${response.statusCode}');
-      
+
       if (response.data is List) {
         return (response.data as List)
             .whereType<Map<String, dynamic>>()
             .map((json) => ProyectoVoluntario.fromJson(json))
             .toList();
       }
-      
+
       return [];
     } on DioException catch (e) {
       print('❌ Error obteniendo proyectos: ${e.message}');
@@ -1329,18 +1452,22 @@ class VoluntarioRepository {
       final response = await _dioClient.dio.get(
         ApiConfig.voluntariosMyProyecto(proyectoId),
       );
-      
+
       print('📥 Proyecto detalle response: ${response.statusCode}');
-      
+
       if (response.data is Map<String, dynamic>) {
-        return ProyectoDetalleVoluntario.fromJson(response.data as Map<String, dynamic>);
+        return ProyectoDetalleVoluntario.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
-      
+
       throw Exception('Formato de respuesta no válido');
     } on DioException catch (e) {
       print('❌ Error obteniendo detalle del proyecto: ${e.message}');
       if (e.response?.statusCode == 404) {
-        throw Exception('No participas en este proyecto o tu participación no está activa.');
+        throw Exception(
+          'No participas en este proyecto o tu participación no está activa.',
+        );
       }
       throw _handleError(e);
     }
@@ -1355,16 +1482,16 @@ class VoluntarioRepository {
       final response = await _dioClient.dio.get(
         ApiConfig.voluntariosMyProyectoTareas(proyectoId),
       );
-      
+
       print('📥 Tareas proyecto response: ${response.statusCode}');
-      
+
       if (response.data is List) {
         return (response.data as List)
             .whereType<Map<String, dynamic>>()
             .map((json) => TareaProyecto.fromJson(json))
             .toList();
       }
-      
+
       return [];
     } on DioException catch (e) {
       print('❌ Error obteniendo tareas del proyecto: ${e.message}');
@@ -1384,7 +1511,7 @@ class VoluntarioRepository {
   }) async {
     try {
       print('📋 Obteniendo todas las tareas del voluntario...');
-      
+
       final queryParameters = <String, dynamic>{};
       if (estado != null && estado.isNotEmpty) {
         queryParameters['estado'] = estado;
@@ -1397,23 +1524,25 @@ class VoluntarioRepository {
         ApiConfig.voluntariosMyTasks,
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
       );
-      
+
       print('📥 Todas las tareas response: ${response.statusCode}');
-      
+
       if (response.data is List) {
         return (response.data as List)
             .whereType<Map<String, dynamic>>()
             .map((json) => AsignacionTareaVoluntario.fromJson(json))
             .toList();
       }
-      
+
       return [];
     } on DioException catch (e) {
       print('❌ Error obteniendo todas las tareas: ${e.message}');
       // Si es error 500, retornar lista vacía en lugar de fallar
       // (el endpoint puede no estar implementado aún en el backend)
       if (e.response?.statusCode == 500) {
-        print('⚠️ El endpoint /voluntarios/my/tasks retornó 500 - retornando lista vacía');
+        print(
+          '⚠️ El endpoint /voluntarios/my/tasks retornó 500 - retornando lista vacía',
+        );
         return [];
       }
       throw _handleError(e);
@@ -1431,20 +1560,27 @@ class VoluntarioRepository {
     try {
       print('📤 Creando solicitud de participación...');
       print('📤 Proyecto ID: ${request.proyectoId}');
-      
+
       // Construir body y asegurar que incluimos perfil_vol_id
       final body = Map<String, dynamic>.from(request.toJson());
 
       if (!body.containsKey('perfil_vol_id') || body['perfil_vol_id'] == null) {
         try {
-          final perfilJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+          final perfilJson = await StorageService.getString(
+            ApiConfig.perfilVoluntarioKey,
+          );
           if (perfilJson != null) {
-            final Map<String, dynamic> perfilMap = jsonDecode(perfilJson) as Map<String, dynamic>;
+            final Map<String, dynamic> perfilMap =
+                jsonDecode(perfilJson) as Map<String, dynamic>;
             final perfil = PerfilVoluntario.fromJson(perfilMap);
             body['perfil_vol_id'] = perfil.idPerfilVoluntario;
-            print('👤 perfil_vol_id detectado desde storage: ${perfil.idPerfilVoluntario}');
+            print(
+              '👤 perfil_vol_id detectado desde storage: ${perfil.idPerfilVoluntario}',
+            );
           } else {
-            print('⚠️ No se encontró perfil_voluntario en storage, se enviará sin perfil_vol_id');
+            print(
+              '⚠️ No se encontró perfil_voluntario en storage, se enviará sin perfil_vol_id',
+            );
           }
         } catch (e) {
           print('⚠️ Error obteniendo perfil_voluntario desde storage: $e');
@@ -1455,25 +1591,29 @@ class VoluntarioRepository {
         ApiConfig.voluntariosMyParticipaciones,
         data: body,
       );
-      
+
       print('📥 Crear participación response: ${response.statusCode}');
-      
+
       if (response.data is Map<String, dynamic>) {
-        return CrearParticipacionResponse.fromJson(response.data as Map<String, dynamic>);
+        return CrearParticipacionResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
-      
+
       throw Exception('Formato de respuesta no válido');
     } on DioException catch (e) {
       print('❌ Error creando participación: ${e.message}');
       print('❌ Response: ${e.response?.data}');
-      
+
       // Manejar errores específicos
       if (e.response?.statusCode == 400) {
         final data = e.response?.data;
         if (data is Map && data['message'] != null) {
           throw Exception(data['message'].toString());
         }
-        throw Exception('No tienes una inscripción aprobada en la organización de este proyecto.');
+        throw Exception(
+          'No tienes una inscripción aprobada en la organización de este proyecto.',
+        );
       }
       if (e.response?.statusCode == 404) {
         throw Exception('El proyecto no existe.');
@@ -1483,9 +1623,11 @@ class VoluntarioRepository {
         if (data is Map && data['message'] != null) {
           throw Exception(data['message'].toString());
         }
-        throw Exception('Ya tienes una solicitud pendiente o ya participas en este proyecto.');
+        throw Exception(
+          'Ya tienes una solicitud pendiente o ya participas en este proyecto.',
+        );
       }
-      
+
       throw _handleError(e);
     }
   }
@@ -1498,7 +1640,7 @@ class VoluntarioRepository {
   }) async {
     try {
       print('📋 Obteniendo participaciones del voluntario...');
-      
+
       final queryParameters = <String, dynamic>{};
       if (estado != null && estado.isNotEmpty) {
         queryParameters['estado'] = estado;
@@ -1508,16 +1650,16 @@ class VoluntarioRepository {
         ApiConfig.voluntariosMyParticipaciones,
         queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
       );
-      
+
       print('📥 Participaciones response: ${response.statusCode}');
-      
+
       if (response.data is List) {
         return (response.data as List)
             .whereType<Map<String, dynamic>>()
             .map((json) => ParticipacionVoluntario.fromJson(json))
             .toList();
       }
-      
+
       return [];
     } on DioException catch (e) {
       print('❌ Error obteniendo participaciones: ${e.message}');
@@ -1531,22 +1673,24 @@ class VoluntarioRepository {
   Future<void> cancelMyParticipacion(int participacionId) async {
     try {
       print('🗑️ Cancelando participación $participacionId...');
-      
+
       final response = await _dioClient.dio.delete(
         ApiConfig.voluntariosMyParticipacion(participacionId),
       );
-      
+
       print('📥 Cancelar participación response: ${response.statusCode}');
     } on DioException catch (e) {
       print('❌ Error cancelando participación: ${e.message}');
-      
+
       if (e.response?.statusCode == 400) {
-        throw Exception('Solo puedes cancelar solicitudes en estado pendiente.');
+        throw Exception(
+          'Solo puedes cancelar solicitudes en estado pendiente.',
+        );
       }
       if (e.response?.statusCode == 404) {
         throw Exception('Participación no encontrada.');
       }
-      
+
       throw _handleError(e);
     }
   }
@@ -1587,7 +1731,9 @@ class VoluntarioRepository {
           // Error del servidor - puede ser que el usuario ya tenga un perfil
           if (data is Map && data['message'] != null) {
             final message = data['message'].toString().toLowerCase();
-            if (message.contains('ya existe') || message.contains('duplicate') || message.contains('unique constraint')) {
+            if (message.contains('ya existe') ||
+                message.contains('duplicate') ||
+                message.contains('unique constraint')) {
               return 'Ya tienes un perfil de voluntario. Intenta actualizar tu perfil existente.';
             }
             return 'Error del servidor: ${data['message']}';

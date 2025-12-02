@@ -55,9 +55,7 @@ class _MyTasksPageState extends State<MyTasksPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis tareas'),
-      ),
+      appBar: AppBar(title: const Text('Mis tareas')),
       body: Column(
         children: [
           Padding(
@@ -72,10 +70,7 @@ class _MyTasksPageState extends State<MyTasksPage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text('Todos'),
-                      ),
+                      DropdownMenuItem(value: null, child: Text('Todos')),
                       DropdownMenuItem(
                         value: 'pendiente',
                         child: Text('Pendiente'),
@@ -117,7 +112,11 @@ class _MyTasksPageState extends State<MyTasksPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                              Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: colorScheme.error,
+                              ),
                               const SizedBox(height: 8),
                               Text(
                                 'Error al cargar tus tareas',
@@ -145,7 +144,11 @@ class _MyTasksPageState extends State<MyTasksPage> {
                           padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
-                              Icon(Icons.check_circle_outline, size: 64, color: colorScheme.primary),
+                              Icon(
+                                Icons.check_circle_outline,
+                                size: 64,
+                                color: colorScheme.primary,
+                              ),
                               const SizedBox(height: 12),
                               Text(
                                 'No tienes tareas asignadas todavía',
@@ -164,15 +167,24 @@ class _MyTasksPageState extends State<MyTasksPage> {
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final item = tasks[index];
-                      final tareaMap = item['tarea'] is Map ? Map<String, dynamic>.from(item['tarea'] as Map) : null;
-                      final tareaNombre = tareaMap != null ? (tareaMap['nombre']?.toString() ?? 'Tarea') : 'Tarea';
-                      final proyectoMap = tareaMap != null && tareaMap['proyecto'] is Map
-                          ? Map<String, dynamic>.from(tareaMap['proyecto'] as Map)
+                      final tareaMap = item['tarea'] is Map
+                          ? Map<String, dynamic>.from(item['tarea'] as Map)
+                          : null;
+                      final tareaNombre = tareaMap != null
+                          ? (tareaMap['nombre']?.toString() ?? 'Tarea')
+                          : 'Tarea';
+                      final proyectoMap =
+                          tareaMap != null && tareaMap['proyecto'] is Map
+                          ? Map<String, dynamic>.from(
+                              tareaMap['proyecto'] as Map,
+                            )
                           : null;
                       final proyectoNombre = proyectoMap != null
                           ? (proyectoMap['nombre']?.toString() ?? 'Proyecto')
                           : 'Proyecto';
-                      final estado = (item['estado'] ?? tareaMap?['estado'] ?? 'pendiente').toString();
+                      final estado =
+                          (item['estado'] ?? tareaMap?['estado'] ?? 'pendiente')
+                              .toString();
 
                       int? tareaId;
                       if (tareaMap != null) {
@@ -183,14 +195,19 @@ class _MyTasksPageState extends State<MyTasksPage> {
                           tareaId = int.tryParse(rawId);
                         }
                       }
-                      tareaId ??= item['tarea_id'] is int ? item['tarea_id'] as int : null;
+                      tareaId ??= item['tarea_id'] is int
+                          ? item['tarea_id'] as int
+                          : null;
 
                       return ListTile(
                         title: Text(tareaNombre),
                         subtitle: Text(proyectoNombre),
                         trailing: Chip(
                           label: Text(estado.toUpperCase()),
-                          backgroundColor: _estadoColor(estado, colorScheme).withOpacity(0.1),
+                          backgroundColor: _estadoColor(
+                            estado,
+                            colorScheme,
+                          ).withOpacity(0.1),
                           labelStyle: TextStyle(
                             color: _estadoColor(estado, colorScheme),
                           ),
@@ -198,7 +215,9 @@ class _MyTasksPageState extends State<MyTasksPage> {
                         onTap: tareaId == null
                             ? null
                             : () {
-                                Modular.to.pushNamed('/voluntario/my-tasks/$tareaId');
+                                Modular.to.pushNamed(
+                                  '/voluntario/my-tasks/$tareaId',
+                                );
                               },
                       );
                     },

@@ -29,12 +29,12 @@ class RegisterRequest {
       'ci': ci,
       'sexo': sexo,
     };
-    
+
     // id_rol es requerido por el backend
     if (idRol != null) {
       json['id_rol'] = idRol;
     }
-    
+
     return json;
   }
 }
@@ -43,16 +43,10 @@ class LoginRequest {
   final String email;
   final String contrasena;
 
-  LoginRequest({
-    required this.email,
-    required this.contrasena,
-  });
+  LoginRequest({required this.email, required this.contrasena});
 
   Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'contrasena': contrasena,
-    };
+    return {'email': email, 'contrasena': contrasena};
   }
 }
 
@@ -75,9 +69,11 @@ class CreatePerfilVoluntarioRequest {
     return {
       'usuario_id': usuarioId,
       if (bio != null && bio!.isNotEmpty) 'bio': bio,
-      if (disponibilidad != null && disponibilidad!.isNotEmpty) 'disponibilidad': disponibilidad,
+      if (disponibilidad != null && disponibilidad!.isNotEmpty)
+        'disponibilidad': disponibilidad,
       if (estado.isNotEmpty) 'estado': estado,
-      if (fotoPerfil != null && fotoPerfil!.isNotEmpty) 'foto_perfil': fotoPerfil,
+      if (fotoPerfil != null && fotoPerfil!.isNotEmpty)
+        'foto_perfil': fotoPerfil,
     };
   }
 }
@@ -86,16 +82,10 @@ class AsignarAptitudRequest {
   final int perfilVolId;
   final int aptitudId;
 
-  AsignarAptitudRequest({
-    required this.perfilVolId,
-    required this.aptitudId,
-  });
+  AsignarAptitudRequest({required this.perfilVolId, required this.aptitudId});
 
   Map<String, dynamic> toJson() {
-    return {
-      'perfil_vol_id': perfilVolId,
-      'aptitud_id': aptitudId,
-    };
+    return {'perfil_vol_id': perfilVolId, 'aptitud_id': aptitudId};
   }
 }
 
@@ -106,10 +96,7 @@ class CreateRolRequest {
   final String nombre;
   final String? descripcion;
 
-  CreateRolRequest({
-    required this.nombre,
-    this.descripcion,
-  });
+  CreateRolRequest({required this.nombre, this.descripcion});
 
   Map<String, dynamic> toJson() {
     return {
@@ -125,11 +112,7 @@ class UpdateRolRequest {
   final String? descripcion;
   final String? estado;
 
-  UpdateRolRequest({
-    this.nombre,
-    this.descripcion,
-    this.estado,
-  });
+  UpdateRolRequest({this.nombre, this.descripcion, this.estado});
 
   Map<String, dynamic> toJson() {
     return {
@@ -145,43 +128,31 @@ class AsignarRolRequest {
   final int idUsuario;
   final int idRol;
 
-  AsignarRolRequest({
-    required this.idUsuario,
-    required this.idRol,
-  });
+  AsignarRolRequest({required this.idUsuario, required this.idRol});
 
   Map<String, dynamic> toJson() {
-    return {
-      'usuario_id': idUsuario,
-      'rol_id': idRol,
-    };
+    return {'usuario_id': idUsuario, 'rol_id': idRol};
   }
 }
 
 /// Asignar programas a rol (crear registros en la tabla permisos)
-/// 
+///
 /// La tabla `permisos` es la tabla intermedia entre `roles` y `programas`.
 /// Cuando se asignan programas a un rol, se crean registros en `permisos`
 /// que relacionan el rol con cada programa, otorgando acceso a esas acciones.
-/// 
+///
 /// NO existe una tabla `roles_permisos` - todo se maneja a través de `permisos`.
 class AsignarPermisosRequest {
   /// ID del rol al que se le asignarán los programas
   final int idRol;
-  
+
   /// Lista de IDs de programas (acciones) que se asignarán al rol
   final List<int> programas;
 
-  AsignarPermisosRequest({
-    required this.idRol,
-    required this.programas,
-  });
+  AsignarPermisosRequest({required this.idRol, required this.programas});
 
   Map<String, dynamic> toJson() {
-    return {
-      'id_rol': idRol,
-      'programas': programas,
-    };
+    return {'id_rol': idRol, 'programas': programas};
   }
 }
 
@@ -212,11 +183,7 @@ class UpdateProgramaRequest {
   final String? descripcion;
   final int? idAplicacion;
 
-  UpdateProgramaRequest({
-    this.nombre,
-    this.descripcion,
-    this.idAplicacion,
-  });
+  UpdateProgramaRequest({this.nombre, this.descripcion, this.idAplicacion});
 
   Map<String, dynamic> toJson() {
     return {
@@ -232,16 +199,10 @@ class CreateAplicacionRequest {
   final String nombre;
   final int idModulo;
 
-  CreateAplicacionRequest({
-    required this.nombre,
-    required this.idModulo,
-  });
+  CreateAplicacionRequest({required this.nombre, required this.idModulo});
 
   Map<String, dynamic> toJson() {
-    return {
-      'nombre': nombre,
-      'id_modulo': idModulo,
-    };
+    return {'nombre': nombre, 'id_modulo': idModulo};
   }
 }
 
@@ -251,11 +212,7 @@ class UpdateAplicacionRequest {
   final String? descripcion;
   final int? idModulo;
 
-  UpdateAplicacionRequest({
-    this.nombre,
-    this.descripcion,
-    this.idModulo,
-  });
+  UpdateAplicacionRequest({this.nombre, this.descripcion, this.idModulo});
 
   Map<String, dynamic> toJson() {
     return {
@@ -271,10 +228,7 @@ class UpdateModuloRequest {
   final String? nombre;
   final String? descripcion;
 
-  UpdateModuloRequest({
-    this.nombre,
-    this.descripcion,
-  });
+  UpdateModuloRequest({this.nombre, this.descripcion});
 
   Map<String, dynamic> toJson() {
     return {
@@ -351,10 +305,7 @@ class CreateAptitudRequest {
   final String nombre;
   final String? descripcion;
 
-  CreateAptitudRequest({
-    required this.nombre,
-    this.descripcion,
-  });
+  CreateAptitudRequest({required this.nombre, this.descripcion});
 
   Map<String, dynamic> toJson() {
     return {
@@ -370,11 +321,7 @@ class UpdateAptitudRequest {
   final String? descripcion;
   final String? estado;
 
-  UpdateAptitudRequest({
-    this.nombre,
-    this.descripcion,
-    this.estado,
-  });
+  UpdateAptitudRequest({this.nombre, this.descripcion, this.estado});
 
   Map<String, dynamic> toJson() {
     return {
@@ -392,16 +339,16 @@ class UpdateAptitudRequest {
 class CrearParticipacionRequest {
   /// ID del proyecto al que se quiere unir
   final int proyectoId;
-  
+
   /// ID del perfil de voluntario (opcional, se puede completar en el repositorio)
   final int? perfilVolId;
-  
+
   /// ID de la inscripción aprobada del voluntario en la organización del proyecto (opcional)
   ///
   /// Para proyectos privados, el backend requerirá que este campo apunte a una
   /// inscripción aprobada de la misma organización que el proyecto.
   final int? inscripcionId;
-  
+
   /// Horas comprometidas por semana (opcional)
   final double? horasComprometidasSemana;
 
@@ -417,7 +364,8 @@ class CrearParticipacionRequest {
       'proyecto_id': proyectoId,
       if (perfilVolId != null) 'perfil_vol_id': perfilVolId,
       if (inscripcionId != null) 'inscripcion_id': inscripcionId,
-      if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
+      if (horasComprometidasSemana != null)
+        'horas_comprometidas_semana': horasComprometidasSemana,
     };
   }
 }

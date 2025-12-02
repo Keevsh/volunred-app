@@ -15,14 +15,11 @@ class OrganizacionRepository {
   // Los proyectos se relacionan con la organización mediante `organizacion_id`.
 
   /// Obtener todas las organizaciones
-  /// 
+  ///
   /// NOTA: Cada organización puede tener muchos proyectos (relación 1:N).
   /// Para obtener los proyectos de una organización específica,
   /// consulta la tabla `proyectos` filtrando por `organizacion_id`.
-  Future<List<Organizacion>> getOrganizaciones({
-    int? page,
-    int? limit,
-  }) async {
+  Future<List<Organizacion>> getOrganizaciones({int? page, int? limit}) async {
     try {
       final response = await _dioClient.dio.get(
         ApiConfig.organizaciones,
@@ -31,26 +28,30 @@ class OrganizacionRepository {
           if (limit != null) 'limit': limit,
         },
       );
-      
-      final List<dynamic> data = response.data is List 
-          ? response.data 
+
+      final List<dynamic> data = response.data is List
+          ? response.data
           : (response.data['organizaciones'] ?? []);
-          
-      return data.map((json) => Organizacion.fromJson(json as Map<String, dynamic>)).toList();
+
+      return data
+          .map((json) => Organizacion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   /// Obtener organización por ID
-  /// 
+  ///
   /// NOTA: Una organización puede tener muchos proyectos.
   /// Los proyectos no se incluyen directamente en este modelo,
   /// pero puedes obtenerlos consultando la tabla `proyectos`
   /// filtrando por `organizacion_id = id`.
   Future<Organizacion> getOrganizacionById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.organizaciones}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.organizaciones}/$id',
+      );
       return Organizacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -64,32 +65,34 @@ class OrganizacionRepository {
       print('📤 Enviando datos de creación de organización:');
       print('📤 Keys: ${data.keys.toList()}');
       print('📤 Values: $data');
-      
+
       // Ensure id_categoria_organizacion is NOT in the data
       final cleanedData = Map<String, dynamic>.from(data);
       if (cleanedData.containsKey('id_categoria_organizacion')) {
-        print('⚠️ ADVERTENCIA: id_categoria_organizacion encontrado en datos, removiendo...');
+        print(
+          '⚠️ ADVERTENCIA: id_categoria_organizacion encontrado en datos, removiendo...',
+        );
         cleanedData.remove('id_categoria_organizacion');
       }
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.organizaciones,
         data: cleanedData,
       );
       print('🔍 Respuesta del servidor: ${response.data}');
       print('🔍 Tipo de respuesta: ${response.data.runtimeType}');
-      
+
       // Si la respuesta viene envuelta en un objeto, extraer los datos
-      final jsonData = response.data is Map<String, dynamic> 
+      final jsonData = response.data is Map<String, dynamic>
           ? response.data as Map<String, dynamic>
           : response.data;
-      
+
       // Log the actual JSON keys to help debug
       if (jsonData is Map) {
         print('🔍 Keys en respuesta: ${jsonData.keys.toList()}');
         print('🔍 Valores en respuesta: $jsonData');
       }
-          
+
       try {
         return Organizacion.fromJson(jsonData);
       } catch (e, stackTrace) {
@@ -105,11 +108,14 @@ class OrganizacionRepository {
   }
 
   /// Actualizar organización
-  Future<Organizacion> updateOrganizacion(int id, Map<String, dynamic> data) async {
+  Future<Organizacion> updateOrganizacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       print('📤 Actualizando organización ID: $id');
       print('📤 Datos de actualización: $data');
-      
+
       final response = await _dioClient.dio.patch(
         '${ApiConfig.organizaciones}/$id',
         data: data,
@@ -146,12 +152,16 @@ class OrganizacionRepository {
           if (limit != null) 'limit': limit,
         },
       );
-      
-      final List<dynamic> data = response.data is List 
-          ? response.data 
+
+      final List<dynamic> data = response.data is List
+          ? response.data
           : (response.data['perfiles'] ?? []);
-          
-      return data.map((json) => PerfilFuncionario.fromJson(json as Map<String, dynamic>)).toList();
+
+      return data
+          .map(
+            (json) => PerfilFuncionario.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -160,7 +170,9 @@ class OrganizacionRepository {
   /// Obtener perfil de funcionario por ID
   Future<PerfilFuncionario> getPerfilFuncionarioById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.perfilesFuncionarios}/$id',
+      );
       return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -168,9 +180,13 @@ class OrganizacionRepository {
   }
 
   /// Obtener perfil de funcionario por usuario
-  Future<PerfilFuncionario?> getPerfilFuncionarioByUsuario(int idUsuario) async {
+  Future<PerfilFuncionario?> getPerfilFuncionarioByUsuario(
+    int idUsuario,
+  ) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.perfilesFuncionarios}/$idUsuario');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.perfilesFuncionarios}/$idUsuario',
+      );
       return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
@@ -181,7 +197,9 @@ class OrganizacionRepository {
   }
 
   /// Crear perfil de funcionario
-  Future<PerfilFuncionario> createPerfilFuncionario(Map<String, dynamic> data) async {
+  Future<PerfilFuncionario> createPerfilFuncionario(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final url = ApiConfig.baseUrl + ApiConfig.perfilesFuncionarios;
       print('📤 Creando perfil funcionario');
@@ -189,7 +207,7 @@ class OrganizacionRepository {
       print('📤 Datos: $data');
       print('📤 Keys: ${data.keys.toList()}');
       print('📤 Valores: ${data.values.toList()}');
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.perfilesFuncionarios,
         data: data,
@@ -198,15 +216,17 @@ class OrganizacionRepository {
       print('🔍 Status code: ${response.statusCode}');
       print('🔍 Respuesta perfil funcionario: ${response.data}');
       print('🔍 Tipo de respuesta: ${response.data.runtimeType}');
-      
+
       // Si la respuesta viene envuelta en un objeto, extraer los datos
-      final jsonData = response.data is Map<String, dynamic> 
+      final jsonData = response.data is Map<String, dynamic>
           ? response.data as Map<String, dynamic>
           : response.data;
-      
+
       try {
         final perfil = PerfilFuncionario.fromJson(jsonData);
-        print('✅ Perfil parseado correctamente: ID=${perfil.idPerfilFuncionario}');
+        print(
+          '✅ Perfil parseado correctamente: ID=${perfil.idPerfilFuncionario}',
+        );
         return perfil;
       } catch (e, stackTrace) {
         print('❌ Error parseando PerfilFuncionario desde JSON: $e');
@@ -231,7 +251,10 @@ class OrganizacionRepository {
   }
 
   /// Actualizar perfil de funcionario
-  Future<PerfilFuncionario> updatePerfilFuncionario(int id, Map<String, dynamic> data) async {
+  Future<PerfilFuncionario> updatePerfilFuncionario(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.perfilesFuncionarios}/$id',
@@ -249,13 +272,15 @@ class OrganizacionRepository {
   Future<List<Map<String, dynamic>>> getCategoriasOrganizaciones() async {
     try {
       print('🔍 Obteniendo categorías de organizaciones...');
-      final response = await _dioClient.dio.get(ApiConfig.categoriasOrganizaciones);
+      final response = await _dioClient.dio.get(
+        ApiConfig.categoriasOrganizaciones,
+      );
       print('🔍 Respuesta categorías: ${response.data}');
       print('🔍 Tipo de respuesta: ${response.data.runtimeType}');
-      
+
       final categorias = List<Map<String, dynamic>>.from(response.data as List);
       print('🔍 Categorías parseadas: ${categorias.length} categorías');
-      
+
       return categorias;
     } on DioException catch (e) {
       print('❌ Error obteniendo categorías: ${e.message}');
@@ -274,7 +299,7 @@ class OrganizacionRepository {
       final data = e.response!.data;
       print('🔍 Error Response Data: $data');
       print('🔍 Error Response Type: ${data.runtimeType}');
-      
+
       if (data is Map) {
         // Handle message field - can be String or List<String>
         if (data.containsKey('message')) {

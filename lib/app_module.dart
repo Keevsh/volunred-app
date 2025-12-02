@@ -17,26 +17,26 @@ import 'features/voluntario/voluntario_module.dart';
 class AppModule extends Module {
   @override
   List<Bind> get binds => [
-        // Services
-        Bind.singleton((i) => DioClient()),
-        
-        // Repositories
-        Bind.singleton((i) => AuthRepository(i<DioClient>())),
-        Bind.singleton((i) => VoluntarioRepository(i<DioClient>())),
-        Bind.singleton((i) => AdminRepository(i<DioClient>())),
-        Bind.singleton((i) => OrganizacionRepository(i<DioClient>())),
-        Bind.singleton((i) => FuncionarioRepository(i<DioClient>())),
-      ];
+    // Services
+    Bind.singleton((i) => DioClient()),
+
+    // Repositories
+    Bind.singleton((i) => AuthRepository(i<DioClient>())),
+    Bind.singleton((i) => VoluntarioRepository(i<DioClient>())),
+    Bind.singleton((i) => AdminRepository(i<DioClient>())),
+    Bind.singleton((i) => OrganizacionRepository(i<DioClient>())),
+    Bind.singleton((i) => FuncionarioRepository(i<DioClient>())),
+  ];
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute('/', child: (_, __) => const WelcomePage()),
-        ModuleRoute('/auth', module: AuthModule()),
-        ModuleRoute('/profile', module: ProfileModule()),
-        ModuleRoute('/home', module: HomeModule()),
-        ModuleRoute('/experiencias', module: ExperienciasModule()),
-        ModuleRoute('/admin', module: AdminModule()),
-        ModuleRoute('/proyectos', module: ProyectosModule()),
-        ModuleRoute('/voluntario', module: VoluntarioModule()),
-      ];
+    ChildRoute('/', child: (_, __) => const WelcomePage()),
+    ModuleRoute('/auth', module: AuthModule()),
+    ModuleRoute('/profile', module: ProfileModule()),
+    ModuleRoute('/home', module: HomeModule()),
+    ModuleRoute('/experiencias', module: ExperienciasModule()),
+    ModuleRoute('/admin', module: AdminModule()),
+    ModuleRoute('/proyectos', module: ProyectosModule()),
+    ModuleRoute('/voluntario', module: VoluntarioModule()),
+  ];
 }

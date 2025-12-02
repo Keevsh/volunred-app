@@ -24,7 +24,9 @@ class _EditAptitudPageState extends State<EditAptitudPage> {
   void initState() {
     super.initState();
     _nombreController = TextEditingController(text: widget.aptitud.nombre);
-    _descripcionController = TextEditingController(text: widget.aptitud.descripcion ?? '');
+    _descripcionController = TextEditingController(
+      text: widget.aptitud.descripcion ?? '',
+    );
   }
 
   @override
@@ -46,11 +48,13 @@ class _EditAptitudPageState extends State<EditAptitudPage> {
     final nombre = _nombreController.text.trim();
     final descripcion = _descripcionController.text.trim();
 
-    context.read<AdminBloc>().add(UpdateAptitudRequested(
-          id: widget.aptitud.idAptitud,
-          nombre: nombre,
-          descripcion: descripcion.isEmpty ? null : descripcion,
-        ));
+    context.read<AdminBloc>().add(
+      UpdateAptitudRequested(
+        id: widget.aptitud.idAptitud,
+        nombre: nombre,
+        descripcion: descripcion.isEmpty ? null : descripcion,
+      ),
+    );
   }
 
   @override
@@ -62,10 +66,7 @@ class _EditAptitudPageState extends State<EditAptitudPage> {
         } else if (state is AdminError) {
           setState(() => _isSubmitting = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -152,18 +153,34 @@ class _EditAptitudPageState extends State<EditAptitudPage> {
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 textCapitalization: TextCapitalization.words,
                                 validator: (value) {
@@ -211,24 +228,42 @@ class _EditAptitudPageState extends State<EditAptitudPage> {
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 maxLines: 5,
                                 maxLength: 500,
-                                textCapitalization: TextCapitalization.sentences,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                                 validator: (value) {
-                                  if (value != null && value.trim().length > 500) {
+                                  if (value != null &&
+                                      value.trim().length > 500) {
                                     return 'Máximo 500 caracteres';
                                   }
                                   return null;

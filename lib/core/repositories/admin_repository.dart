@@ -36,12 +36,14 @@ class AdminRepository {
 
       final url = '${ApiConfig.baseUrl}${ApiConfig.perfilesUsuarios}';
       print('🔵 URL COMPLETA USUARIOS: $url');
-      print('🔵 Intentando obtener usuarios desde: ${ApiConfig.perfilesUsuarios}');
+      print(
+        '🔵 Intentando obtener usuarios desde: ${ApiConfig.perfilesUsuarios}',
+      );
       final response = await _dioClient.dio.get(
         ApiConfig.perfilesUsuarios,
         queryParameters: queryParams,
       );
-      
+
       print('🔵 Respuesta usuarios: ${response.statusCode}');
       print('🔵 Tipo de datos: ${response.data.runtimeType}');
       print('🔵 Datos usuarios: ${response.data}');
@@ -51,7 +53,7 @@ class AdminRepository {
         final usuariosList = (response.data as List)
             .map((u) => Usuario.fromJson(u as Map<String, dynamic>))
             .toList();
-        
+
         return {
           'usuarios': usuariosList,
           'total': usuariosList.length,
@@ -59,17 +61,17 @@ class AdminRepository {
           'limit': limit ?? usuariosList.length,
         };
       }
-      
+
       // Si por alguna razón viene como objeto con data
       final data = response.data as Map<String, dynamic>;
-      
+
       // Helper function to safely get int value
       int _getInt(dynamic value, {int defaultValue = 0}) {
         if (value == null) return defaultValue;
         if (value is int) return value;
         return int.tryParse(value.toString()) ?? defaultValue;
       }
-      
+
       return {
         'usuarios': (data['data'] as List)
             .map((u) => Usuario.fromJson(u as Map<String, dynamic>))
@@ -105,14 +107,14 @@ class AdminRepository {
         ApiConfig.perfilesUsuarios,
         data: request.toJson(),
       );
-      
+
       // Manejar diferentes formatos de respuesta
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final usuarioData = data.containsKey('data') ? data['data'] : data;
         return Usuario.fromJson(usuarioData as Map<String, dynamic>);
       }
-      
+
       throw Exception('Formato de respuesta inválido');
     } on DioException catch (e) {
       throw _handleError(e);
@@ -126,14 +128,14 @@ class AdminRepository {
         '${ApiConfig.perfilesUsuarios}/$id',
         data: request.toJson(),
       );
-      
+
       // Manejar diferentes formatos de respuesta
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final usuarioData = data.containsKey('data') ? data['data'] : data;
         return Usuario.fromJson(usuarioData as Map<String, dynamic>);
       }
-      
+
       return Usuario.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -224,25 +226,25 @@ class AdminRepository {
   }
 
   /// Obtener permisos de un rol (programas asignados al rol)
-  /// 
+  ///
   /// Consulta la tabla `permisos` para obtener todos los programas (acciones)
   /// que tiene asignados un rol específico.
-  /// 
+  ///
   /// La tabla `permisos` es la tabla intermedia que relaciona roles con programas.
   Future<Map<String, dynamic>> getPermisosByRol(int idRol) async {
     try {
       // Primero obtener el rol
       final rol = await getRolById(idRol);
-      
+
       // Luego obtener los permisos (registros de la tabla permisos donde id_rol = idRol)
       final response = await _dioClient.dio.get(
         '${ApiConfig.adminRoles}/$idRol/permisos',
       );
-      
+
       // La respuesta puede ser una lista directamente o un objeto con permisos
       List<Permiso> permisos = [];
       int total = 0;
-      
+
       if (response.data is List) {
         // Si la respuesta es una lista directamente
         final permisosList = response.data as List;
@@ -260,12 +262,8 @@ class AdminRepository {
         }
         total = data['total_permisos'] as int? ?? permisos.length;
       }
-      
-      return {
-        'rol': rol,
-        'permisos': permisos,
-        'total': total,
-      };
+
+      return {'rol': rol, 'permisos': permisos, 'total': total};
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -287,13 +285,14 @@ class AdminRepository {
   }
 
   /// Asignar programas a rol (crear registros en la tabla permisos)
-  /// 
+  ///
   /// Cuando se asignan programas a un rol, se crean registros en la tabla `permisos`
   /// que relacionan el rol con cada programa. Esto otorga al rol acceso a esas acciones.
-  /// 
+  ///
   /// La tabla `permisos` es la única tabla intermedia entre `roles` y `programas`.
   Future<Map<String, dynamic>> asignarPermisos(
-      AsignarPermisosRequest request) async {
+    AsignarPermisosRequest request,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.adminAsignarPermisos,
@@ -306,7 +305,7 @@ class AdminRepository {
   }
 
   /// Revocar permiso (eliminar registro de la tabla permisos)
-  /// 
+  ///
   /// Elimina un registro de la tabla `permisos`, revocando el acceso de un rol
   /// a un programa específico.
   Future<void> deletePermiso(int id) async {
@@ -349,13 +348,13 @@ class AdminRepository {
         '${ApiConfig.adminProgramas}/$id',
         data: request.toJson(),
       );
-      
+
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final programaData = data.containsKey('data') ? data['data'] : data;
         return Programa.fromJson(programaData as Map<String, dynamic>);
       }
-      
+
       return Programa.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -390,13 +389,13 @@ class AdminRepository {
         '${ApiConfig.adminModulos}/$id',
         data: request.toJson(),
       );
-      
+
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final moduloData = data.containsKey('data') ? data['data'] : data;
         return Modulo.fromJson(moduloData as Map<String, dynamic>);
       }
-      
+
       return Modulo.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -431,19 +430,22 @@ class AdminRepository {
   }
 
   /// Actualizar aplicación
-  Future<Aplicacion> updateAplicacion(int id, UpdateAplicacionRequest request) async {
+  Future<Aplicacion> updateAplicacion(
+    int id,
+    UpdateAplicacionRequest request,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.adminAplicaciones}/$id',
         data: request.toJson(),
       );
-      
+
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final aplicacionData = data.containsKey('data') ? data['data'] : data;
         return Aplicacion.fromJson(aplicacionData as Map<String, dynamic>);
       }
-      
+
       return Aplicacion.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -465,24 +467,24 @@ class AdminRepository {
   Future<List<Aptitud>> getAptitudes() async {
     try {
       final response = await _dioClient.dio.get(ApiConfig.aptitudes);
-      
+
       // Manejar diferentes formatos de respuesta del backend
       final data = response.data;
-      
+
       // Si la respuesta tiene una propiedad 'data', usarla
       if (data is Map<String, dynamic> && data.containsKey('data')) {
         return (data['data'] as List)
             .map((a) => Aptitud.fromJson(a as Map<String, dynamic>))
             .toList();
       }
-      
+
       // Si la respuesta es directamente una lista
       if (data is List) {
         return data
             .map((a) => Aptitud.fromJson(a as Map<String, dynamic>))
             .toList();
       }
-      
+
       // Si ninguno de los casos anteriores, devolver lista vacía
       return [];
     } on DioException catch (e) {
@@ -494,7 +496,7 @@ class AdminRepository {
   Future<Aptitud> getAptitudById(int id) async {
     try {
       final response = await _dioClient.dio.get('${ApiConfig.aptitudes}/$id');
-      
+
       // Manejar diferentes formatos de respuesta
       final data = response.data;
       if (data is Map<String, dynamic>) {
@@ -502,7 +504,7 @@ class AdminRepository {
         final aptitudData = data.containsKey('data') ? data['data'] : data;
         return Aptitud.fromJson(aptitudData as Map<String, dynamic>);
       }
-      
+
       throw Exception('Formato de respuesta inválido');
     } on DioException catch (e) {
       throw _handleError(e);
@@ -516,14 +518,14 @@ class AdminRepository {
         ApiConfig.aptitudes,
         data: request.toJson(),
       );
-      
+
       // Manejar diferentes formatos de respuesta
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final aptitudData = data.containsKey('data') ? data['data'] : data;
         return Aptitud.fromJson(aptitudData as Map<String, dynamic>);
       }
-      
+
       throw Exception('Formato de respuesta inválido');
     } on DioException catch (e) {
       throw _handleError(e);
@@ -537,14 +539,14 @@ class AdminRepository {
         '${ApiConfig.aptitudes}/$id',
         data: request.toJson(),
       );
-      
+
       // Manejar diferentes formatos de respuesta
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final aptitudData = data.containsKey('data') ? data['data'] : data;
         return Aptitud.fromJson(aptitudData as Map<String, dynamic>);
       }
-      
+
       throw Exception('Formato de respuesta inválido');
     } on DioException catch (e) {
       throw _handleError(e);
@@ -565,7 +567,9 @@ class AdminRepository {
   /// Listar categorías de organizaciones
   Future<List<dynamic>> getCategoriasOrganizaciones() async {
     try {
-      final response = await _dioClient.dio.get(ApiConfig.categoriasOrganizaciones);
+      final response = await _dioClient.dio.get(
+        ApiConfig.categoriasOrganizaciones,
+      );
       return response.data as List;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -573,7 +577,9 @@ class AdminRepository {
   }
 
   /// Crear categoría de organización
-  Future<Map<String, dynamic>> createCategoriaOrganizacion(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> createCategoriaOrganizacion(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.categoriasOrganizaciones,
@@ -586,7 +592,10 @@ class AdminRepository {
   }
 
   /// Actualizar categoría de organización
-  Future<Map<String, dynamic>> updateCategoriaOrganizacion(int id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateCategoriaOrganizacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.categoriasOrganizaciones}/$id',
@@ -620,7 +629,9 @@ class AdminRepository {
   }
 
   /// Crear categoría de proyecto
-  Future<Map<String, dynamic>> createCategoriaProyecto(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> createCategoriaProyecto(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.categoriasProyectos,
@@ -633,7 +644,10 @@ class AdminRepository {
   }
 
   /// Actualizar categoría de proyecto
-  Future<Map<String, dynamic>> updateCategoriaProyecto(int id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateCategoriaProyecto(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.categoriasProyectos}/$id',
@@ -663,7 +677,9 @@ class AdminRepository {
       final List<dynamic> data = response.data is List
           ? response.data
           : (response.data['organizaciones'] ?? []);
-      return data.map((json) => Organizacion.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map((json) => Organizacion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -676,23 +692,23 @@ class AdminRepository {
       final response = await _dioClient.dio.get(
         '${ApiConfig.inscripciones}?usuario_id=$userId&estado=aprobado',
       );
-      
+
       final List<dynamic> inscripcionesData = response.data is List
           ? response.data
           : (response.data['inscripciones'] ?? []);
-      
+
       // Extraer IDs únicos de organizaciones
       final Set<int> organizacionIds = {};
       for (final item in inscripcionesData) {
         final inscripcion = Inscripcion.fromJson(item as Map<String, dynamic>);
         organizacionIds.add(inscripcion.organizacionId);
       }
-      
+
       // Si no hay organizaciones, devolver lista vacía
       if (organizacionIds.isEmpty) {
         return [];
       }
-      
+
       // Obtener detalles de cada organización
       final organizaciones = <Organizacion>[];
       for (final id in organizacionIds) {
@@ -704,7 +720,7 @@ class AdminRepository {
           print('Error obteniendo organización $id: $e');
         }
       }
-      
+
       return organizaciones;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -714,7 +730,9 @@ class AdminRepository {
   /// Obtener organización por ID
   Future<Organizacion> getOrganizacionById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.organizaciones}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.organizaciones}/$id',
+      );
       return Organizacion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -735,7 +753,10 @@ class AdminRepository {
   }
 
   /// Actualizar organización
-  Future<Organizacion> updateOrganizacion(int id, Map<String, dynamic> data) async {
+  Future<Organizacion> updateOrganizacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.organizaciones}/$id',
@@ -762,7 +783,7 @@ class AdminRepository {
   // Los proyectos se relacionan con la organización mediante `organizacion_id`.
 
   /// Listar todos los proyectos
-  /// 
+  ///
   /// NOTA: Cada proyecto pertenece a una organización (relación 1:N).
   /// Para obtener solo los proyectos de una organización específica,
   /// filtra por `organizacionId`.
@@ -772,7 +793,9 @@ class AdminRepository {
       final List<dynamic> data = response.data is List
           ? response.data
           : (response.data['proyectos'] ?? []);
-      return data.map((json) => Proyecto.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map((json) => Proyecto.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -800,7 +823,9 @@ class AdminRepository {
 
       // Verificar si hay token antes de hacer la petición
       final token = await StorageService.getString(ApiConfig.accessTokenKey);
-      print('🔐 [ADMIN REPO] Token disponible para crear proyecto: ${token != null}');
+      print(
+        '🔐 [ADMIN REPO] Token disponible para crear proyecto: ${token != null}',
+      );
       if (token != null) {
         print('🔐 [ADMIN REPO] Token length: ${token.length}');
       }
@@ -809,15 +834,17 @@ class AdminRepository {
         ApiConfig.proyectos,
         data: data,
       );
-      
+
       print('✅ [ADMIN REPO] Proyecto creado exitosamente');
       print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
-      
+
       return Proyecto.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       print('❌ [ADMIN REPO] Error creando proyecto: ${e.message}');
       if (e.response != null) {
-        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print(
+          '🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}',
+        );
         print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
         print('🔍 [ADMIN REPO] Error Response Headers: ${e.response!.headers}');
       } else {
@@ -858,7 +885,9 @@ class AdminRepository {
       final List<dynamic> data = response.data is List
           ? response.data
           : (response.data['tareas'] ?? []);
-      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map((json) => Tarea.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -883,20 +912,19 @@ class AdminRepository {
       data.forEach((key, value) {
         print('   $key: ${value.runtimeType} = $value');
       });
-      
-      final response = await _dioClient.dio.post(
-        ApiConfig.tareas,
-        data: data,
-      );
-      
+
+      final response = await _dioClient.dio.post(ApiConfig.tareas, data: data);
+
       print('✅ [ADMIN REPO] Tarea creada exitosamente');
       print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
-      
+
       return Tarea.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       print('❌ [ADMIN REPO] Error creando tarea: ${e.message}');
       if (e.response != null) {
-        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print(
+          '🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}',
+        );
         print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
       }
       throw _handleError(e);
@@ -934,7 +962,9 @@ class AdminRepository {
       final List<dynamic> data = response.data is List
           ? response.data
           : (response.data['inscripciones'] ?? []);
-      return data.map((json) => Inscripcion.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map((json) => Inscripcion.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -943,7 +973,9 @@ class AdminRepository {
   /// Obtener inscripción por ID
   Future<Inscripcion> getInscripcionById(int id) async {
     try {
-      final response = await _dioClient.dio.get('${ApiConfig.inscripciones}/$id');
+      final response = await _dioClient.dio.get(
+        '${ApiConfig.inscripciones}/$id',
+      );
       return Inscripcion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -955,36 +987,38 @@ class AdminRepository {
     try {
       print('🚀 [ADMIN REPO] Iniciando creación de inscripción...');
       print('📦 [ADMIN REPO] Datos originales recibidos: $data');
-      
+
       // Normalizar el estado a minúsculas si está presente (el backend espera: pendiente, aprobado, rechazado)
       final normalizedData = Map<String, dynamic>.from(data);
-      if (normalizedData.containsKey('estado') && normalizedData['estado'] is String) {
-        normalizedData['estado'] = (normalizedData['estado'] as String).toLowerCase();
+      if (normalizedData.containsKey('estado') &&
+          normalizedData['estado'] is String) {
+        normalizedData['estado'] = (normalizedData['estado'] as String)
+            .toLowerCase();
       } else if (!normalizedData.containsKey('estado')) {
         normalizedData['estado'] = 'pendiente';
       }
-      
+
       print('📦 [ADMIN REPO] Datos normalizados: $normalizedData');
       print('🔍 [ADMIN REPO] Tipos de datos:');
       normalizedData.forEach((key, value) {
         print('   $key: ${value.runtimeType} = $value');
       });
-      
+
       final response = await _dioClient.dio.post(
         ApiConfig.inscripciones,
         data: normalizedData,
       );
-      
+
       print('✅ [ADMIN REPO] Inscripción creada exitosamente');
       print('📦 [ADMIN REPO] Respuesta del backend: ${response.data}');
-      
+
       return Inscripcion.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       // Proporcionar mensajes de error más descriptivos para errores 500
       if (e.response?.statusCode == 500) {
         final errorData = e.response?.data;
         String errorMessage = 'Error del servidor al crear la inscripción';
-        
+
         if (errorData is Map<String, dynamic>) {
           if (errorData.containsKey('message')) {
             errorMessage = errorData['message'] as String;
@@ -992,13 +1026,15 @@ class AdminRepository {
             errorMessage = errorData['error'] as String;
           }
         }
-        
+
         print('❌ [ADMIN REPO] Error 500 del servidor: $errorMessage');
         throw Exception(errorMessage);
       }
       print('❌ [ADMIN REPO] Error creando inscripción: ${e.message}');
       if (e.response != null) {
-        print('🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}');
+        print(
+          '🔍 [ADMIN REPO] Error Response Status: ${e.response!.statusCode}',
+        );
         print('🔍 [ADMIN REPO] Error Response Data: ${e.response!.data}');
       }
       throw _handleError(e);
@@ -1006,7 +1042,10 @@ class AdminRepository {
   }
 
   /// Actualizar inscripción (aprobar/rechazar)
-  Future<Inscripcion> updateInscripcion(int id, Map<String, dynamic> data) async {
+  Future<Inscripcion> updateInscripcion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dioClient.dio.patch(
         '${ApiConfig.inscripciones}/$id',

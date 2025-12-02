@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
         _isFuncionario = usuario.isFuncionario;
         _isProfileLoading = false;
       });
-      
+
       if (!usuario.isAdmin) {
         try {
           if (usuario.isFuncionario) {
@@ -85,7 +85,9 @@ class _HomePageState extends State<HomePage> {
               return;
             }
           } else if (usuario.isVoluntario) {
-            final perfilVolJson = await StorageService.getString(ApiConfig.perfilVoluntarioKey);
+            final perfilVolJson = await StorageService.getString(
+              ApiConfig.perfilVoluntarioKey,
+            );
             if (perfilVolJson == null && mounted) {
               Future.microtask(() {
                 Modular.to.navigate('/profile/create');
@@ -95,7 +97,7 @@ class _HomePageState extends State<HomePage> {
             // Cargar el perfil del voluntario para mostrar en la vista
             await _loadPerfilVoluntario();
           }
-          
+
           // Cargar perfil de funcionario si corresponde
           if (usuario.isFuncionario) {
             await _loadPerfilFuncionario();
@@ -119,7 +121,9 @@ class _HomePageState extends State<HomePage> {
       final usuario = await authRepo.getStoredUser();
 
       if (usuario != null) {
-        final perfil = await voluntarioRepo.getPerfilByUsuario(usuario.idUsuario);
+        final perfil = await voluntarioRepo.getPerfilByUsuario(
+          usuario.idUsuario,
+        );
         if (!mounted) return;
         setState(() {
           _perfilVoluntario = perfil;
@@ -144,7 +148,9 @@ class _HomePageState extends State<HomePage> {
       });
 
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
-      final aptitudes = await voluntarioRepo.getAptitudesByVoluntario(perfilVolId);
+      final aptitudes = await voluntarioRepo.getAptitudesByVoluntario(
+        perfilVolId,
+      );
 
       if (!mounted) return;
       setState(() {
@@ -387,7 +393,8 @@ class _HomePageState extends State<HomePage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                        'Completa los campos obligatorios (*)'),
+                                      'Completa los campos obligatorios (*)',
+                                    ),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
@@ -408,26 +415,33 @@ class _HomePageState extends State<HomePage> {
                                   'area': areaController.text.trim(),
                                   'descripcion':
                                       descripcionController.text.trim().isEmpty
-                                          ? null
-                                          : descripcionController.text.trim(),
-                                  'fecha_inicio':
-                                      fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+                                      ? null
+                                      : descripcionController.text.trim(),
+                                  'fecha_inicio': fechaInicio!
+                                      .toUtc()
+                                      .toIso8601String()
+                                      .replaceAll(RegExp(r'\.\d+'), ''),
                                   if (fechaFin != null)
-                                    'fecha_fin': fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+                                    'fecha_fin': fechaFin!
+                                        .toUtc()
+                                        .toIso8601String()
+                                        .replaceAll(RegExp(r'\.\d+'), ''),
                                 });
 
                                 if (!mounted) return;
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content:
-                                        Text('Experiencia agregada a tu perfil'),
+                                    content: Text(
+                                      'Experiencia agregada a tu perfil',
+                                    ),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
                                 // Recargar experiencias
                                 await _loadExperienciasVoluntario(
-                                    _perfilVoluntario!.idPerfilVoluntario);
+                                  _perfilVoluntario!.idPerfilVoluntario,
+                                );
                               } catch (e) {
                                 setSheetState(() {
                                   isLoading = false;
@@ -476,7 +490,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildRealOrganizationsSection(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildRealOrganizationsSection(
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     if (_isLoadingParticipaciones) {
       return const Center(
         child: Padding(
@@ -518,9 +535,7 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colorScheme.outline.withOpacity(0.1),
-            ),
+            border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -567,7 +582,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -633,16 +651,14 @@ class _HomePageState extends State<HomePage> {
         final proyecto = participacion.proyecto;
         final proyectoNombre = proyecto?['nombre'] ?? 'Proyecto';
         final proyectoDesc = proyecto?['descripcion'] ?? '';
-        
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colorScheme.outline.withOpacity(0.1),
-            ),
+            border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -693,7 +709,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -722,7 +741,9 @@ class _HomePageState extends State<HomePage> {
 
       if (usuario != null) {
         // Cargar perfil de funcionario desde storage
-        final perfilJson = await StorageService.getString(ApiConfig.perfilFuncionarioKey);
+        final perfilJson = await StorageService.getString(
+          ApiConfig.perfilFuncionarioKey,
+        );
         if (perfilJson != null) {
           final perfil = jsonDecode(perfilJson);
           // Cargar organización
@@ -808,7 +829,9 @@ class _HomePageState extends State<HomePage> {
         final voluntarioRepo = Modular.get<VoluntarioRepository>();
         final proyectos = await voluntarioRepo.getProyectos();
         // Filtrar solo proyectos activos y mostrar solo los primeros 6
-        final proyectosActivos = proyectos.where((p) => p.estado == 'activo').toList();
+        final proyectosActivos = proyectos
+            .where((p) => p.estado == 'activo')
+            .toList();
         return proyectosActivos.take(6).toList();
       }
       return [];
@@ -844,26 +867,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Tarjeta de proyecto horizontal para carrusel
-  Widget _buildProyectoCardHorizontal(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildProyectoCardHorizontal(
+    Proyecto proyecto,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     // Obtener nombre de organización
     String organizacionNombre = 'Organización';
     if (proyecto.organizacion != null && proyecto.organizacion is Map) {
       final orgMap = proyecto.organizacion as Map;
-      organizacionNombre = orgMap['nombre']?.toString() ??
-                          orgMap['nombre_legal']?.toString() ??
-                          orgMap['nombre_corto']?.toString() ??
-                          'Organización';
+      organizacionNombre =
+          orgMap['nombre']?.toString() ??
+          orgMap['nombre_legal']?.toString() ??
+          orgMap['nombre_corto']?.toString() ??
+          'Organización';
     }
 
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
+        onTap: () => Modular.to.pushNamed(
+          '/voluntario/proyectos/${proyecto.idProyecto}',
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -889,7 +917,9 @@ class _HomePageState extends State<HomePage> {
                           child: Icon(
                             Icons.volunteer_activism,
                             size: 40,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                            color: colorScheme.onSurfaceVariant.withOpacity(
+                              0.7,
+                            ),
                           ),
                         ),
                       ),
@@ -923,7 +953,8 @@ class _HomePageState extends State<HomePage> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: ImageBase64Widget(
-                            base64String: proyecto.organizacion!['logo'].toString(),
+                            base64String: proyecto.organizacion!['logo']
+                                .toString(),
                             width: 20,
                             height: 20,
                             fit: BoxFit.cover,
@@ -961,7 +992,8 @@ class _HomePageState extends State<HomePage> {
                   // Fila ubicación + fecha
                   Row(
                     children: [
-                      if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
+                      if (proyecto.ubicacion != null &&
+                          proyecto.ubicacion!.isNotEmpty) ...[
                         Icon(
                           Icons.location_on_outlined,
                           size: 14,
@@ -980,7 +1012,8 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                       if (proyecto.fechaInicio != null) ...[
-                        if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                        if (proyecto.ubicacion != null &&
+                            proyecto.ubicacion!.isNotEmpty)
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 6),
                             width: 3,
@@ -1012,7 +1045,10 @@ class _HomePageState extends State<HomePage> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: proyecto.estado.toLowerCase() == 'activo'
                             ? colorScheme.primaryContainer
@@ -1040,14 +1076,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryChip(String label, IconData icon, ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildCategoryChip(
+    String label,
+    IconData icon,
+    ColorScheme colorScheme,
+    ThemeData theme,
+  ) {
     return FilterChip(
       label: Text(label),
       avatar: Icon(icon, size: 18),
       selected: false, // TODO: Implementar estado de selección
       onSelected: (selected) {
         // TODO: Implementar filtrado por categoría
-        Modular.to.pushNamed('/voluntario/proyectos', arguments: {'categoria': label});
+        Modular.to.pushNamed(
+          '/voluntario/proyectos',
+          arguments: {'categoria': label},
+        );
       },
       backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
       selectedColor: colorScheme.primaryContainer,
@@ -1059,15 +1103,10 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
+        side: BorderSide(color: colorScheme.outline.withOpacity(0.2), width: 1),
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -1173,7 +1212,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHomeViewOldBackup() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return RefreshIndicator(
       onRefresh: () async {
         await _loadUserData();
@@ -1260,7 +1299,10 @@ class _HomePageState extends State<HomePage> {
                         color: colorScheme.onSurfaceVariant,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                     onTap: () {
                       Modular.to.pushNamed('/voluntario/proyectos');
@@ -1303,7 +1345,10 @@ class _HomePageState extends State<HomePage> {
                     final org = p.organizacion!;
                     final id = org['id_organizacion'] is int
                         ? org['id_organizacion'] as int
-                        : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
+                        : int.tryParse(
+                                org['id_organizacion']?.toString() ?? '',
+                              ) ??
+                              -1;
 
                     if (id != -1 && !orgIds.contains(id)) {
                       orgIds.add(id);
@@ -1320,15 +1365,26 @@ class _HomePageState extends State<HomePage> {
                   height: 130,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: organizaciones.length,
                     itemBuilder: (context, index) {
                       final org = organizaciones[index];
-                      final nombre = (org['nombre'] ?? org['nombre_legal'] ?? org['nombre_corto'] ?? 'Org').toString();
+                      final nombre =
+                          (org['nombre'] ??
+                                  org['nombre_legal'] ??
+                                  org['nombre_corto'] ??
+                                  'Org')
+                              .toString();
                       final logo = org['logo']?.toString();
                       final idOrg = org['id_organizacion'] is int
                           ? org['id_organizacion'] as int
-                          : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
+                          : int.tryParse(
+                                  org['id_organizacion']?.toString() ?? '',
+                                ) ??
+                                -1;
 
                       return Padding(
                         padding: const EdgeInsets.only(right: 12),
@@ -1337,10 +1393,14 @@ class _HomePageState extends State<HomePage> {
                           splashColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           hoverColor: Colors.transparent,
-                          overlayColor: MaterialStateProperty.all(Colors.transparent),
+                          overlayColor: MaterialStateProperty.all(
+                            Colors.transparent,
+                          ),
                           onTap: () {
                             if (idOrg != -1) {
-                              Modular.to.pushNamed('/voluntario/organizaciones/$idOrg');
+                              Modular.to.pushNamed(
+                                '/voluntario/organizaciones/$idOrg',
+                              );
                             }
                           },
                           child: Column(
@@ -1456,9 +1516,13 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.location_on),
                         label: const Text('Ver proyectos en Santa Cruz'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade600, // Color acento vibrante
+                          backgroundColor:
+                              Colors.orange.shade600, // Color acento vibrante
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -1500,19 +1564,54 @@ class _HomePageState extends State<HomePage> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      _buildCategoryChip('Cerca de ti', Icons.location_on_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Cerca de ti',
+                        Icons.location_on_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Virtual', Icons.computer_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Virtual',
+                        Icons.computer_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Animales', Icons.pets_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Animales',
+                        Icons.pets_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Educación', Icons.school_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Educación',
+                        Icons.school_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Fin de semana', Icons.calendar_view_week_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Fin de semana',
+                        Icons.calendar_view_week_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Medio ambiente', Icons.eco_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Medio ambiente',
+                        Icons.eco_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                       const SizedBox(width: 8),
-                      _buildCategoryChip('Salud', Icons.local_hospital_outlined, colorScheme, theme),
+                      _buildCategoryChip(
+                        'Salud',
+                        Icons.local_hospital_outlined,
+                        colorScheme,
+                        theme,
+                      ),
                     ],
                   ),
                 ),
@@ -1536,7 +1635,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                   TextButton(
                     onPressed: () {
-                      setState(() => _currentIndex = 1); // Ir a pestaña Explorar
+                      setState(
+                        () => _currentIndex = 1,
+                      ); // Ir a pestaña Explorar
                     },
                     child: const Text('Ver todos'),
                   ),
@@ -1544,7 +1645,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          
+
           // Carrusel horizontal de proyectos
           SliverToBoxAdapter(
             child: SizedBox(
@@ -1555,8 +1656,10 @@ class _HomePageState extends State<HomePage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildProyectosCarouselSkeleton(theme, colorScheme);
                   }
-                  
-                  if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+
+                  if (snapshot.hasError ||
+                      snapshot.data == null ||
+                      snapshot.data!.isEmpty) {
                     return Center(
                       child: Card(
                         margin: const EdgeInsets.all(24),
@@ -1596,7 +1699,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  
+
                   final proyectos = snapshot.data!;
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -1607,7 +1710,11 @@ class _HomePageState extends State<HomePage> {
                       return Container(
                         width: 300,
                         margin: const EdgeInsets.only(right: 16),
-                        child: _buildProyectoCardHorizontal(proyecto, theme, colorScheme),
+                        child: _buildProyectoCardHorizontal(
+                          proyecto,
+                          theme,
+                          colorScheme,
+                        ),
                       );
                     },
                   );
@@ -1632,7 +1739,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         if (snapshot.hasError || snapshot.data == null) {
           return Card(
             child: Padding(
@@ -1651,7 +1758,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 8),
                   FilledButton(
-                    onPressed: () => Modular.to.pushNamed('/profile/create-organizacion'),
+                    onPressed: () =>
+                        Modular.to.pushNamed('/profile/create-organizacion'),
                     child: const Text('Crear Organización'),
                   ),
                 ],
@@ -1659,7 +1767,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         final org = snapshot.data!;
         return Card(
           child: Padding(
@@ -1696,7 +1804,11 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.location_on, size: 16, color: colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -1719,17 +1831,15 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-  
+
   Widget _buildStatsSection(ThemeData theme, ColorScheme colorScheme) {
     return FutureBuilder<Map<String, dynamic>>(
       future: _loadFuncionarioStats(),
       builder: (context, snapshot) {
-        final stats = snapshot.data ?? {
-          'proyectos': 0,
-          'inscripciones_pendientes': 0,
-          'voluntarios': 0,
-        };
-        
+        final stats =
+            snapshot.data ??
+            {'proyectos': 0, 'inscripciones_pendientes': 0, 'voluntarios': 0};
+
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -1764,7 +1874,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-  
+
   Widget _buildStatItem({
     required String count,
     required String label,
@@ -1780,11 +1890,7 @@ class _HomePageState extends State<HomePage> {
             color: colorScheme.primaryContainer,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: colorScheme.onPrimaryContainer,
-            size: 24,
-          ),
+          child: Icon(icon, color: colorScheme.onPrimaryContainer, size: 24),
         ),
         const SizedBox(height: 8),
         Text(
@@ -1805,7 +1911,11 @@ class _HomePageState extends State<HomePage> {
 
   // Stats compactas estilo Instagram (Proyectos, Horas, Personas)
   Widget _buildIgStatItem(
-      String label, String value, ThemeData theme, ColorScheme colorScheme) {
+    String label,
+    String value,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1826,17 +1936,19 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-  
-  Widget _buildProyectoCardCompact(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+
+  Widget _buildProyectoCardCompact(
+    Proyecto proyecto,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     final fechaInicio = proyecto.fechaInicio;
     final fechaFin = proyecto.fechaFin;
     final bool isActivo = proyecto.estado.toLowerCase() == 'activo';
 
     return Card(
       elevation: 1.5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
@@ -1874,7 +1986,8 @@ class _HomePageState extends State<HomePage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
+                        if (proyecto.objetivo != null &&
+                            proyecto.objetivo!.isNotEmpty)
                           Text(
                             proyecto.objetivo!,
                             maxLines: 2,
@@ -1892,9 +2005,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Chip(
-                    label: Text(
-                      isActivo ? 'Activo' : proyecto.estado,
-                    ),
+                    label: Text(isActivo ? 'Activo' : proyecto.estado),
                     backgroundColor: isActivo
                         ? colorScheme.primaryContainer
                         : colorScheme.surfaceContainerHighest,
@@ -1910,10 +2021,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 8),
                   if (fechaInicio != null)
                     Chip(
-                      avatar: const Icon(
-                        Icons.calendar_today,
-                        size: 16,
-                      ),
+                      avatar: const Icon(Icons.calendar_today, size: 16),
                       label: Text(
                         '${fechaInicio.day.toString().padLeft(2, '0')}/${fechaInicio.month.toString().padLeft(2, '0')}/${fechaInicio.year}',
                       ),
@@ -1950,12 +2058,17 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+                    onPressed: () => Modular.to.pushNamed(
+                      '/proyectos/${proyecto.idProyecto}',
+                    ),
                     icon: const Icon(Icons.open_in_new_rounded, size: 18),
                     label: const Text('Ver detalles'),
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                     ),
                   ),
                 ],
@@ -1971,7 +2084,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFuncionarioProyectosView() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLow,
       body: CustomScrollView(
@@ -1987,7 +2100,10 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.add_rounded, size: 20),
                   label: const Text('Nuevo'),
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                 ),
               ),
@@ -2012,7 +2128,7 @@ class _HomePageState extends State<HomePage> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              
+
               final proyectos = snapshot.data ?? [];
 
               if (proyectos.isEmpty) {
@@ -2024,7 +2140,9 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            color: colorScheme.primaryContainer.withOpacity(
+                              0.3,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -2050,11 +2168,15 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 24),
                         FilledButton.icon(
-                          onPressed: () => Modular.to.pushNamed('/proyectos/create'),
+                          onPressed: () =>
+                              Modular.to.pushNamed('/proyectos/create'),
                           icon: const Icon(Icons.add_rounded),
                           label: const Text('Crear Proyecto'),
                           style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
                           ),
                         ),
                       ],
@@ -2064,7 +2186,9 @@ class _HomePageState extends State<HomePage> {
               }
 
               final total = proyectos.length;
-              final activos = proyectos.where((p) => p.estado.toLowerCase() == 'activo').length;
+              final activos = proyectos
+                  .where((p) => p.estado.toLowerCase() == 'activo')
+                  .length;
               final inactivos = total - activos;
 
               return SliverList(
@@ -2085,16 +2209,18 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Text(
                                   '$total',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Proyectos totales',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                                    color: colorScheme.onPrimaryContainer
+                                        .withOpacity(0.8),
                                   ),
                                 ),
                               ],
@@ -2154,7 +2280,11 @@ class _HomePageState extends State<HomePage> {
                       children: proyectos.map((proyecto) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildProyectoCardCompact(proyecto, theme, colorScheme),
+                          child: _buildProyectoCardCompact(
+                            proyecto,
+                            theme,
+                            colorScheme,
+                          ),
                         );
                       }).toList(),
                     ),
@@ -2172,7 +2302,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFuncionarioInscripcionesView() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLow,
       body: CustomScrollView(
@@ -2200,11 +2330,15 @@ class _HomePageState extends State<HomePage> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              
+
               final inscripciones = snapshot.data ?? [];
-              final pendientes = inscripciones.where((i) => i.estado.toUpperCase() == 'PENDIENTE').toList();
-              final procesadas = inscripciones.where((i) => i.estado.toUpperCase() != 'PENDIENTE').toList();
-              
+              final pendientes = inscripciones
+                  .where((i) => i.estado.toUpperCase() == 'PENDIENTE')
+                  .toList();
+              final procesadas = inscripciones
+                  .where((i) => i.estado.toUpperCase() != 'PENDIENTE')
+                  .toList();
+
               if (inscripciones.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
@@ -2214,7 +2348,9 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            color: colorScheme.primaryContainer.withOpacity(
+                              0.3,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -2243,72 +2379,84 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               }
-              
+
               return SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == 0 && pendientes.isNotEmpty) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Pendientes',
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.error,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      pendientes.length.toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ...pendientes.map((inscripcion) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildInscripcionCard(inscripcion, theme, colorScheme),
-                            )),
-                            if (procesadas.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Text(
-                                  'Procesadas',
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == 0 && pendientes.isNotEmpty) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Pendientes',
                                   style: theme.textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.error,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    pendientes.length.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ...pendientes.map(
+                            (inscripcion) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildInscripcionCard(
+                                inscripcion,
+                                theme,
+                                colorScheme,
                               ),
-                              ...procesadas.map((inscripcion) => Padding(
+                            ),
+                          ),
+                          if (procesadas.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                'Procesadas',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            ...procesadas.map(
+                              (inscripcion) => Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildInscripcionCard(inscripcion, theme, colorScheme),
-                              )),
-                            ],
+                                child: _buildInscripcionCard(
+                                  inscripcion,
+                                  theme,
+                                  colorScheme,
+                                ),
+                              ),
+                            ),
                           ],
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                    childCount: 1,
-                  ),
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }, childCount: 1),
                 ),
               );
             },
@@ -2317,25 +2465,29 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
-  Widget _buildInscripcionCard(Inscripcion inscripcion, ThemeData theme, ColorScheme colorScheme) {
+
+  Widget _buildInscripcionCard(
+    Inscripcion inscripcion,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     final usuario = inscripcion.usuario;
-    final nombreUsuario = usuario != null 
+    final nombreUsuario = usuario != null
         ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
         : 'Usuario ${inscripcion.usuarioId}';
-    
-    final estadoColor = inscripcion.estado.toUpperCase() == 'APROBADO' 
+
+    final estadoColor = inscripcion.estado.toUpperCase() == 'APROBADO'
         ? colorScheme.primaryContainer
         : inscripcion.estado.toUpperCase() == 'RECHAZADO'
-            ? colorScheme.errorContainer
-            : colorScheme.tertiaryContainer;
-    
-    final estadoTextColor = inscripcion.estado.toUpperCase() == 'APROBADO' 
+        ? colorScheme.errorContainer
+        : colorScheme.tertiaryContainer;
+
+    final estadoTextColor = inscripcion.estado.toUpperCase() == 'APROBADO'
         ? colorScheme.onPrimaryContainer
         : inscripcion.estado.toUpperCase() == 'RECHAZADO'
-            ? colorScheme.onErrorContainer
-            : colorScheme.onTertiaryContainer;
-    
+        ? colorScheme.onErrorContainer
+        : colorScheme.onTertiaryContainer;
+
     return Card(
       child: ListTile(
         leading: CircleAvatar(
@@ -2379,12 +2531,14 @@ class _HomePageState extends State<HomePage> {
                   IconButton(
                     icon: const Icon(Icons.check),
                     color: colorScheme.primary,
-                    onPressed: () => _aprobarInscripcion(inscripcion.idInscripcion),
+                    onPressed: () =>
+                        _aprobarInscripcion(inscripcion.idInscripcion),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     color: colorScheme.error,
-                    onPressed: () => _rechazarInscripcion(inscripcion.idInscripcion),
+                    onPressed: () =>
+                        _rechazarInscripcion(inscripcion.idInscripcion),
                   ),
                 ],
               )
@@ -2405,9 +2559,9 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
@@ -2454,9 +2608,9 @@ class _HomePageState extends State<HomePage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
         }
       }
     }
@@ -2472,7 +2626,9 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+        if (snapshot.hasError ||
+            snapshot.data == null ||
+            snapshot.data!.isEmpty) {
           return Center(
             child: Card(
               margin: const EdgeInsets.all(24),
@@ -2512,7 +2668,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTinderView(List<Proyecto> proyectos, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildTinderView(
+    List<Proyecto> proyectos,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     final PageController _pageController = PageController();
 
     // Agregar listener para actualizar el índice actual
@@ -2633,7 +2793,9 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   // Navegar al detalle del proyecto
                   final proyecto = proyectos[_currentProyectoIndex];
-                  Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}');
+                  Modular.to.pushNamed(
+                    '/voluntario/proyectos/${proyecto.idProyecto}',
+                  );
                 },
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
@@ -2672,15 +2834,20 @@ class _HomePageState extends State<HomePage> {
   int _currentProyectoIndex = 0;
 
   // Tarjeta de proyecto para vista Tinder
-  Widget _buildProyectoCardTinder(Proyecto proyecto, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildProyectoCardTinder(
+    Proyecto proyecto,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     // Obtener nombre de organización
     String organizacionNombre = 'Organización';
     if (proyecto.organizacion != null && proyecto.organizacion is Map) {
       final orgMap = proyecto.organizacion as Map;
-      organizacionNombre = orgMap['nombre']?.toString() ??
-                          orgMap['nombre_legal']?.toString() ??
-                          orgMap['nombre_corto']?.toString() ??
-                          'Organización';
+      organizacionNombre =
+          orgMap['nombre']?.toString() ??
+          orgMap['nombre_legal']?.toString() ??
+          orgMap['nombre_corto']?.toString() ??
+          'Organización';
     }
 
     return Container(
@@ -2699,9 +2866,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(24),
         child: Container(
           height: double.infinity,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-          ),
+          decoration: BoxDecoration(color: colorScheme.surface),
           child: Column(
             children: [
               // Imagen del proyecto (ocupa la mayor parte)
@@ -2716,7 +2881,11 @@ class _HomePageState extends State<HomePage> {
                       ? Image(
                           image: proyecto.imagen!.startsWith('http')
                               ? NetworkImage(proyecto.imagen!)
-                              : MemoryImage(base64Decode(proyecto.imagen!.split(',').last)),
+                              : MemoryImage(
+                                  base64Decode(
+                                    proyecto.imagen!.split(',').last,
+                                  ),
+                                ),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
@@ -2727,13 +2896,15 @@ class _HomePageState extends State<HomePage> {
                                   Icon(
                                     Icons.image_not_supported_outlined,
                                     size: 64,
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                    color: colorScheme.onSurfaceVariant
+                                        .withOpacity(0.5),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
                                     'Imagen no disponible',
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                      color: colorScheme.onSurfaceVariant
+                                          .withOpacity(0.7),
                                     ),
                                   ),
                                 ],
@@ -2755,7 +2926,8 @@ class _HomePageState extends State<HomePage> {
                               Text(
                                 'Proyecto de Voluntariado',
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                  color: colorScheme.onSurfaceVariant
+                                      .withOpacity(0.7),
                                 ),
                               ),
                             ],
@@ -2784,7 +2956,10 @@ class _HomePageState extends State<HomePage> {
                         Align(
                           alignment: Alignment.topRight,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: proyecto.estado == 'activo'
                                   ? colorScheme.primaryContainer
@@ -2834,7 +3009,9 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(0.3),
+                            color: colorScheme.primaryContainer.withOpacity(
+                              0.3,
+                            ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: colorScheme.primary.withOpacity(0.1),
@@ -2862,22 +3039,24 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     Text(
                                       'Organización',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                        letterSpacing: 0.5,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            letterSpacing: 0.5,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       organizacionNombre,
-                                      style: theme.textTheme.titleLarge?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 18,
-                                        letterSpacing: -0.3,
-                                      ),
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 18,
+                                            letterSpacing: -0.3,
+                                          ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -2891,11 +3070,13 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 20),
 
                         // Objetivo
-                        if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty) ...[
+                        if (proyecto.objetivo != null &&
+                            proyecto.objetivo!.isNotEmpty) ...[
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                              color: colorScheme.surfaceContainerHighest
+                                  .withOpacity(0.5),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Column(
@@ -2911,11 +3092,12 @@ class _HomePageState extends State<HomePage> {
                                     const SizedBox(width: 8),
                                     Text(
                                       'Objetivo',
-                                      style: theme.textTheme.titleSmall?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                      ),
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -2941,12 +3123,14 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                            color: colorScheme.surfaceContainerHighest
+                                .withOpacity(0.3),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
-                              if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty) ...[
+                              if (proyecto.ubicacion != null &&
+                                  proyecto.ubicacion!.isNotEmpty) ...[
                                 Expanded(
                                   child: Row(
                                     children: [
@@ -2958,23 +3142,28 @@ class _HomePageState extends State<HomePage> {
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'Ubicación',
-                                              style: theme.textTheme.bodySmall?.copyWith(
-                                                color: colorScheme.onSurfaceVariant,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 12,
-                                              ),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 12,
+                                                  ),
                                             ),
                                             Text(
                                               proyecto.ubicacion!,
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                color: colorScheme.onSurface,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 14,
+                                                  ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -2984,7 +3173,8 @@ class _HomePageState extends State<HomePage> {
                                     ],
                                   ),
                                 ),
-                                if (proyecto.fechaInicio != null) const SizedBox(width: 20),
+                                if (proyecto.fechaInicio != null)
+                                  const SizedBox(width: 20),
                               ],
                               if (proyecto.fechaInicio != null) ...[
                                 Expanded(
@@ -2997,23 +3187,27 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       const SizedBox(width: 10),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'Fecha',
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: colorScheme.onSurfaceVariant,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: colorScheme
+                                                      .onSurfaceVariant,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                ),
                                           ),
                                           Text(
                                             '${proyecto.fechaInicio!.day}/${proyecto.fechaInicio!.month}/${proyecto.fechaInicio!.year}',
-                                            style: theme.textTheme.bodyMedium?.copyWith(
-                                              color: colorScheme.onSurface,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                            ),
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: colorScheme.onSurface,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -3185,7 +3379,9 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                          0.5,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text('Slider de distancia - Próximamente'),
@@ -3270,11 +3466,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMiActividadViewOld() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Actividad'),
-      ),
+      appBar: AppBar(title: const Text('Mi Actividad')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -3283,7 +3477,10 @@ class _HomePageState extends State<HomePage> {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: colorScheme.primaryContainer,
-                child: Icon(Icons.handshake_outlined, color: colorScheme.onPrimaryContainer),
+                child: Icon(
+                  Icons.handshake_outlined,
+                  color: colorScheme.onPrimaryContainer,
+                ),
               ),
               title: const Text('Mis Participaciones'),
               subtitle: const Text('Ver proyectos en los que participas'),
@@ -3294,13 +3491,16 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Mis Experiencias
           Card(
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: colorScheme.secondaryContainer,
-                child: Icon(Icons.history_edu, color: colorScheme.onSecondaryContainer),
+                child: Icon(
+                  Icons.history_edu,
+                  color: colorScheme.onSecondaryContainer,
+                ),
               ),
               title: const Text('Mis Experiencias'),
               subtitle: const Text('Gestiona tus experiencias de voluntariado'),
@@ -3311,16 +3511,21 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Certificados
           Card(
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: colorScheme.tertiaryContainer,
-                child: Icon(Icons.verified_outlined, color: colorScheme.onTertiaryContainer),
+                child: Icon(
+                  Icons.verified_outlined,
+                  color: colorScheme.onTertiaryContainer,
+                ),
               ),
               title: const Text('Certificados'),
-              subtitle: const Text('Descarga tus certificados de participación'),
+              subtitle: const Text(
+                'Descarga tus certificados de participación',
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {},
             ),
@@ -3337,679 +3542,780 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: _isProfileLoading ? _buildProfileSkeleton(theme, colorScheme) : CustomScrollView(
-        slivers: [
-          // AppBar sencillo tipo Instagram (sin banner grande)
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: colorScheme.surface,
-            elevation: 0,
-            title: Text(
-              _userName,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Función de compartir próximamente')),
-                  );
-                },
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  switch (value) {
-                    case 'configuracion':
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Configuración próximamente')),
-                      );
-                      break;
-                    case 'ayuda':
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Centro de Ayuda próximamente')),
-                      );
-                      break;
-                    case 'sobre':
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sobre la App próximamente')),
-                      );
-                      break;
-                    case 'cerrar_sesion':
-                      _handleLogout();
-                      break;
-                  }
-                },
-                itemBuilder: (BuildContext context) => [
-                  const PopupMenuItem<String>(
-                    value: 'configuracion',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings_outlined),
-                        SizedBox(width: 12),
-                        Text('Configuración'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'ayuda',
-                    child: Row(
-                      children: [
-                        Icon(Icons.help_outline),
-                        SizedBox(width: 12),
-                        Text('Centro de Ayuda'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'sobre',
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline),
-                        SizedBox(width: 12),
-                        Text('Sobre la App'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem<String>(
-                    value: 'cerrar_sesion',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout, color: Color(0xFFD32F2F)),
-                        SizedBox(width: 12),
-                        Text('Cerrar Sesión', style: TextStyle(color: Color(0xFFD32F2F))),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Encabezado de perfil tipo Instagram
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Foto de perfil circular grande al centro
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.primary,
-                                colorScheme.secondary,
-                              ],
-                            ),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: colorScheme.surface,
-                            ),
-                            child: _perfilVoluntario?.fotoPerfil != null && _perfilVoluntario!.fotoPerfil!.isNotEmpty
-                                ? CircularImageBase64Widget(
-                                    base64String: _perfilVoluntario!.fotoPerfil!,
-                                    size: 96,
-                                    backgroundColor: colorScheme.surface,
-                                  )
-                                : CircleAvatar(
-                                    radius: 48,
-                                    backgroundColor: colorScheme.surface,
-                                    child: Text(
-                                      _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: colorScheme.surface, width: 2),
-                            ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Nombre y "rol"
-                  Text(
+      body: _isProfileLoading
+          ? _buildProfileSkeleton(theme, colorScheme)
+          : CustomScrollView(
+              slivers: [
+                // AppBar sencillo tipo Instagram (sin banner grande)
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: colorScheme.surface,
+                  elevation: 0,
+                  title: Text(
                     _userName,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _isFuncionario ? 'Funcionario' : 'Voluntario',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Función de compartir próximamente'),
+                          ),
+                        );
+                      },
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (_isFuncionario && _organizacionFuncionario != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      _organizacionFuncionario!.nombre,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'configuracion':
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Configuración próximamente'),
+                              ),
+                            );
+                            break;
+                          case 'ayuda':
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Centro de Ayuda próximamente'),
+                              ),
+                            );
+                            break;
+                          case 'sobre':
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Sobre la App próximamente'),
+                              ),
+                            );
+                            break;
+                          case 'cerrar_sesion':
+                            _handleLogout();
+                            break;
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem<String>(
+                          value: 'configuracion',
+                          child: Row(
+                            children: [
+                              Icon(Icons.settings_outlined),
+                              SizedBox(width: 12),
+                              Text('Configuración'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'ayuda',
+                          child: Row(
+                            children: [
+                              Icon(Icons.help_outline),
+                              SizedBox(width: 12),
+                              Text('Centro de Ayuda'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'sobre',
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline),
+                              SizedBox(width: 12),
+                              Text('Sobre la App'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem<String>(
+                          value: 'cerrar_sesion',
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout, color: Color(0xFFD32F2F)),
+                              SizedBox(width: 12),
+                              Text(
+                                'Cerrar Sesión',
+                                style: TextStyle(color: Color(0xFFD32F2F)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
+                ),
 
-                  const SizedBox(height: 16),
-
-                  // Stats al estilo Instagram
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildIgStatItem('Proyectos', '8', theme, colorScheme),
-                      _buildIgStatItem('Horas', '127', theme, colorScheme),
-                      _buildIgStatItem('Personas', '342', theme, colorScheme),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Botón de editar perfil
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Modular.to.pushNamed('/profile/edit');
-                      },
-                      icon: const Icon(Icons.edit, size: 18),
-                      label: const Text('Editar perfil'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ACERCA DE - ESTILO LINKEDIN
-                  if (!_isFuncionario)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                // Encabezado de perfil tipo Instagram
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Foto de perfil circular grande al centro
+                        Center(
+                          child: Stack(
                             children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 24,
-                                color: colorScheme.primary,
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      colorScheme.primary,
+                                      colorScheme.secondary,
+                                    ],
+                                  ),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: colorScheme.surface,
+                                  ),
+                                  child:
+                                      _perfilVoluntario?.fotoPerfil != null &&
+                                          _perfilVoluntario!
+                                              .fotoPerfil!
+                                              .isNotEmpty
+                                      ? CircularImageBase64Widget(
+                                          base64String:
+                                              _perfilVoluntario!.fotoPerfil!,
+                                          size: 96,
+                                          backgroundColor: colorScheme.surface,
+                                        )
+                                      : CircleAvatar(
+                                          radius: 48,
+                                          backgroundColor: colorScheme.surface,
+                                          child: Text(
+                                            _userName.isNotEmpty
+                                                ? _userName[0].toUpperCase()
+                                                : 'U',
+                                            style: TextStyle(
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Acerca de',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
+                              Positioned(
+                                bottom: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: colorScheme.surface,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    size: 16,
+                                    color: colorScheme.onPrimary,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _perfilVoluntario?.bio != null && _perfilVoluntario!.bio!.isNotEmpty
-                                ? _perfilVoluntario!.bio!
-                                : 'Sin biografía registrada.',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface,
-                              height: 1.6,
-                            ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Nombre y "rol"
+                        Text(
+                          _userName,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
                           ),
-                          
-                          // Disponibilidad
-                          if (_perfilVoluntario?.disponibilidad != null && 
-                              _perfilVoluntario!.disponibilidad!.isNotEmpty) ...[
-                            const SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.schedule,
-                                  size: 20,
-                                  color: colorScheme.secondary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Disponibilidad',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.secondary,
-                                  ),
-                                ),
-                              ],
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _isFuncionario ? 'Funcionario' : 'Voluntario',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (_isFuncionario &&
+                            _organizacionFuncionario != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            _organizacionFuncionario!.nombre,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _perfilVoluntario!.disponibilidad!
-                                  .split(',')
-                                  .map((d) => d.trim())
-                                  .where((d) => d.isNotEmpty)
-                                  .map((disponibilidad) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.secondary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: colorScheme.secondary.withOpacity(0.3),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+
+                        const SizedBox(height: 16),
+
+                        // Stats al estilo Instagram
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildIgStatItem(
+                              'Proyectos',
+                              '8',
+                              theme,
+                              colorScheme,
+                            ),
+                            _buildIgStatItem(
+                              'Horas',
+                              '127',
+                              theme,
+                              colorScheme,
+                            ),
+                            _buildIgStatItem(
+                              'Personas',
+                              '342',
+                              theme,
+                              colorScheme,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Botón de editar perfil
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Modular.to.pushNamed('/profile/edit');
+                            },
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Editar perfil'),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ACERCA DE - ESTILO LINKEDIN
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 24,
+                                      color: colorScheme.primary,
                                     ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Acerca de',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _perfilVoluntario?.bio != null &&
+                                          _perfilVoluntario!.bio!.isNotEmpty
+                                      ? _perfilVoluntario!.bio!
+                                      : 'Sin biografía registrada.',
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    height: 1.6,
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                ),
+
+                                // Disponibilidad
+                                if (_perfilVoluntario?.disponibilidad != null &&
+                                    _perfilVoluntario!
+                                        .disponibilidad!
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 20),
+                                  Row(
                                     children: [
                                       Icon(
-                                        Icons.access_time,
-                                        size: 14,
+                                        Icons.schedule,
+                                        size: 20,
                                         color: colorScheme.secondary,
                                       ),
-                                      const SizedBox(width: 6),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        disponibilidad,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.secondary,
-                                          fontWeight: FontWeight.w500,
+                                        'Disponibilidad',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme.secondary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _perfilVoluntario!.disponibilidad!
+                                        .split(',')
+                                        .map((d) => d.trim())
+                                        .where((d) => d.isNotEmpty)
+                                        .map((disponibilidad) {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: colorScheme.secondary
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: colorScheme.secondary
+                                                    .withOpacity(0.3),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.access_time,
+                                                  size: 14,
+                                                  color: colorScheme.secondary,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  disponibilidad,
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: colorScheme
+                                                            .secondary,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        })
+                                        .toList(),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                        // INFORMACIÓN DE ORGANIZACIÓN - PARA FUNCIONARIOS
+                        if (_isFuncionario && _organizacionFuncionario != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.business,
+                                      size: 24,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Mi Organización',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                if (_organizacionFuncionario!.logo != null &&
+                                    _organizacionFuncionario!.logo!.isNotEmpty)
+                                  Center(
+                                    child: ImageBase64Widget(
+                                      base64String:
+                                          _organizacionFuncionario!.logo!,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                if (_organizacionFuncionario!.logo != null &&
+                                    _organizacionFuncionario!.logo!.isNotEmpty)
+                                  const SizedBox(height: 16),
+                                Text(
+                                  _organizacionFuncionario!.nombre,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                if (_organizacionFuncionario!.descripcion !=
+                                        null &&
+                                    _organizacionFuncionario!
+                                        .descripcion!
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _organizacionFuncionario!.descripcion!,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onSurface,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 12),
+                                if (_organizacionFuncionario!.email.isNotEmpty)
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.email_outlined,
+                                        size: 18,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _organizacionFuncionario!.email,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                if (_organizacionFuncionario!.telefono !=
+                                        null &&
+                                    _organizacionFuncionario!
+                                        .telefono!
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.phone_outlined,
+                                        size: 18,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _organizacionFuncionario!.telefono!,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                if (_organizacionFuncionario!.direccion !=
+                                        null &&
+                                    _organizacionFuncionario!
+                                        .direccion!
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.location_on_outlined,
+                                        size: 18,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _organizacionFuncionario!.direccion!,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  
-                  // INFORMACIÓN DE ORGANIZACIÓN - PARA FUNCIONARIOS
-                  if (_isFuncionario && _organizacionFuncionario != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.business,
-                                size: 24,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Mi Organización',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          if (_organizacionFuncionario!.logo != null && _organizacionFuncionario!.logo!.isNotEmpty)
-                            Center(
-                              child: ImageBase64Widget(
-                                base64String: _organizacionFuncionario!.logo!,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          if (_organizacionFuncionario!.logo != null && _organizacionFuncionario!.logo!.isNotEmpty)
-                            const SizedBox(height: 16),
-                          Text(
-                            _organizacionFuncionario!.nombre,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          if (_organizacionFuncionario!.descripcion != null && _organizacionFuncionario!.descripcion!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              _organizacionFuncionario!.descripcion!,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                                height: 1.6,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          if (_organizacionFuncionario!.email.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(Icons.email_outlined, size: 18, color: colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _organizacionFuncionario!.email,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
+                                ],
                               ],
                             ),
-                          if (_organizacionFuncionario!.telefono != null && _organizacionFuncionario!.telefono!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Row(
+                          ),
+
+                        if (!_isFuncionario) const SizedBox(height: 24),
+
+                        // EXPERIENCIA - ESTILO LINKEDIN (solo voluntarios)
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.phone_outlined, size: 18, color: colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _organizacionFuncionario!.telefono!,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                          if (_organizacionFuncionario!.direccion != null && _organizacionFuncionario!.direccion!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on_outlined, size: 18, color: colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _organizacionFuncionario!.direccion!,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.timeline,
+                                      size: 24,
+                                      color: colorScheme.primary,
                                     ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Experiencia como Voluntario',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.add_circle_outline,
+                                        color: colorScheme.primary,
+                                      ),
+                                      onPressed: () {
+                                        _showAddExperienciaSheet();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                _buildExperienceRoadmap(theme, colorScheme),
+                              ],
+                            ),
+                          ),
+
+                        if (!_isFuncionario) const SizedBox(height: 24),
+
+                        // RESUMEN DE PARTICIPACIÓN - DATOS REALES (solo voluntarios)
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mi Resumen',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
                                   ),
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildEnhancedStatItem(
+                                      count: _participacionesVoluntario.length
+                                          .toString(),
+                                      label: 'Proyectos\nActivos',
+                                      icon: Icons.folder_special,
+                                      color: colorScheme.primary,
+                                      theme: theme,
+                                    ),
+                                    _buildEnhancedStatItem(
+                                      count: _getOrganizacionesCount()
+                                          .toString(),
+                                      label: 'Organizaciones\nInscritas',
+                                      icon: Icons.business,
+                                      color: colorScheme.secondary,
+                                      theme: theme,
+                                    ),
+                                    _buildEnhancedStatItem(
+                                      count: _aptitudesVoluntario.length
+                                          .toString(),
+                                      label: 'Aptitudes\nRegistradas',
+                                      icon: Icons.lightbulb,
+                                      color: colorScheme.tertiary,
+                                      theme: theme,
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
+                          ),
 
-                  if (!_isFuncionario)
-                    const SizedBox(height: 24),
+                        if (!_isFuncionario) const SizedBox(height: 24),
 
-                  // EXPERIENCIA - ESTILO LINKEDIN (solo voluntarios)
-                  if (!_isFuncionario)
-                    Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.timeline,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Experiencia como Voluntario',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                Icons.add_circle_outline,
-                                color: colorScheme.primary,
-                              ),
-                              onPressed: () {
-                                _showAddExperienciaSheet();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        _buildExperienceRoadmap(theme, colorScheme),
-                      ],
-                    ),
-                  ),
-
-                  if (!_isFuncionario)
-                    const SizedBox(height: 24),
-
-                  // RESUMEN DE PARTICIPACIÓN - DATOS REALES (solo voluntarios)
-                  if (!_isFuncionario)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mi Resumen',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
+                        // ORGANIZACIONES INSCRITAS - DATOS REALES (solo voluntarios)
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.business,
+                                      size: 24,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Mis Organizaciones',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildRealOrganizationsSection(
+                                  theme,
+                                  colorScheme,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          Row(
+
+                        if (!_isFuncionario) const SizedBox(height: 24),
+
+                        // APTITUDES Y HABILIDADES - ESTILO LINKEDIN (solo voluntarios)
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.lightbulb_outline,
+                                      size: 24,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Aptitudes y Habilidades',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit_outlined,
+                                        color: colorScheme.primary,
+                                      ),
+                                      onPressed: () {
+                                        Modular.to.pushNamed(
+                                          '/profile/aptitudes',
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildSkillsSection(theme, colorScheme),
+                              ],
+                            ),
+                          ),
+
+                        if (!_isFuncionario) const SizedBox(height: 24),
+
+                        // PROYECTOS EN LOS QUE PARTICIPO - DATOS REALES
+                        if (!_isFuncionario)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.folder_special,
+                                      size: 24,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Proyectos en los que participo',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildMyProjectsSection(theme, colorScheme),
+                              ],
+                            ),
+                          ),
+
+                        const SizedBox(height: 32),
+
+                        // ACCIONES SOCIALES - ESTILO LINKEDIN
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _buildEnhancedStatItem(
-                                count: _participacionesVoluntario.length.toString(),
-                                label: 'Proyectos\nActivos',
-                                icon: Icons.folder_special,
+                              _buildSocialAction(
+                                icon: Icons.edit,
+                                label: 'Editar Perfil',
                                 color: colorScheme.primary,
-                                theme: theme,
+                                onTap: () {
+                                  Modular.to.pushNamed('/profile/edit');
+                                },
                               ),
-                              _buildEnhancedStatItem(
-                                count: _getOrganizacionesCount().toString(),
-                                label: 'Organizaciones\nInscritas',
-                                icon: Icons.business,
+                              _buildSocialAction(
+                                icon: Icons.share,
+                                label: 'Compartir',
                                 color: colorScheme.secondary,
-                                theme: theme,
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Compartir perfil próximamente',
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                              _buildEnhancedStatItem(
-                                count: _aptitudesVoluntario.length.toString(),
-                                label: 'Aptitudes\nRegistradas',
-                                icon: Icons.lightbulb,
+                              _buildSocialAction(
+                                icon: Icons.message,
+                                label: 'Mensajes',
                                 color: colorScheme.tertiary,
-                                theme: theme,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  if (!_isFuncionario)
-                    const SizedBox(height: 24),
-
-                  // ORGANIZACIONES INSCRITAS - DATOS REALES (solo voluntarios)
-                  if (!_isFuncionario)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.business,
-                                size: 24,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Mis Organizaciones',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _buildRealOrganizationsSection(theme, colorScheme),
-                        ],
-                      ),
-                    ),
-
-                  if (!_isFuncionario)
-                    const SizedBox(height: 24),
-
-                  // APTITUDES Y HABILIDADES - ESTILO LINKEDIN (solo voluntarios)
-                  if (!_isFuncionario)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.lightbulb_outline,
-                                size: 24,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Aptitudes y Habilidades',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  color: colorScheme.primary,
-                                ),
-                                onPressed: () {
-                                  Modular.to.pushNamed('/profile/aptitudes');
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Mensajes próximamente'),
+                                    ),
+                                  );
                                 },
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          _buildSkillsSection(theme, colorScheme),
-                        ],
-                      ),
-                    ),
-
-                  if (!_isFuncionario)
-                    const SizedBox(height: 24),
-
-                  // PROYECTOS EN LOS QUE PARTICIPO - DATOS REALES
-                  if (!_isFuncionario)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.folder_special,
-                                size: 24,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Proyectos en los que participo',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _buildMyProjectsSection(theme, colorScheme),
-                        ],
-                      ),
-                    ),
-
-                  const SizedBox(height: 32),
-
-                  // ACCIONES SOCIALES - ESTILO LINKEDIN
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildSocialAction(
-                          icon: Icons.edit,
-                          label: 'Editar Perfil',
-                          color: colorScheme.primary,
-                          onTap: () {
-                            Modular.to.pushNamed('/profile/edit');
-                          },
                         ),
-                        _buildSocialAction(
-                          icon: Icons.share,
-                          label: 'Compartir',
-                          color: colorScheme.secondary,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Compartir perfil próximamente')),
-                            );
-                          },
-                        ),
-                        _buildSocialAction(
-                          icon: Icons.message,
-                          label: 'Mensajes',
-                          color: colorScheme.tertiary,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Mensajes próximamente')),
-                            );
-                          },
-                        ),
+
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -4027,16 +4333,9 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 2,
-            ),
+            border: Border.all(color: color.withOpacity(0.3), width: 2),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 28,
-          ),
+          child: Icon(icon, color: color, size: 28),
         ),
         const SizedBox(height: 8),
         Text(
@@ -4061,7 +4360,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildCarouselBadge({
     required IconData icon,
     required String title,
@@ -4076,33 +4374,38 @@ class _HomePageState extends State<HomePage> {
       width: 140,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: earned ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: earned
+            ? theme.colorScheme.surface
+            : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: earned ? color.withOpacity(0.3) : theme.colorScheme.outline.withOpacity(0.2),
+          color: earned
+              ? color.withOpacity(0.3)
+              : theme.colorScheme.outline.withOpacity(0.2),
           width: 1.5,
         ),
-        boxShadow: earned ? [
-          BoxShadow(
-            color: color.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ] : [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        gradient: earned ? LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withOpacity(0.05),
-            color.withOpacity(0.02),
-          ],
-        ) : null,
+        boxShadow: earned
+            ? [
+                BoxShadow(
+                  color: color.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: theme.colorScheme.shadow.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+        gradient: earned
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(0.05), color.withOpacity(0.02)],
+              )
+            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -4114,10 +4417,16 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: earned ? color.withOpacity(0.15) : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: earned
+                      ? color.withOpacity(0.15)
+                      : theme.colorScheme.surfaceContainerHighest.withOpacity(
+                          0.5,
+                        ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: earned ? color.withOpacity(0.3) : theme.colorScheme.outline.withOpacity(0.2),
+                    color: earned
+                        ? color.withOpacity(0.3)
+                        : theme.colorScheme.outline.withOpacity(0.2),
                     width: 2,
                   ),
                 ),
@@ -4138,7 +4447,9 @@ class _HomePageState extends State<HomePage> {
                     value: progress,
                     strokeWidth: 3,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(color.withOpacity(0.7)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      color.withOpacity(0.7),
+                    ),
                   ),
                 ),
             ],
@@ -4149,10 +4460,14 @@ class _HomePageState extends State<HomePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: earned ? color.withOpacity(0.1) : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              color: earned
+                  ? color.withOpacity(0.1)
+                  : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: earned ? color.withOpacity(0.2) : theme.colorScheme.outline.withOpacity(0.1),
+                color: earned
+                    ? color.withOpacity(0.2)
+                    : theme.colorScheme.outline.withOpacity(0.1),
                 width: 1,
               ),
             ),
@@ -4173,7 +4488,9 @@ class _HomePageState extends State<HomePage> {
             title,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: earned ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+              color: earned
+                  ? theme.colorScheme.onSurface
+                  : theme.colorScheme.onSurfaceVariant,
               fontSize: 11,
               height: 1.2,
             ),
@@ -4204,7 +4521,9 @@ class _HomePageState extends State<HomePage> {
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(color.withOpacity(0.6)),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  color.withOpacity(0.6),
+                ),
                 minHeight: 4,
               ),
             ),
@@ -4228,19 +4547,12 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: color.withOpacity(0.2), width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 4),
             Text(
               label,
@@ -4276,9 +4588,7 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
           _experienciasError!,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.error,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.error),
         ),
       );
     }
@@ -4296,8 +4606,9 @@ class _HomePageState extends State<HomePage> {
     }
 
     // Ordenar por fecha de inicio descendente
-    final experiences = List<ExperienciaVoluntario>.from(_experienciasVoluntario)
-      ..sort((a, b) => b.fechaInicio.compareTo(a.fechaInicio));
+    final experiences = List<ExperienciaVoluntario>.from(
+      _experienciasVoluntario,
+    )..sort((a, b) => b.fechaInicio.compareTo(a.fechaInicio));
 
     return Column(
       children: experiences.asMap().entries.map((entry) {
@@ -4309,8 +4620,9 @@ class _HomePageState extends State<HomePage> {
         final title = exp.area;
         final organizationName = exp.organizacion != null
             ? (exp.organizacion!['nombre'] ??
-                exp.organizacion!['nombre_legal'] ??
-                'Organización').toString()
+                      exp.organizacion!['nombre_legal'] ??
+                      'Organización')
+                  .toString()
             : 'Organización';
         final description = exp.descripcion ?? '';
         final color = colorScheme.primary;
@@ -4330,10 +4642,7 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: colorScheme.surface,
-                        width: 3,
-                      ),
+                      border: Border.all(color: colorScheme.surface, width: 3),
                       boxShadow: [
                         BoxShadow(
                           color: color.withOpacity(0.3),
@@ -4363,7 +4672,10 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     // Year badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -4387,11 +4699,7 @@ class _HomePageState extends State<HomePage> {
                     // Title and organization
                     Row(
                       children: [
-                        Icon(
-                          icon,
-                          size: 20,
-                          color: color,
-                        ),
+                        Icon(icon, size: 20, color: color),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -4454,7 +4762,10 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -4463,7 +4774,11 @@ class _HomePageState extends State<HomePage> {
                         IconButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Editar experiencia próximamente')),
+                              const SnackBar(
+                                content: Text(
+                                  'Editar experiencia próximamente',
+                                ),
+                              ),
                             );
                           },
                           icon: Icon(
@@ -4486,7 +4801,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ========== SECCIÓN DE APTITUDES ========== 
+  // ========== SECCIÓN DE APTITUDES ==========
   Widget _buildSkillsSection(ThemeData theme, ColorScheme colorScheme) {
     if (_isLoadingAptitudes) {
       return const Center(
@@ -4506,9 +4821,7 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(
           _aptitudesError!,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.error,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.error),
         ),
       );
     }
@@ -4536,19 +4849,12 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: color.withOpacity(0.06),
             borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: color.withOpacity(0.25),
-              width: 1,
-            ),
+            border: Border.all(color: color.withOpacity(0.25), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.check_circle_rounded,
-                size: 16,
-                color: color,
-              ),
+              Icon(Icons.check_circle_rounded, size: 16, color: color),
               const SizedBox(width: 8),
               Text(
                 aptitud.nombre,
@@ -4581,10 +4887,7 @@ class _HomePageState extends State<HomePage> {
                 color: colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Proyectos Inscritos',
-                style: theme.textTheme.titleMedium,
-              ),
+              Text('Proyectos Inscritos', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               Text(
                 'Aquí aparecerán los proyectos en los que te has inscrito',
@@ -4617,10 +4920,7 @@ class _HomePageState extends State<HomePage> {
                 color: colorScheme.onSurfaceVariant.withOpacity(0.5),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Proyectos Completados',
-                style: theme.textTheme.titleMedium,
-              ),
+              Text('Proyectos Completados', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               Text(
                 'Aquí aparecerán los proyectos que has completado',
@@ -4821,7 +5121,8 @@ class _HomePageState extends State<HomePage> {
                                 child: _buildShimmerEffect(
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
@@ -5146,13 +5447,15 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                            color: colorScheme.surfaceContainerHighest
+                                .withOpacity(0.5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
                                     height: 16,
@@ -5160,8 +5463,11 @@ class _HomePageState extends State<HomePage> {
                                     child: _buildShimmerEffect(
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: colorScheme
+                                              .surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -5172,8 +5478,11 @@ class _HomePageState extends State<HomePage> {
                                     child: _buildShimmerEffect(
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: colorScheme
+                                              .surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -5187,7 +5496,8 @@ class _HomePageState extends State<HomePage> {
                                 child: _buildShimmerEffect(
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -5200,7 +5510,8 @@ class _HomePageState extends State<HomePage> {
                                 child: _buildShimmerEffect(
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -5341,7 +5652,9 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -5369,7 +5682,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -5382,7 +5697,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -5395,7 +5712,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -5438,7 +5757,9 @@ class _HomePageState extends State<HomePage> {
             child: _buildShimmerEffect(
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -5451,7 +5772,9 @@ class _HomePageState extends State<HomePage> {
             child: _buildShimmerEffect(
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -5464,7 +5787,9 @@ class _HomePageState extends State<HomePage> {
             child: _buildShimmerEffect(
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -5477,7 +5802,9 @@ class _HomePageState extends State<HomePage> {
             child: _buildShimmerEffect(
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -5492,7 +5819,9 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -5596,7 +5925,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildProyectosCarouselSkeleton(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildProyectosCarouselSkeleton(
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -5635,9 +5967,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     child: _buildShimmerEffect(
-                      Container(
-                        color: colorScheme.surfaceContainerHighest,
-                      ),
+                      Container(color: colorScheme.surfaceContainerHighest),
                     ),
                   ),
                 ),
@@ -5681,7 +6011,8 @@ class _HomePageState extends State<HomePage> {
                             width: 20,
                             height: 20,
                             decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest.withOpacity(0.7),
+                              color: colorScheme.surfaceContainerHighest
+                                  .withOpacity(0.7),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: _buildShimmerEffect(
@@ -5729,7 +6060,8 @@ class _HomePageState extends State<HomePage> {
                             width: 3,
                             height: 3,
                             decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                              color: colorScheme.surfaceContainerHighest
+                                  .withOpacity(0.5),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -5811,7 +6143,7 @@ class _ShimmerContainerState extends State<ShimmerContainer>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -5819,19 +6151,21 @@ class _ShimmerContainerState extends State<ShimmerContainer>
           blendMode: BlendMode.srcATop,
           shaderCallback: (bounds) {
             return LinearGradient(
-              colors: isDark ? [
-                Colors.white.withOpacity(0.05),
-                Colors.white.withOpacity(0.15),
-                Colors.white.withOpacity(0.25),
-                Colors.white.withOpacity(0.15),
-                Colors.white.withOpacity(0.05),
-              ] : [
-                Colors.white.withOpacity(0.3),
-                Colors.white.withOpacity(0.5),
-                Colors.white.withOpacity(0.7),
-                Colors.white.withOpacity(0.5),
-                Colors.white.withOpacity(0.3),
-              ],
+              colors: isDark
+                  ? [
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.15),
+                      Colors.white.withOpacity(0.25),
+                      Colors.white.withOpacity(0.15),
+                      Colors.white.withOpacity(0.05),
+                    ]
+                  : [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.7),
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.3),
+                    ],
               stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
               begin: Alignment(_animation.value - 1, -0.3),
               end: Alignment(_animation.value, 0.3),

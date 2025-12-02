@@ -12,40 +12,37 @@ import 'pages/funcionario_options_page.dart';
 class ProfileModule extends Module {
   @override
   List<Bind> get binds => [
-        Bind.factory((i) => ProfileBloc(i<VoluntarioRepository>())),
-      ];
+    Bind.factory((i) => ProfileBloc(i<VoluntarioRepository>())),
+  ];
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute(
-          '/create',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<ProfileBloc>(),
-            child: const CreateProfilePage(),
-          ),
-        ),
-        ChildRoute(
-          '/create-funcionario',
-          child: (_, __) => const CreateFuncionarioProfilePage(),
-        ),
-        ChildRoute(
-          '/create-organizacion',
-          child: (_, __) => const CreateOrganizacionPage(),
-        ),
-        ChildRoute(
-          '/funcionario-options',
-          child: (_, __) => const FuncionarioOptionsPage(),
-        ),
-        ChildRoute(
-          '/aptitudes',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<ProfileBloc>(),
-            child: const SelectAptitudesPage(),
-          ),
-        ),
-        ChildRoute(
-          '/edit',
-          child: (_, __) => const EditProfilePage(),
-        ),
-      ];
+    ChildRoute(
+      '/create',
+      child: (_, __) => BlocProvider(
+        create: (_) => Modular.get<ProfileBloc>(),
+        child: const CreateProfilePage(),
+      ),
+    ),
+    ChildRoute(
+      '/create-funcionario',
+      child: (_, __) => const CreateFuncionarioProfilePage(),
+    ),
+    ChildRoute(
+      '/create-organizacion',
+      child: (_, __) => const CreateOrganizacionPage(),
+    ),
+    ChildRoute(
+      '/funcionario-options',
+      child: (_, __) => const FuncionarioOptionsPage(),
+    ),
+    ChildRoute(
+      '/aptitudes',
+      child: (_, __) => BlocProvider(
+        create: (_) => Modular.get<ProfileBloc>(),
+        child: const SelectAptitudesPage(),
+      ),
+    ),
+    ChildRoute('/edit', child: (_, __) => const EditProfilePage()),
+  ];
 }

@@ -8,7 +8,7 @@ class PerfilVoluntario extends Equatable {
   final int usuarioId;
   final String? fotoPerfil; // Foto de perfil en formato base64
   final DateTime? creadoEn;
-  
+
   // Campos adicionales que pueden venir en las respuestas
   final Map<String, dynamic>? usuario;
   final Map<String, dynamic>? organizacion;
@@ -72,18 +72,20 @@ class PerfilVoluntario extends Equatable {
       usuarioId: json['usuario_id'] is int
           ? json['usuario_id'] as int
           : int.tryParse(json['usuario_id'].toString()) ?? 0,
-      fotoPerfil: json['foto_perfil'] != null ? json['foto_perfil'].toString() : null,
+      fotoPerfil: json['foto_perfil'] != null
+          ? json['foto_perfil'].toString()
+          : null,
       creadoEn: json['creado_en'] != null
           ? DateTime.tryParse(json['creado_en'].toString())
           : null,
-      usuario: json['usuario'] is Map 
-          ? json['usuario'] as Map<String, dynamic>? 
+      usuario: json['usuario'] is Map
+          ? json['usuario'] as Map<String, dynamic>?
           : null,
-      organizacion: json['organizacion'] is Map 
-          ? json['organizacion'] as Map<String, dynamic>? 
+      organizacion: json['organizacion'] is Map
+          ? json['organizacion'] as Map<String, dynamic>?
           : null,
-      inscripcion: json['inscripcion'] is Map 
-          ? json['inscripcion'] as Map<String, dynamic>? 
+      inscripcion: json['inscripcion'] is Map
+          ? json['inscripcion'] as Map<String, dynamic>?
           : null,
     );
   }
@@ -102,15 +104,15 @@ class PerfilVoluntario extends Equatable {
 
   @override
   List<Object?> get props => [
-        idPerfilVoluntario,
-        bio,
-        disponibilidad,
-        estado,
-        usuarioId,
-        fotoPerfil,
-        creadoEn,
-        usuario,
-        organizacion,
-        inscripcion,
-      ];
+    idPerfilVoluntario,
+    bio,
+    disponibilidad,
+    estado,
+    usuarioId,
+    fotoPerfil,
+    creadoEn,
+    usuario,
+    organizacion,
+    inscripcion,
+  ];
 }

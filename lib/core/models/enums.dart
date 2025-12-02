@@ -289,8 +289,8 @@ enum EstadoParticipacionVoluntario {
   /// Indica si el estado representa una participación activa
   bool get isActive {
     return this == EstadoParticipacionVoluntario.aprobada ||
-           this == EstadoParticipacionVoluntario.programada ||
-           this == EstadoParticipacionVoluntario.enProgreso;
+        this == EstadoParticipacionVoluntario.programada ||
+        this == EstadoParticipacionVoluntario.enProgreso;
   }
 }
 

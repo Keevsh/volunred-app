@@ -15,7 +15,8 @@ class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
   final Usuario usuario;
-  final AuthResponse? authResponse; // Respuesta completa del login (incluye perfiles)
+  final AuthResponse?
+  authResponse; // Respuesta completa del login (incluye perfiles)
 
   const AuthAuthenticated(this.usuario, {this.authResponse});
 

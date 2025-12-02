@@ -15,7 +15,9 @@ import 'package:volunred_app/app_widget.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(ModularApp(module: AppModule(), child: const AppWidget()));
+    await tester.pumpWidget(
+      ModularApp(module: AppModule(), child: const AppWidget()),
+    );
 
     // Verify that our counter starts at 0 (HomePage shows 'Counter: 0').
     expect(find.textContaining('Counter:'), findsOneWidget);

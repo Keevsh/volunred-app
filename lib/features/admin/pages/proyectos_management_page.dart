@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/repositories/auth_repository.dart';
@@ -190,14 +191,266 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   Widget _buildProyectosList(List<Proyecto> proyectos) {
     return RefreshIndicator(
       onRefresh: () async => _loadData(),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      child: GridView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.9,
+        ),
         itemCount: proyectos.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final proyecto = proyectos[index];
-          return _buildProyectoCard(proyecto);
+          return _buildProyectoGridCard(proyecto);
         },
+      ),
+    );
+  }
+
+  Widget _buildProyectoGridCard(Proyecto proyecto) {
+    final estado = proyecto.estado.toLowerCase();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showEditDialog(proyecto),
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header con gradiente
+                  Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: estado == 'activo'
+                            ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
+                            : [
+                                const Color(0xFF90A4AE),
+                                const Color(0xFFB0BEC5),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (proyecto.imagen != null &&
+                            proyecto.imagen!.isNotEmpty)
+                          Positioned.fill(
+                            child: proyecto.imagen!.startsWith('http')
+                                ? Image.network(
+                                    proyecto.imagen!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              const Color(0xFF1976D2),
+                                              const Color(0xFF42A5F5),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.memory(
+                                    base64Decode(
+                                      proyecto.imagen!.split(',').last,
+                                    ),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              const Color(0xFF1976D2),
+                                              const Color(0xFF42A5F5),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        // Overlay oscuro
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.black.withOpacity(0.2),
+                                  Colors.transparent,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Icono
+                        const Icon(
+                          Icons.folder_special_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Contenido
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                proyecto.nombre,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1D1D1F),
+                                  letterSpacing: -0.2,
+                                  height: 1.2,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (proyecto.objetivo != null &&
+                                  proyecto.objetivo!.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  proyecto.objetivo!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF86868B),
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (proyecto.ubicacion != null &&
+                              proyecto.ubicacion!.isNotEmpty)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on,
+                                  size: 12,
+                                  color: Color(0xFF86868B),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    proyecto.ubicacion!,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF86868B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // Menu button
+              Positioned(
+                top: 8,
+                right: 8,
+                child: PopupMenuButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.more_vert_rounded,
+                      color: Color(0xFF86868B),
+                      size: 18,
+                    ),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_rounded, size: 18),
+                          SizedBox(width: 12),
+                          Text('Editar'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_rounded,
+                            size: 18,
+                            color: Colors.red,
+                          ),
+                          SizedBox(width: 12),
+                          Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _showEditDialog(proyecto);
+                    } else if (value == 'delete') {
+                      _confirmDelete(proyecto);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

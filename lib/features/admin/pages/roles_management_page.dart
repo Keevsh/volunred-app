@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/rol.dart';
 import '../bloc/admin_bloc.dart';
@@ -29,13 +29,11 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
     final adminBloc = context.read<AdminBloc>();
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: adminBloc,
-          child: const CreateRolPage(),
-        ),
+        builder: (context) =>
+            BlocProvider.value(value: adminBloc, child: const CreateRolPage()),
       ),
     );
-    
+
     if (result == true) {
       _loadData();
     }
@@ -51,7 +49,7 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
         ),
       ),
     );
-    
+
     if (result == true) {
       _loadData();
     }
@@ -109,9 +107,9 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
       body: BlocListener<AdminBloc, AdminState>(
         listener: (context, state) {
           if (state is RolDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Rol eliminado')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Rol eliminado')));
             _loadData();
           }
           if (state is AdminError) {
@@ -213,12 +211,14 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
   Widget _buildRolCard(Rol rol) {
     final permisosCount = rol.permisos?.length ?? rol.cantidadPermisos ?? 0;
     final usuariosCount = rol.cantidadUsuarios ?? 0;
-    
+
     // Agrupar permisos por módulo
     Map<String, List<Map<String, dynamic>>> permisosPorModulo = {};
     if (rol.permisos != null) {
       for (var permiso in rol.permisos!) {
-        final modulo = permiso['programa']?['aplicacion']?['modulo']?['nombre'] ?? 'Sin módulo';
+        final modulo =
+            permiso['programa']?['aplicacion']?['modulo']?['nombre'] ??
+            'Sin módulo';
         if (!permisosPorModulo.containsKey(modulo)) {
           permisosPorModulo[modulo] = [];
         }
@@ -233,7 +233,11 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          childrenPadding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: 16,
+          ),
           leading: Container(
             width: 48,
             height: 48,
@@ -274,7 +278,10 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F7),
                       borderRadius: BorderRadius.circular(6),
@@ -290,7 +297,10 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F7),
                       borderRadius: BorderRadius.circular(6),
@@ -350,12 +360,16 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
               ...permisosPorModulo.entries.map((entry) {
                 final moduloNombre = entry.key;
                 final permisosDelModulo = entry.value;
-                
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 8, bottom: 8, top: 8),
+                      padding: const EdgeInsets.only(
+                        left: 8,
+                        bottom: 8,
+                        top: 8,
+                      ),
                       child: Text(
                         moduloNombre.toUpperCase(),
                         style: const TextStyle(
@@ -368,10 +382,13 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
                     ),
                     ...permisosDelModulo.map((permiso) {
                       final programa = permiso['programa'];
-                      final programaNombre = programa?['nombre'] ?? 'Sin nombre';
-                      final programaDescripcion = programa?['descripcion'] ?? '';
-                      final aplicacionNombre = programa?['aplicacion']?['nombre'] ?? '';
-                      
+                      final programaNombre =
+                          programa?['nombre'] ?? 'Sin nombre';
+                      final programaDescripcion =
+                          programa?['descripcion'] ?? '';
+                      final aplicacionNombre =
+                          programa?['aplicacion']?['nombre'] ?? '';
+
                       return Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 6),
                         child: Row(
@@ -427,10 +444,7 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
                 child: Center(
                   child: Text(
                     'No hay permisos asignados',
-                    style: TextStyle(
-                      color: Color(0xFF86868B),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Color(0xFF86868B), fontSize: 14),
                   ),
                 ),
               ),
@@ -471,10 +485,7 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
           const SizedBox(height: 8),
           const Text(
             'Los roles aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),

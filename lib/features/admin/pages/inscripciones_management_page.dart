@@ -9,10 +9,12 @@ class InscripcionesManagementPage extends StatefulWidget {
   const InscripcionesManagementPage({super.key});
 
   @override
-  State<InscripcionesManagementPage> createState() => _InscripcionesManagementPageState();
+  State<InscripcionesManagementPage> createState() =>
+      _InscripcionesManagementPageState();
 }
 
-class _InscripcionesManagementPageState extends State<InscripcionesManagementPage> {
+class _InscripcionesManagementPageState
+    extends State<InscripcionesManagementPage> {
   String _filtroEstado = 'todos'; // 'todos', 'activo', 'inactivo'
 
   @override
@@ -146,7 +148,9 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (state is InscripcionesLoaded) {
-                      final inscripcionesFiltradas = _filtrarInscripciones(state.inscripciones);
+                      final inscripcionesFiltradas = _filtrarInscripciones(
+                        state.inscripciones,
+                      );
                       if (inscripcionesFiltradas.isEmpty) {
                         return _buildEmptyState();
                       }
@@ -210,16 +214,19 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
 
   Widget _buildInscripcionCard(Inscripcion inscripcion) {
     final usuarioNombre = inscripcion.usuario != null
-        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'.trim()
+        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'
+              .trim()
         : 'Usuario #${inscripcion.usuarioId}';
     final usuarioEmail = inscripcion.usuario != null
         ? inscripcion.usuario!['email'] ?? ''
         : '';
     final organizacionNombre = inscripcion.organizacion != null
-        ? inscripcion.organizacion!['nombre'] ?? 'Organización #${inscripcion.organizacionId}'
+        ? inscripcion.organizacion!['nombre'] ??
+              'Organización #${inscripcion.organizacionId}'
         : 'Organización #${inscripcion.organizacionId}';
 
-    final fechaStr = '${inscripcion.fechaRecepcion.day}/${inscripcion.fechaRecepcion.month}/${inscripcion.fechaRecepcion.year}';
+    final fechaStr =
+        '${inscripcion.fechaRecepcion.day}/${inscripcion.fechaRecepcion.month}/${inscripcion.fechaRecepcion.year}';
 
     Color estadoColor = const Color(0xFF86868B);
     String estadoTexto = inscripcion.estado;
@@ -296,7 +303,10 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: estadoColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -311,27 +321,46 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                     ),
                   ),
                   PopupMenuButton(
-                    icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: Color(0xFF86868B),
+                    ),
                     itemBuilder: (context) => [
-                      if (inscripcion.estado == 'activo' || inscripcion.estado == 'pendiente')
+                      if (inscripcion.estado == 'activo' ||
+                          inscripcion.estado == 'pendiente')
                         const PopupMenuItem(
                           value: 'rechazar',
                           child: Row(
                             children: [
-                              Icon(Icons.close_rounded, size: 20, color: Colors.red),
+                              Icon(
+                                Icons.close_rounded,
+                                size: 20,
+                                color: Colors.red,
+                              ),
                               SizedBox(width: 12),
-                              Text('Rechazar', style: TextStyle(color: Colors.red)),
+                              Text(
+                                'Rechazar',
+                                style: TextStyle(color: Colors.red),
+                              ),
                             ],
                           ),
                         ),
-                      if (inscripcion.estado == 'inactivo' || inscripcion.estado == 'pendiente')
+                      if (inscripcion.estado == 'inactivo' ||
+                          inscripcion.estado == 'pendiente')
                         const PopupMenuItem(
                           value: 'aprobar',
                           child: Row(
                             children: [
-                              Icon(Icons.check_rounded, size: 20, color: Colors.green),
+                              Icon(
+                                Icons.check_rounded,
+                                size: 20,
+                                color: Colors.green,
+                              ),
                               SizedBox(width: 12),
-                              Text('Aprobar', style: TextStyle(color: Colors.green)),
+                              Text(
+                                'Aprobar',
+                                style: TextStyle(color: Colors.green),
+                              ),
                             ],
                           ),
                         ),
@@ -339,9 +368,16 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_rounded, size: 20, color: Colors.red),
+                            Icon(
+                              Icons.delete_rounded,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             SizedBox(width: 12),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            Text(
+                              'Eliminar',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -362,7 +398,10 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F7),
                       borderRadius: BorderRadius.circular(6),
@@ -370,7 +409,11 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF86868B)),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: Color(0xFF86868B),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Recibida: $fechaStr',
@@ -382,11 +425,15 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
                       ],
                     ),
                   ),
-                  if (inscripcion.motivoRechazo != null && inscripcion.motivoRechazo!.isNotEmpty) ...[
+                  if (inscripcion.motivoRechazo != null &&
+                      inscripcion.motivoRechazo!.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -441,10 +488,7 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
           const SizedBox(height: 8),
           const Text(
             'Las inscripciones aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),
@@ -453,12 +497,12 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
 
   void _aprobarInscripcion(Inscripcion inscripcion) {
     context.read<AdminBloc>().add(
-          UpdateInscripcionRequested(
-            id: inscripcion.idInscripcion,
-            estado: 'activo',
-            motivoRechazo: null,
-          ),
-        );
+      UpdateInscripcionRequested(
+        id: inscripcion.idInscripcion,
+        estado: 'activo',
+        motivoRechazo: null,
+      ),
+    );
   }
 
   void _rechazarInscripcion(Inscripcion inscripcion) {
@@ -493,12 +537,12 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
             onPressed: () {
               if (motivoController.text.isNotEmpty) {
                 context.read<AdminBloc>().add(
-                      UpdateInscripcionRequested(
-                        id: inscripcion.idInscripcion,
-                        estado: 'inactivo',
-                        motivoRechazo: motivoController.text,
-                      ),
-                    );
+                  UpdateInscripcionRequested(
+                    id: inscripcion.idInscripcion,
+                    estado: 'inactivo',
+                    motivoRechazo: motivoController.text,
+                  ),
+                );
                 Navigator.pop(context);
               }
             },
@@ -511,13 +555,15 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
 
   void _showDetailsDialog(Inscripcion inscripcion) {
     final usuarioNombre = inscripcion.usuario != null
-        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'.trim()
+        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'
+              .trim()
         : 'Usuario #${inscripcion.usuarioId}';
     final usuarioEmail = inscripcion.usuario != null
         ? inscripcion.usuario!['email'] ?? ''
         : '';
     final organizacionNombre = inscripcion.organizacion != null
-        ? inscripcion.organizacion!['nombre'] ?? 'Organización #${inscripcion.organizacionId}'
+        ? inscripcion.organizacion!['nombre'] ??
+              'Organización #${inscripcion.organizacionId}'
         : 'Organización #${inscripcion.organizacionId}';
 
     showDialog(
@@ -530,14 +576,16 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildDetailRow('Usuario', usuarioNombre),
-              if (usuarioEmail.isNotEmpty) _buildDetailRow('Email', usuarioEmail),
+              if (usuarioEmail.isNotEmpty)
+                _buildDetailRow('Email', usuarioEmail),
               _buildDetailRow('Organización', organizacionNombre),
               _buildDetailRow(
                 'Fecha Recepción',
                 '${inscripcion.fechaRecepcion.day}/${inscripcion.fechaRecepcion.month}/${inscripcion.fechaRecepcion.year}',
               ),
               _buildDetailRow('Estado', inscripcion.estado),
-              if (inscripcion.motivoRechazo != null && inscripcion.motivoRechazo!.isNotEmpty)
+              if (inscripcion.motivoRechazo != null &&
+                  inscripcion.motivoRechazo!.isNotEmpty)
                 _buildDetailRow('Motivo Rechazo', inscripcion.motivoRechazo!),
             ],
           ),
@@ -569,10 +617,7 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 15,
-              color: Color(0xFF1D1D1F),
-            ),
+            style: const TextStyle(fontSize: 15, color: Color(0xFF1D1D1F)),
           ),
         ],
       ),
@@ -584,7 +629,9 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Inscripción'),
-        content: const Text('¿Está seguro que desea eliminar esta inscripción?'),
+        content: const Text(
+          '¿Está seguro que desea eliminar esta inscripción?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -593,7 +640,9 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteInscripcionRequested(inscripcion.idInscripcion));
+              context.read<AdminBloc>().add(
+                DeleteInscripcionRequested(inscripcion.idInscripcion),
+              );
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -603,4 +652,3 @@ class _InscripcionesManagementPageState extends State<InscripcionesManagementPag
     );
   }
 }
-

@@ -18,7 +18,7 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
     try {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       final organizacion = await funcionarioRepo.getMiOrganizacion();
-      
+
       if (mounted) {
         // Ya tiene organización, ir a crear perfil
         Modular.to.navigate('/profile/create-organizacion');
@@ -44,9 +44,7 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F5F7),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -73,23 +71,23 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
                     const SizedBox(height: 8),
                     const Text(
                       'Selecciona la opción que mejor se adapte a tu situación',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF86868B),
-                      ),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF86868B)),
                     ),
                     const SizedBox(height: 40),
                     _buildOptionCard(
                       context,
                       title: 'Ya tengo una organización',
-                      description: 'Si tu organización ya está registrada en la plataforma, puedes unirte a ella',
+                      description:
+                          'Si tu organización ya está registrada en la plataforma, puedes unirte a ella',
                       icon: Icons.business,
                       color: const Color(0xFF34C759),
                       onTap: () {
                         // TODO: Implementar búsqueda y unión a organización existente
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Funcionalidad en desarrollo. Por ahora, solicita una nueva organización.'),
+                            content: Text(
+                              'Funcionalidad en desarrollo. Por ahora, solicita una nueva organización.',
+                            ),
                           ),
                         );
                       },
@@ -98,7 +96,8 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
                     _buildOptionCard(
                       context,
                       title: 'Solicitar cuenta de organización',
-                      description: 'Crea una nueva organización y gestiona tus propios proyectos de voluntariado',
+                      description:
+                          'Crea una nueva organización y gestiona tus propios proyectos de voluntariado',
                       icon: Icons.add_business,
                       color: const Color(0xFF007AFF),
                       onTap: () {
@@ -207,11 +206,7 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 32,
-                  ),
+                  child: Icon(icon, color: color, size: 32),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -237,11 +232,7 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: color,
-                  size: 20,
-                ),
+                Icon(Icons.arrow_forward_ios, color: color, size: 20),
               ],
             ),
           ),
@@ -250,4 +241,3 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
     );
   }
 }
-

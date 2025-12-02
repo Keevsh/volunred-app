@@ -22,7 +22,7 @@ class Aptitud extends Equatable {
       if (value is int) return value;
       return int.tryParse(value.toString());
     }
-    
+
     return Aptitud(
       idAptitud: _getInt(json['id_aptitud']) ?? 0,
       nombre: json['nombre'] as String? ?? '',
@@ -45,11 +45,5 @@ class Aptitud extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        idAptitud,
-        nombre,
-        descripcion,
-        estado,
-        creadoEn,
-      ];
+  List<Object?> get props => [idAptitud, nombre, descripcion, estado, creadoEn];
 }

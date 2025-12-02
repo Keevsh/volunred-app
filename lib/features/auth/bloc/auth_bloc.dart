@@ -18,10 +18,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    
+
     try {
       final isAuthenticated = await authRepository.isAuthenticated();
-      
+
       if (isAuthenticated) {
         final usuario = await authRepository.getStoredUser();
         if (usuario != null) {

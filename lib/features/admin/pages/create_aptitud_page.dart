@@ -36,10 +36,12 @@ class _CreateAptitudPageState extends State<CreateAptitudPage> {
     final nombre = _nombreController.text.trim();
     final descripcion = _descripcionController.text.trim();
 
-    context.read<AdminBloc>().add(CreateAptitudRequested(
-          nombre: nombre,
-          descripcion: descripcion.isEmpty ? null : descripcion,
-        ));
+    context.read<AdminBloc>().add(
+      CreateAptitudRequested(
+        nombre: nombre,
+        descripcion: descripcion.isEmpty ? null : descripcion,
+      ),
+    );
   }
 
   @override
@@ -51,10 +53,7 @@ class _CreateAptitudPageState extends State<CreateAptitudPage> {
         } else if (state is AdminError) {
           setState(() => _isSubmitting = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -141,18 +140,34 @@ class _CreateAptitudPageState extends State<CreateAptitudPage> {
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 textCapitalization: TextCapitalization.words,
                                 validator: (value) {
@@ -200,24 +215,42 @@ class _CreateAptitudPageState extends State<CreateAptitudPage> {
                                     color: Color(0xFFC7C7CC),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFFE5E5EA)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFFE5E5EA),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                                    borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF007AFF),
+                                      width: 2,
+                                    ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 maxLines: 5,
                                 maxLength: 500,
-                                textCapitalization: TextCapitalization.sentences,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
                                 validator: (value) {
-                                  if (value != null && value.trim().length > 500) {
+                                  if (value != null &&
+                                      value.trim().length > 500) {
                                     return 'Máximo 500 caracteres';
                                   }
                                   return null;

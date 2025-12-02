@@ -9,10 +9,12 @@ class OrganizacionesManagementPage extends StatefulWidget {
   const OrganizacionesManagementPage({super.key});
 
   @override
-  State<OrganizacionesManagementPage> createState() => _OrganizacionesManagementPageState();
+  State<OrganizacionesManagementPage> createState() =>
+      _OrganizacionesManagementPageState();
 }
 
-class _OrganizacionesManagementPageState extends State<OrganizacionesManagementPage> {
+class _OrganizacionesManagementPageState
+    extends State<OrganizacionesManagementPage> {
   @override
   void initState() {
     super.initState();
@@ -35,7 +37,9 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listener: (context, state) {
-          if (state is OrganizacionCreated || state is OrganizacionUpdated || state is OrganizacionDeleted) {
+          if (state is OrganizacionCreated ||
+              state is OrganizacionUpdated ||
+              state is OrganizacionDeleted) {
             _loadData();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -43,8 +47,8 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
                   state is OrganizacionCreated
                       ? 'Organización creada'
                       : state is OrganizacionUpdated
-                          ? 'Organización actualizada'
-                          : 'Organización eliminada',
+                      ? 'Organización actualizada'
+                      : 'Organización eliminada',
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -203,7 +207,8 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
                         ),
                       ),
                     ],
-                    if (organizacion.direccion != null && organizacion.direccion!.isNotEmpty) ...[
+                    if (organizacion.direccion != null &&
+                        organizacion.direccion!.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         organizacion.direccion!,
@@ -220,7 +225,10 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: organizacion.estado == 'activo'
                       ? const Color(0xFF34C759).withOpacity(0.1)
@@ -239,7 +247,10 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
                 ),
               ),
               PopupMenuButton(
-                icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: Color(0xFF86868B),
+                ),
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'edit',
@@ -306,10 +317,7 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
           const SizedBox(height: 8),
           const Text(
             'Las organizaciones aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),
@@ -336,108 +344,114 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
               if (state is CategoriasOrganizacionesLoaded) {
                 categorias = state.categorias;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadCategoriasOrganizacionesRequested());
+                dialogContext.read<AdminBloc>().add(
+                  LoadCategoriasOrganizacionesRequested(),
+                );
               }
 
               return AlertDialog(
                 title: const Text('Nueva Organización'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre Legal *',
-                        border: OutlineInputBorder(),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre Legal *',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: nombreCortoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre Corto (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: nombreCortoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre Corto (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: correoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo *',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: correoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo *',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: telefonoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Teléfono (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: telefonoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
                       ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: direccionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Dirección (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: direccionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Dirección (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 2,
                       ),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Categoría (opcional)',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: categorias.map((cat) {
-                        final id = cat['id_categoria'] ?? cat['idCategoria'] ?? cat['id'];
-                        final nombre = cat['nombre'] ?? '';
-                        return DropdownMenuItem<int>(
-                          value: id as int?,
-                          child: Text(nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedCategoriaId = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && correoController.text.isNotEmpty) {
-                      dialogContext.read<AdminBloc>().add(
-                            CreateOrganizacionRequested(
-                              nombreLegal: nombreController.text,
-                              nombreCorto: nombreCortoController.text.isEmpty
-                                  ? null
-                                  : nombreCortoController.text,
-                              correo: correoController.text,
-                              telefono: telefonoController.text.isEmpty
-                                  ? null
-                                  : telefonoController.text,
-                              direccion: direccionController.text.isEmpty
-                                  ? null
-                                  : direccionController.text,
-                              idCategoria: selectedCategoriaId,
-                              estado: 'activo',
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Categoría (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: categorias.map((cat) {
+                          final id =
+                              cat['id_categoria'] ??
+                              cat['idCategoria'] ??
+                              cat['id'];
+                          final nombre = cat['nombre'] ?? '';
+                          return DropdownMenuItem<int>(
+                            value: id as int?,
+                            child: Text(nombre),
                           );
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Crear'),
+                        }).toList(),
+                        onChanged: (value) => selectedCategoriaId = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          correoController.text.isNotEmpty) {
+                        dialogContext.read<AdminBloc>().add(
+                          CreateOrganizacionRequested(
+                            nombreLegal: nombreController.text,
+                            nombreCorto: nombreCortoController.text.isEmpty
+                                ? null
+                                : nombreCortoController.text,
+                            correo: correoController.text,
+                            telefono: telefonoController.text.isEmpty
+                                ? null
+                                : telefonoController.text,
+                            direccion: direccionController.text.isEmpty
+                                ? null
+                                : direccionController.text,
+                            idCategoria: selectedCategoriaId,
+                            estado: 'activo',
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Crear'),
+                  ),
+                ],
+              );
             },
           ),
         );
@@ -448,8 +462,12 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
   void _showEditDialog(Organizacion organizacion) {
     final nombreController = TextEditingController(text: organizacion.nombre);
     final correoController = TextEditingController(text: organizacion.email);
-    final telefonoController = TextEditingController(text: organizacion.telefono ?? '');
-    final direccionController = TextEditingController(text: organizacion.direccion ?? '');
+    final telefonoController = TextEditingController(
+      text: organizacion.telefono ?? '',
+    );
+    final direccionController = TextEditingController(
+      text: organizacion.direccion ?? '',
+    );
     final ciudadController = TextEditingController();
     int? selectedCategoriaId = organizacion.idCategoriaOrganizacion;
     String? selectedEstado = organizacion.estado;
@@ -466,112 +484,124 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
               if (state is CategoriasOrganizacionesLoaded) {
                 categorias = state.categorias;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadCategoriasOrganizacionesRequested());
+                dialogContext.read<AdminBloc>().add(
+                  LoadCategoriasOrganizacionesRequested(),
+                );
               }
 
               return AlertDialog(
                 title: const Text('Editar Organización'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre Legal *',
-                        border: OutlineInputBorder(),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre Legal *',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: correoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo *',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: correoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo *',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: telefonoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Teléfono',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: telefonoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
                       ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: direccionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Dirección',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: direccionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Dirección',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 2,
                       ),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Categoría',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedCategoriaId,
-                      items: categorias.map((cat) {
-                        final id = cat['id_categoria'] ?? cat['idCategoria'] ?? cat['id'];
-                        final nombre = cat['nombre'] ?? '';
-                        return DropdownMenuItem<int>(
-                          value: id as int?,
-                          child: Text(nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedCategoriaId = value,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Estado',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedEstado,
-                      items: const [
-                        DropdownMenuItem(value: 'activo', child: Text('Activo')),
-                        DropdownMenuItem(value: 'inactivo', child: Text('Inactivo')),
-                      ],
-                      onChanged: (value) => selectedEstado = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && correoController.text.isNotEmpty) {
-                      dialogContext.read<AdminBloc>().add(
-                            UpdateOrganizacionRequested(
-                              id: organizacion.idOrganizacion,
-                              nombreLegal: nombreController.text,
-                              correo: correoController.text,
-                              telefono: telefonoController.text.isEmpty
-                                  ? null
-                                  : telefonoController.text,
-                              direccion: direccionController.text.isEmpty
-                                  ? null
-                                  : direccionController.text,
-                              idCategoria: selectedCategoriaId,
-                              estado: selectedEstado,
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Categoría',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedCategoriaId,
+                        items: categorias.map((cat) {
+                          final id =
+                              cat['id_categoria'] ??
+                              cat['idCategoria'] ??
+                              cat['id'];
+                          final nombre = cat['nombre'] ?? '';
+                          return DropdownMenuItem<int>(
+                            value: id as int?,
+                            child: Text(nombre),
                           );
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Guardar'),
+                        }).toList(),
+                        onChanged: (value) => selectedCategoriaId = value,
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: 'Estado',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedEstado,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'activo',
+                            child: Text('Activo'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'inactivo',
+                            child: Text('Inactivo'),
+                          ),
+                        ],
+                        onChanged: (value) => selectedEstado = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          correoController.text.isNotEmpty) {
+                        dialogContext.read<AdminBloc>().add(
+                          UpdateOrganizacionRequested(
+                            id: organizacion.idOrganizacion,
+                            nombreLegal: nombreController.text,
+                            correo: correoController.text,
+                            telefono: telefonoController.text.isEmpty
+                                ? null
+                                : telefonoController.text,
+                            direccion: direccionController.text.isEmpty
+                                ? null
+                                : direccionController.text,
+                            idCategoria: selectedCategoriaId,
+                            estado: selectedEstado,
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Guardar'),
+                  ),
+                ],
+              );
             },
           ),
         );
@@ -584,7 +614,9 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Organización'),
-        content: Text('¿Está seguro que desea eliminar la organización "${organizacion.nombre}"?'),
+        content: Text(
+          '¿Está seguro que desea eliminar la organización "${organizacion.nombre}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -593,7 +625,9 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteOrganizacionRequested(organizacion.idOrganizacion));
+              context.read<AdminBloc>().add(
+                DeleteOrganizacionRequested(organizacion.idOrganizacion),
+              );
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -603,4 +637,3 @@ class _OrganizacionesManagementPageState extends State<OrganizacionesManagementP
     );
   }
 }
-

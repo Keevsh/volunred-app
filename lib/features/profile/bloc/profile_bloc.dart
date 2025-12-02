@@ -22,18 +22,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       // Cargar todas las aptitudes disponibles
       final aptitudes = await voluntarioRepository.getAptitudes();
-      
+
       // Si hay un perfilVolId, cargar también las aptitudes ya asignadas
       List<Aptitud> aptitudesAsignadas = [];
       if (event.perfilVolId != null) {
         try {
-          aptitudesAsignadas = await voluntarioRepository.getAptitudesByVoluntario(event.perfilVolId!);
+          aptitudesAsignadas = await voluntarioRepository
+              .getAptitudesByVoluntario(event.perfilVolId!);
         } catch (e) {
           // Si hay error al obtener las aptitudes asignadas, continuar sin ellas
           print('⚠️ No se pudieron cargar las aptitudes asignadas: $e');
         }
       }
-      
+
       emit(AptitudesLoaded(aptitudes, aptitudesAsignadas: aptitudesAsignadas));
     } catch (e) {
       emit(ProfileError(e.toString()));

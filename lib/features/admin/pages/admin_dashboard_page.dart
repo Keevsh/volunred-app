@@ -32,14 +32,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     try {
       final authRepo = Modular.get<AuthRepository>();
       await authRepo.logout();
-      
+
       if (!mounted) return;
-      
+
       // Navegar a login y limpiar el stack de navegación
       Modular.to.navigate('/auth/');
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al cerrar sesión: $e'),
@@ -108,7 +108,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ],
               ),
               const SizedBox(height: 32),
-            
+
               // Lista de opciones
               ..._buildOptionsList(),
             ],
@@ -214,11 +214,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   color: data.color.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  data.icon,
-                  color: data.color,
-                  size: 24,
-                ),
+                child: Icon(data.icon, color: data.color, size: 24),
               ),
               const SizedBox(width: 16),
               // Contenido

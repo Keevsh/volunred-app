@@ -40,7 +40,7 @@ class SmartLogInterceptor extends Interceptor {
     print('│ 🚀 REQUEST');
     print('├─────────────────────────────────────────────────────────────');
     print('│ ${options.method} ${options.uri}');
-    
+
     if (options.data != null) {
       final dataStr = options.data.toString();
       if (dataStr.length > maxBodyLength) {
@@ -50,7 +50,7 @@ class SmartLogInterceptor extends Interceptor {
       }
     }
     print('└─────────────────────────────────────────────────────────────\n');
-    
+
     handler.next(options);
   }
 
@@ -61,13 +61,15 @@ class SmartLogInterceptor extends Interceptor {
     print('│ ✅ RESPONSE');
     print('├─────────────────────────────────────────────────────────────');
     print('│ ${response.statusCode} ${response.requestOptions.uri}');
-    
+
     if (response.data != null) {
       final dataStr = response.data.toString();
       if (dataStr.length > maxBodyLength) {
         // Verificar si contiene base64 (imágenes grandes)
         if (dataStr.contains('base64,')) {
-          print('│ Body: [RESPONSE WITH BASE64 IMAGE - ${dataStr.length} chars]');
+          print(
+            '│ Body: [RESPONSE WITH BASE64 IMAGE - ${dataStr.length} chars]',
+          );
           // Mostrar solo metadata sin el base64
           if (response.data is Map) {
             final Map<String, dynamic> data = Map.from(response.data);
@@ -82,14 +84,16 @@ class SmartLogInterceptor extends Interceptor {
             print('│ Data (without base64): $data');
           }
         } else {
-          print('│ Body: ${dataStr.substring(0, maxBodyLength)}... [TRUNCATED - ${dataStr.length} chars total]');
+          print(
+            '│ Body: ${dataStr.substring(0, maxBodyLength)}... [TRUNCATED - ${dataStr.length} chars total]',
+          );
         }
       } else {
         print('│ Body: $dataStr');
       }
     }
     print('└─────────────────────────────────────────────────────────────\n');
-    
+
     handler.next(response);
   }
 
@@ -106,7 +110,7 @@ class SmartLogInterceptor extends Interceptor {
       print('│ Response: ${err.response?.data}');
     }
     print('└─────────────────────────────────────────────────────────────\n');
-    
+
     handler.next(err);
   }
 }
@@ -120,25 +124,33 @@ class AuthInterceptor extends Interceptor {
     // Obtener token del storage
     final token = await StorageService.getString(ApiConfig.accessTokenKey);
 
-    print('🔐 [AUTH INTERCEPTOR] Verificando token para ${options.method} ${options.path}');
+    print(
+      '🔐 [AUTH INTERCEPTOR] Verificando token para ${options.method} ${options.path}',
+    );
     print('🔐 [AUTH INTERCEPTOR] Token existe: ${token != null}');
     if (token != null) {
       print('🔐 [AUTH INTERCEPTOR] Token length: ${token.length}');
-      print('🔐 [AUTH INTERCEPTOR] Token starts with: ${token.substring(0, min(20, token.length))}...');
+      print(
+        '🔐 [AUTH INTERCEPTOR] Token starts with: ${token.substring(0, min(20, token.length))}...',
+      );
       options.headers['Authorization'] = 'Bearer $token';
       print('🔐 [AUTH INTERCEPTOR] Header Authorization agregado');
     } else {
-      print('⚠️ [AUTH INTERCEPTOR] No hay token disponible - usuario no autenticado');
+      print(
+        '⚠️ [AUTH INTERCEPTOR] No hay token disponible - usuario no autenticado',
+      );
     }
 
     // Safety: Remove id_categoria_organizacion from organization creation requests
     // The API doesn't accept this field during creation
-    if (options.method == 'POST' && 
-        options.path.contains('/organizaciones') && 
+    if (options.method == 'POST' &&
+        options.path.contains('/organizaciones') &&
         options.data is Map) {
       final data = options.data as Map<String, dynamic>;
       if (data.containsKey('id_categoria_organizacion')) {
-        print('⚠️ INTERCEPTOR: Removiendo id_categoria_organizacion del request');
+        print(
+          '⚠️ INTERCEPTOR: Removiendo id_categoria_organizacion del request',
+        );
         data.remove('id_categoria_organizacion');
         options.data = data;
       }

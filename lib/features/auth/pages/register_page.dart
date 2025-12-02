@@ -26,7 +26,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _ciController = TextEditingController();
-  
+
   String? _sexo;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -129,9 +129,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SnackBar(content: Text('¡Registro exitoso!')),
                   );
                   Future.delayed(const Duration(milliseconds: 500), () {
-                    Modular.to.navigate(idRol == 2 
-                        ? '/profile/funcionario-options' 
-                        : '/profile/create');
+                    Modular.to.navigate(
+                      idRol == 2
+                          ? '/profile/funcionario-options'
+                          : '/profile/create',
+                    );
                   });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -154,9 +156,9 @@ class _RegisterPageState extends State<RegisterPage> {
               }
             } else if (state is AuthError) {
               setState(() => _isLoading = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
           builder: (context, state) {
@@ -168,10 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: PageView(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildStep1(),
-                      _buildStep2(),
-                    ],
+                    children: [_buildStep1(), _buildStep2()],
                   ),
                 ),
                 _buildNavigation(),
@@ -199,7 +198,9 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Row(
         children: [
           IconButton(
-            onPressed: _currentStep == 0 ? () => Modular.to.navigate('/') : _previousStep,
+            onPressed: _currentStep == 0
+                ? () => Modular.to.navigate('/')
+                : _previousStep,
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             color: const Color(0xFF1D1D1F),
           ),
@@ -232,7 +233,7 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Container(
                 height: 3,
                 decoration: BoxDecoration(
-                  color: i <= _currentStep 
+                  color: i <= _currentStep
                       ? const Color(0xFF007AFF)
                       : const Color(0xFFE5E5EA),
                   borderRadius: BorderRadius.circular(2),
@@ -260,10 +261,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 80,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF007AFF),
-                    const Color(0xFF0051D5),
-                  ],
+                  colors: [const Color(0xFF007AFF), const Color(0xFF0051D5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -358,7 +356,9 @@ class _RegisterPageState extends State<RegisterPage> {
             hint: 'Mínimo 6 caracteres',
             icon: Icons.lock_outline_rounded,
             obscureText: _obscurePassword,
-            suffixIcon: _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            suffixIcon: _obscurePassword
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             onSuffixIconPressed: () {
               setState(() => _obscurePassword = !_obscurePassword);
             },
@@ -379,9 +379,13 @@ class _RegisterPageState extends State<RegisterPage> {
             hint: 'Repite tu contraseña',
             icon: Icons.lock_outline_rounded,
             obscureText: _obscureConfirmPassword,
-            suffixIcon: _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            suffixIcon: _obscureConfirmPassword
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             onSuffixIconPressed: () {
-              setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+              setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              );
             },
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -479,7 +483,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              _isFuncionario 
+              _isFuncionario
                   ? 'Información adicional para tu cuenta de organización'
                   : 'Algunos datos opcionales para conocerte mejor',
               style: const TextStyle(
@@ -493,8 +497,15 @@ class _RegisterPageState extends State<RegisterPage> {
               value: _sexo,
               decoration: InputDecoration(
                 labelText: 'Sexo',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                prefixIcon: const Icon(Icons.wc_rounded, color: Color(0xFF86868B), size: 22),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 18,
+                ),
+                prefixIcon: const Icon(
+                  Icons.wc_rounded,
+                  color: Color(0xFF86868B),
+                  size: 22,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -573,25 +584,20 @@ class _RegisterPageState extends State<RegisterPage> {
         textCapitalization: textCapitalization,
         inputFormatters: inputFormatters,
         validator: validator,
-        style: const TextStyle(
-          fontSize: 17,
-          color: Color(0xFF1D1D1F),
-        ),
+        style: const TextStyle(fontSize: 17, color: Color(0xFF1D1D1F)),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 17,
-          ),
-          labelStyle: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 17,
-          ),
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 17),
+          labelStyle: TextStyle(color: Colors.grey[600], fontSize: 17),
           prefixIcon: Icon(icon, color: const Color(0xFF86868B), size: 22),
           suffixIcon: suffixIcon != null
               ? IconButton(
-                  icon: Icon(suffixIcon, color: const Color(0xFF86868B), size: 22),
+                  icon: Icon(
+                    suffixIcon,
+                    color: const Color(0xFF86868B),
+                    size: 22,
+                  ),
                   onPressed: onSuffixIconPressed,
                 )
               : null,
@@ -615,7 +621,10 @@ class _RegisterPageState extends State<RegisterPage> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Colors.red, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 18,
+          ),
         ),
       ),
     );
@@ -664,13 +673,15 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _validateStep(int step) {
     switch (step) {
       case 0:
-        if (_nombresController.text.isEmpty || 
-            _apellidosController.text.isEmpty || 
+        if (_nombresController.text.isEmpty ||
+            _apellidosController.text.isEmpty ||
             _emailController.text.isEmpty ||
             _passwordController.text.isEmpty ||
             _confirmPasswordController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Por favor completa todos los campos requeridos')),
+            const SnackBar(
+              content: Text('Por favor completa todos los campos requeridos'),
+            ),
           );
           return false;
         }
@@ -682,7 +693,9 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         if (_passwordController.text.length < 6) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres')),
+            const SnackBar(
+              content: Text('La contraseña debe tener al menos 6 caracteres'),
+            ),
           );
           return false;
         }

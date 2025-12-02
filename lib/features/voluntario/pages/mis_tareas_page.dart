@@ -104,10 +104,7 @@ class _MisTareasPageState extends State<MisTareasPage> {
       appBar: AppBar(
         title: const Text(
           'Mis Tareas',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFFF5F7FA),
@@ -128,85 +125,107 @@ class _MisTareasPageState extends State<MisTareasPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error al cargar tareas', style: theme.textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          _error!,
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: _loadTareas,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar tareas',
+                    style: theme.textTheme.titleLarge,
                   ),
-                )
-              : Column(
-                  children: [
-                    // Filtros
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFiltroChip('Todas', 'todas', colorScheme),
-                            const SizedBox(width: 10),
-                            _buildFiltroChip('Pendientes', 'pendiente', colorScheme),
-                            const SizedBox(width: 10),
-                            _buildFiltroChip('En Progreso', 'en_progreso', colorScheme),
-                            const SizedBox(width: 10),
-                            _buildFiltroChip('Completadas', 'completada', colorScheme),
-                          ],
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      _error!,
+                      style: theme.textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loadTareas,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                // Filtros
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFiltroChip('Todas', 'todas', colorScheme),
+                        const SizedBox(width: 10),
+                        _buildFiltroChip(
+                          'Pendientes',
+                          'pendiente',
+                          colorScheme,
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        _buildFiltroChip(
+                          'En Progreso',
+                          'en_progreso',
+                          colorScheme,
+                        ),
+                        const SizedBox(width: 10),
+                        _buildFiltroChip(
+                          'Completadas',
+                          'completada',
+                          colorScheme,
+                        ),
+                      ],
                     ),
-
-                    // Lista de tareas
-                    Expanded(
-                      child: _tareasFiltradas.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.inbox_outlined, size: 64, color: colorScheme.onSurfaceVariant),
-                                  const SizedBox(height: 16),
-                                  Text('No tienes tareas', style: theme.textTheme.titleLarge),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _filtroEstado == 'todas'
-                                        ? 'Aún no tienes tareas asignadas'
-                                        : 'No tienes tareas $_filtroEstado',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: _loadTareas,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                                itemCount: _tareasFiltradas.length,
-                                itemBuilder: (context, index) {
-                                  final tarea = _tareasFiltradas[index];
-                                  return _buildTareaCard(tarea, theme, colorScheme);
-                                },
-                              ),
-                            ),
-                    ),
-                  ],
+                  ),
                 ),
+
+                // Lista de tareas
+                Expanded(
+                  child: _tareasFiltradas.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No tienes tareas',
+                                style: theme.textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _filtroEstado == 'todas'
+                                    ? 'Aún no tienes tareas asignadas'
+                                    : 'No tienes tareas $_filtroEstado',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadTareas,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                            itemCount: _tareasFiltradas.length,
+                            itemBuilder: (context, index) {
+                              final tarea = _tareasFiltradas[index];
+                              return _buildTareaCard(tarea, theme, colorScheme);
+                            },
+                          ),
+                        ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -259,7 +278,10 @@ class _MisTareasPageState extends State<MisTareasPage> {
   ) {
     final estado = tarea['estado']?.toString() ?? 'pendiente';
     final prioridad = tarea['prioridad']?.toString();
-    final titulo = tarea['titulo']?.toString() ?? tarea['nombre']?.toString() ?? 'Sin título';
+    final titulo =
+        tarea['titulo']?.toString() ??
+        tarea['nombre']?.toString() ??
+        'Sin título';
     final descripcion = tarea['descripcion']?.toString();
     final fechaVencimiento = tarea['fechaVencimiento'] != null
         ? DateTime.tryParse(tarea['fechaVencimiento'].toString())
@@ -269,18 +291,24 @@ class _MisTareasPageState extends State<MisTareasPage> {
     Map<String, dynamic>? proyecto;
     if (tarea['proyecto'] is Map) {
       proyecto = Map<String, dynamic>.from(tarea['proyecto'] as Map);
-    } else if (tarea['tarea'] is Map && (tarea['tarea'] as Map)['proyecto'] is Map) {
+    } else if (tarea['tarea'] is Map &&
+        (tarea['tarea'] as Map)['proyecto'] is Map) {
       final nested = (tarea['tarea'] as Map)['proyecto'] as Map;
       proyecto = Map<String, dynamic>.from(nested);
     }
 
     // Nombre del proyecto con varios fallbacks
     final nombreProyecto = proyecto != null
-        ? (proyecto['nombre']?.toString() ?? proyecto['titulo']?.toString() ?? 'Proyecto')
-        : (tarea['proyecto_nombre']?.toString() ?? tarea['nombre_proyecto']?.toString());
+        ? (proyecto['nombre']?.toString() ??
+              proyecto['titulo']?.toString() ??
+              'Proyecto')
+        : (tarea['proyecto_nombre']?.toString() ??
+              tarea['nombre_proyecto']?.toString());
     final tareaId = tarea['id'] ?? tarea['tarea_id'] ?? tarea['tareaId'];
 
-    print('🔍 Tarea card: id=$tareaId, titulo=$titulo, keys=${tarea.keys.toList()}');
+    print(
+      '🔍 Tarea card: id=$tareaId, titulo=$titulo, keys=${tarea.keys.toList()}',
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -301,20 +329,20 @@ class _MisTareasPageState extends State<MisTareasPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-          print('👆 Click en tarea card: id=$tareaId');
-          if (tareaId != null) {
-            print('✅ Navegando a /voluntario/tareas/$tareaId');
-            Modular.to.pushNamed('/voluntario/tareas/$tareaId');
-          } else {
-            print('❌ tareaId es null en card');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Error: ID de tarea no disponible'),
-                backgroundColor: colorScheme.error,
-              ),
-            );
-          }
-        },
+            print('👆 Click en tarea card: id=$tareaId');
+            if (tareaId != null) {
+              print('✅ Navegando a /voluntario/tareas/$tareaId');
+              Modular.to.pushNamed('/voluntario/tareas/$tareaId');
+            } else {
+              print('❌ tareaId es null en card');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Error: ID de tarea no disponible'),
+                  backgroundColor: colorScheme.error,
+                ),
+              );
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -389,7 +417,11 @@ class _MisTareasPageState extends State<MisTareasPage> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.folder_rounded, size: 16, color: Color(0xFF1976D2)),
+                            const Icon(
+                              Icons.folder_rounded,
+                              size: 16,
+                              color: Color(0xFF1976D2),
+                            ),
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
@@ -413,8 +445,8 @@ class _MisTareasPageState extends State<MisTareasPage> {
                               prioridad.toLowerCase() == 'alta'
                                   ? Icons.flag_rounded
                                   : prioridad.toLowerCase() == 'media'
-                                      ? Icons.flag_outlined
-                                      : Icons.outlined_flag,
+                                  ? Icons.flag_outlined
+                                  : Icons.outlined_flag,
                               size: 16,
                               color: prioridad.toLowerCase() == 'alta'
                                   ? const Color(0xFFEF5350)
@@ -435,7 +467,11 @@ class _MisTareasPageState extends State<MisTareasPage> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey[600]),
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               '${fechaVencimiento.day}/${fechaVencimiento.month}/${fechaVencimiento.year}',

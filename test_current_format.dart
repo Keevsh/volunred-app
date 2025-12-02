@@ -5,8 +5,14 @@ void main() {
   var fechaInicio = DateTime(2025, 11, 1);
   var fechaFin = DateTime(2026, 3, 31);
 
-  var fechaInicioFormateada = fechaInicio.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
-  var fechaFinFormateada = fechaFin.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
+  var fechaInicioFormateada = fechaInicio.toUtc().toIso8601String().replaceAll(
+    RegExp(r'\.\d+'),
+    '',
+  );
+  var fechaFinFormateada = fechaFin.toUtc().toIso8601String().replaceAll(
+    RegExp(r'\.\d+'),
+    '',
+  );
 
   print('Fecha inicio original: $fechaInicio');
   print('Fecha inicio UTC ISO: ${fechaInicio.toUtc().toIso8601String()}');

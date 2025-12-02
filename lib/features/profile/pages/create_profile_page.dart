@@ -25,7 +25,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
   final _formKey = GlobalKey<FormState>();
   final _bioController = TextEditingController();
   final _disponibilidadController = TextEditingController();
-  
+
   final List<String> _disponibilidadOptions = [
     'Lunes a Viernes',
     'Fines de semana',
@@ -34,9 +34,9 @@ class _CreateProfilePageState extends State<CreateProfilePage>
     'Noches',
     'Flexible',
   ];
-  
+
   final Set<String> _selectedDisponibilidad = {};
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -65,9 +65,11 @@ class _CreateProfilePageState extends State<CreateProfilePage>
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
       final authRepo = Modular.get<AuthRepository>();
       final usuario = await authRepo.getStoredUser();
-      
+
       if (usuario != null) {
-        final perfil = await voluntarioRepo.getPerfilByUsuario(usuario.idUsuario);
+        final perfil = await voluntarioRepo.getPerfilByUsuario(
+          usuario.idUsuario,
+        );
         if (perfil != null) {
           setState(() {
             _perfilExistente = perfil;
@@ -75,9 +77,13 @@ class _CreateProfilePageState extends State<CreateProfilePage>
             // Cargar datos existentes en los campos
             _bioController.text = perfil.bio ?? '';
             _fotoPerfilBase64 = perfil.fotoPerfil;
-            if (perfil.disponibilidad != null && perfil.disponibilidad!.isNotEmpty) {
+            if (perfil.disponibilidad != null &&
+                perfil.disponibilidad!.isNotEmpty) {
               // Intentar parsear la disponibilidad
-              final disponibilidadList = perfil.disponibilidad!.split(',').map((e) => e.trim()).toList();
+              final disponibilidadList = perfil.disponibilidad!
+                  .split(',')
+                  .map((e) => e.trim())
+                  .toList();
               for (var disp in disponibilidadList) {
                 if (_disponibilidadOptions.contains(disp)) {
                   _selectedDisponibilidad.add(disp);
@@ -104,7 +110,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
 
   Future<void> _handleCreateProfile() async {
     print('🚀 Iniciando _handleCreateProfile...');
-    
+
     try {
       if (!_formKey.currentState!.validate()) {
         print('❌ Validación del formulario falló');
@@ -135,19 +141,22 @@ class _CreateProfilePageState extends State<CreateProfilePage>
         try {
           final voluntarioRepo = Modular.get<VoluntarioRepository>();
           final datosActualizacion = <String, dynamic>{
-            'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+            'bio': _bioController.text.trim().isEmpty
+                ? null
+                : _bioController.text.trim(),
             'disponibilidad': disponibilidad.isEmpty ? null : disponibilidad,
-            if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) 'foto_perfil': _fotoPerfilBase64,
+            if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty)
+              'foto_perfil': _fotoPerfilBase64,
           };
-          
+
           // Remover valores null
           datosActualizacion.removeWhere((key, value) => value == null);
-          
+
           await voluntarioRepo.updatePerfil(
             _perfilExistente!.idPerfilVoluntario,
             datosActualizacion,
           );
-          
+
           _showSnackBar('Perfil actualizado exitosamente', isError: false);
           Future.delayed(const Duration(milliseconds: 500), () {
             Modular.to.pop();
@@ -162,20 +171,22 @@ class _CreateProfilePageState extends State<CreateProfilePage>
       print('📤 Creando request para nuevo perfil...');
       final request = CreatePerfilVoluntarioRequest(
         usuarioId: usuario.idUsuario,
-        bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+        bio: _bioController.text.trim().isEmpty
+            ? null
+            : _bioController.text.trim(),
         disponibilidad: disponibilidad.isEmpty ? null : disponibilidad,
         estado: 'activo',
         fotoPerfil: _fotoPerfilBase64,
       );
-      
+
       print('📤 Request creado: ${request.toJson()}');
       print('📤 Enviando evento al Bloc...');
-      
+
       final bloc = BlocProvider.of<ProfileBloc>(context);
       print('📤 Bloc obtenido: $bloc');
-      
+
       bloc.add(CreatePerfilRequested(request));
-      
+
       print('✅ Evento enviado al Bloc');
     } catch (e, stackTrace) {
       print('❌ Error crítico en _handleCreateProfile: $e');
@@ -249,10 +260,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withOpacity(0.8),
-          ],
+          colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -288,7 +296,9 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                       ),
                     ),
                     Text(
-                      _isEditing ? 'Actualiza tu información' : 'Cuéntanos sobre ti',
+                      _isEditing
+                          ? 'Actualiza tu información'
+                          : 'Cuéntanos sobre ti',
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
@@ -378,10 +388,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
         children: [
           const Text(
             '📷 Foto de Perfil',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Stack(
@@ -391,13 +398,11 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE5E5EA),
-                    width: 3,
-                  ),
+                  border: Border.all(color: const Color(0xFFE5E5EA), width: 3),
                 ),
                 child: ClipOval(
-                  child: _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
+                  child:
+                      _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
                       ? ImageBase64Widget(
                           base64String: _fotoPerfilBase64!,
                           width: 120,
@@ -424,7 +429,11 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                     border: Border.all(color: Colors.white, width: 3),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _pickImage,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -434,10 +443,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
             ],
           ),
           const SizedBox(height: 8),
-          TextButton(
-            onPressed: _pickImage,
-            child: const Text('Cambiar foto'),
-          ),
+          TextButton(onPressed: _pickImage, child: const Text('Cambiar foto')),
         ],
       ),
     );
@@ -455,18 +461,12 @@ class _CreateProfilePageState extends State<CreateProfilePage>
             const SizedBox(height: 32),
             const Text(
               '📝 Biografía',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Cuéntanos quién eres y qué te motiva a ser voluntario',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -489,18 +489,12 @@ class _CreateProfilePageState extends State<CreateProfilePage>
             const SizedBox(height: 32),
             const Text(
               '🗓️ Disponibilidad',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Selecciona tus horarios disponibles o escribe uno personalizado',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -575,10 +569,7 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                   Expanded(
                     child: Text(
                       'Tu perfil será visible para organizaciones que busquen voluntarios.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue[900],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.blue[900]),
                     ),
                   ),
                 ],

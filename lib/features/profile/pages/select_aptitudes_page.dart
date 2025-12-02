@@ -27,11 +27,11 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
     // Obtener el perfil del usuario para cargar sus aptitudes asignadas
     final voluntarioRepo = Modular.get<VoluntarioRepository>();
     final perfil = await voluntarioRepo.getStoredPerfil();
-    
+
     // Cargar aptitudes disponibles y las ya asignadas si hay perfil
-    BlocProvider.of<ProfileBloc>(context).add(
-      LoadAptitudesRequested(perfilVolId: perfil?.idPerfilVoluntario),
-    );
+    BlocProvider.of<ProfileBloc>(
+      context,
+    ).add(LoadAptitudesRequested(perfilVolId: perfil?.idPerfilVoluntario));
   }
 
   Future<void> _handleAsignarAptitudes() async {
@@ -61,15 +61,13 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Selecciona tus Aptitudes'),
-      ),
+      appBar: AppBar(title: const Text('Selecciona tus Aptitudes')),
       body: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
           if (state is AptitudesAsignadas) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
             // Navegar a home
             Modular.to.navigate('/home/');
           } else if (state is ProfileError) {
@@ -88,7 +86,8 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
 
           if (state is AptitudesLoaded) {
             // Si hay aptitudes asignadas y el estado está vacío, inicializar con las asignadas
-            if (_selectedAptitudes.isEmpty && state.aptitudesAsignadas.isNotEmpty) {
+            if (_selectedAptitudes.isEmpty &&
+                state.aptitudesAsignadas.isNotEmpty) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setState(() {
                   _selectedAptitudes.addAll(
@@ -97,7 +96,7 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
                 });
               });
             }
-            
+
             return Column(
               children: [
                 Expanded(
@@ -110,19 +109,24 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
                             'Selecciona las aptitudes que mejor describen tus habilidades. Esto ayudará a las organizaciones a conocerte mejor.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         );
                       }
 
                       final aptitud = state.aptitudes[index - 1];
-                      final isSelected =
-                          _selectedAptitudes.contains(aptitud.idAptitud);
+                      final isSelected = _selectedAptitudes.contains(
+                        aptitud.idAptitud,
+                      );
                       // Verificar si esta aptitud está asignada al perfil
-                      final isAssigned = state.aptitudesAsignadas
-                          .any((a) => a.idAptitud == aptitud.idAptitud);
+                      final isAssigned = state.aptitudesAsignadas.any(
+                        (a) => a.idAptitud == aptitud.idAptitud,
+                      );
 
                       return _AptitudCard(
                         aptitud: aptitud,
@@ -249,8 +253,9 @@ class _AptitudCard extends StatelessWidget {
                         child: Text(
                           aptitud.nombre,
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -258,7 +263,9 @@ class _AptitudCard extends StatelessWidget {
                       if (isAssigned && !isSelected)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(999),
@@ -274,7 +281,8 @@ class _AptitudCard extends StatelessWidget {
                         ),
                     ],
                   ),
-                  if (aptitud.descripcion != null && aptitud.descripcion!.isNotEmpty) ...[
+                  if (aptitud.descripcion != null &&
+                      aptitud.descripcion!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       aptitud.descripcion!,
@@ -293,13 +301,13 @@ class _AptitudCard extends StatelessWidget {
               isSelected
                   ? Icons.check_circle_rounded
                   : isAssigned
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.circle_outlined,
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.circle_outlined,
               color: isSelected
                   ? colorScheme.primary
                   : isAssigned
-                      ? Colors.green[700]
-                      : colorScheme.onSurfaceVariant,
+                  ? Colors.green[700]
+                  : colorScheme.onSurfaceVariant,
               size: 22,
             ),
           ],

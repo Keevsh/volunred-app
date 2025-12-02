@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/organizacion.dart';
@@ -823,7 +823,10 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE3F2FD),
                     borderRadius: BorderRadius.circular(12),
@@ -865,132 +868,175 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
 
   Widget _buildProyectoSmartCard(Proyecto proyecto, ThemeData theme) {
     final isActivo = proyecto.estado.toLowerCase() == 'activo';
-    
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey.withOpacity(0.1),
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(24),
+    final gradientColors = isActivo
+        ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
+        : [const Color(0xFFFF9800), const Color(0xFFFFB74D)];
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: gradientColors[0].withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Icono y estado
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      proyecto.imagen != null && proyecto.imagen!.isNotEmpty
-                          ? Icons.image_rounded
-                          : Icons.folder_rounded,
-                      color: const Color(0xFF1976D2),
-                      size: 24,
-                    ),
-                  ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: isActivo 
-                          ? const Color(0xFFE8F5E9)
-                          : const Color(0xFFFFF3E0),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isActivo ? Icons.check_circle_rounded : Icons.schedule_rounded,
-                      color: isActivo 
-                          ? const Color(0xFF4CAF50)
-                          : const Color(0xFFFF9800),
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Nombre del proyecto
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    proyecto.nombre,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1A1A1A),
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    proyecto.ubicacion ?? 'Sin ubicación',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF9E9E9E),
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 12),
-              
-              // Estado
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isActivo 
-                      ? const Color(0xFFE8F5E9)
-                      : const Color(0xFFFFF3E0),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () =>
+              Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Header con icono
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isActivo 
-                            ? const Color(0xFF4CAF50)
-                            : const Color(0xFFFF9800),
-                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.rocket_launch_rounded,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      isActivo ? 'Activo' : proyecto.estado,
-                      style: TextStyle(
-                        color: isActivo 
-                            ? const Color(0xFF2E7D32)
-                            : const Color(0xFFE65100),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: gradientColors[0],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            proyecto.estado.toUpperCase(),
+                            style: TextStyle(
+                              color: gradientColors[0],
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+
+                // Contenido
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      proyecto.nombre,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    if (proyecto.ubicacion != null &&
+                        proyecto.ubicacion!.isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.white.withOpacity(0.9),
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              proyecto.ubicacion!,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+
+                // Footer con info adicional
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.people_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Equipo',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -83,10 +83,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFF5F7FA),
-            Color(0xFFFFFFFF),
-          ],
+          colors: [Color(0xFFF5F7FA), Color(0xFFFFFFFF)],
         ),
       ),
       child: RefreshIndicator(
@@ -96,69 +93,74 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
           bottom: false,
           child: CustomScrollView(
             slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Mi Actividad',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1A1A1A),
-                        letterSpacing: -0.5,
+              // Header
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Mi Actividad',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1A1A1A),
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Resumen de tu participación',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Resumen de tu participación',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Estadísticas rápidas
-            SliverToBoxAdapter(
-              child: _buildQuickStats(theme),
-            ),
+              // Estadísticas rápidas
+              SliverToBoxAdapter(child: _buildQuickStats(theme)),
 
-            // Resumen de mis tareas
-            if (_misTareas.isNotEmpty) _buildMyTasksSummary(theme),
+              // Resumen de mis tareas
+              if (_misTareas.isNotEmpty) _buildMyTasksSummary(theme),
 
-            // Participaciones activas
-            if (_misParticipaciones.isNotEmpty) _buildMyParticipations(theme),
+              // Participaciones activas
+              if (_misParticipaciones.isNotEmpty) _buildMyParticipations(theme),
 
-            // Inscripciones pendientes
-            if (_misInscripciones.where((i) => i.estado == 'pendiente').isNotEmpty)
-              _buildPendingInscriptions(theme),
+              // Inscripciones pendientes
+              if (_misInscripciones
+                  .where((i) => i.estado == 'pendiente')
+                  .isNotEmpty)
+                _buildPendingInscriptions(theme),
 
-            // Inscripciones procesadas
-            if (_misInscripciones.where((i) => i.estado != 'pendiente').isNotEmpty)
-              _buildProcessedInscriptions(theme),
+              // Inscripciones procesadas
+              if (_misInscripciones
+                  .where((i) => i.estado != 'pendiente')
+                  .isNotEmpty)
+                _buildProcessedInscriptions(theme),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ),
         ),
       ),
-    )
     );
   }
 
   Widget _buildQuickStats(ThemeData theme) {
-    final participacionesActivas =
-        _misParticipaciones.where((p) => p.estado == 'activo').length;
+    final participacionesActivas = _misParticipaciones
+        .where((p) => p.estado == 'activo')
+        .length;
     final tareasPendientes = _misTareas.where((t) {
       final estado = t['estado']?.toString().toLowerCase();
-      return estado == 'pendiente' || estado == 'en_progreso' || estado == 'en progreso';
+      return estado == 'pendiente' ||
+          estado == 'en_progreso' ||
+          estado == 'en progreso';
     }).length;
 
     return Padding(
@@ -179,10 +181,16 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
           Expanded(
             child: _buildStatCard(
               'Tareas',
-              tareasPendientes > 0 ? tareasPendientes.toString() : _misTareas.length.toString(),
+              tareasPendientes > 0
+                  ? tareasPendientes.toString()
+                  : _misTareas.length.toString(),
               Icons.assignment_rounded,
-              tareasPendientes > 0 ? const Color(0xFFFF9800) : const Color(0xFF4CAF50),
-              tareasPendientes > 0 ? const Color(0xFFFFF3E0) : const Color(0xFFE8F5E9),
+              tareasPendientes > 0
+                  ? const Color(0xFFFF9800)
+                  : const Color(0xFF4CAF50),
+              tareasPendientes > 0
+                  ? const Color(0xFFFFF3E0)
+                  : const Color(0xFFE8F5E9),
               theme,
             ),
           ),
@@ -209,10 +217,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF1976D2),
-                Color(0xFF42A5F5),
-              ],
+              colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -313,12 +318,15 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
               else
                 Column(
                   children: tareasMostrar.map((tarea) {
-                    final titulo = tarea['titulo']?.toString() ?? 'Tarea sin título';
+                    final titulo =
+                        tarea['titulo']?.toString() ?? 'Tarea sin título';
                     final estado = tarea['estado']?.toString() ?? 'pendiente';
                     final proyectoNombre =
-                        tarea['proyecto_nombre']?.toString() ?? tarea['proyecto']?.toString();
+                        tarea['proyecto_nombre']?.toString() ??
+                        tarea['proyecto']?.toString();
                     final fechaLimite =
-                        tarea['fecha_limite']?.toString() ?? tarea['fechaLimite']?.toString();
+                        tarea['fecha_limite']?.toString() ??
+                        tarea['fechaLimite']?.toString();
 
                     Color chipColor;
                     Color chipTextColor;
@@ -383,7 +391,8 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (proyectoNombre != null && proyectoNombre.isNotEmpty) ...[
+                                if (proyectoNombre != null &&
+                                    proyectoNombre.isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
@@ -396,9 +405,11 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                                       Expanded(
                                         child: Text(
                                           proyectoNombre,
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -406,7 +417,8 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                                     ],
                                   ),
                                 ],
-                                if (fechaLimite != null && fechaLimite.isNotEmpty) ...[
+                                if (fechaLimite != null &&
+                                    fechaLimite.isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
@@ -418,9 +430,11 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                                       const SizedBox(width: 4),
                                       Text(
                                         'Entrega: $fechaLimite',
-                                        style: theme.textTheme.labelSmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -430,7 +444,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: chipColor,
                               borderRadius: BorderRadius.circular(12),
@@ -482,10 +499,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            bgColor,
-            bgColor.withOpacity(0.7),
-          ],
+          colors: [bgColor, bgColor.withOpacity(0.7)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -562,7 +576,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1976D2),
                     borderRadius: BorderRadius.circular(12),
@@ -583,7 +600,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: participacionesActivas
-                  .map((participacion) => _buildParticipacionCard(participacion, theme))
+                  .map(
+                    (participacion) =>
+                        _buildParticipacionCard(participacion, theme),
+                  )
                   .toList(),
             ),
           ),
@@ -717,7 +737,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF9800),
                     borderRadius: BorderRadius.circular(12),
@@ -738,7 +761,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: pendientes
-                  .map((inscripcion) => _buildInscripcionCard(inscripcion, theme, true))
+                  .map(
+                    (inscripcion) =>
+                        _buildInscripcionCard(inscripcion, theme, true),
+                  )
                   .toList(),
             ),
           ),
@@ -770,7 +796,10 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: procesadas
-                  .map((inscripcion) => _buildInscripcionCard(inscripcion, theme, false))
+                  .map(
+                    (inscripcion) =>
+                        _buildInscripcionCard(inscripcion, theme, false),
+                  )
                   .toList(),
             ),
           ),
@@ -779,9 +808,16 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
     );
   }
 
-  Widget _buildInscripcionCard(Inscripcion inscripcion, ThemeData theme, bool isPending) {
+  Widget _buildInscripcionCard(
+    Inscripcion inscripcion,
+    ThemeData theme,
+    bool isPending,
+  ) {
     final organizacionNombre = inscripcion.organizacion != null
-        ? (inscripcion.organizacion!['nombre'] ?? inscripcion.organizacion!['nombre_legal'] ?? 'Organización').toString()
+        ? (inscripcion.organizacion!['nombre'] ??
+                  inscripcion.organizacion!['nombre_legal'] ??
+                  'Organización')
+              .toString()
         : 'Organización';
 
     Color statusColor;
@@ -835,11 +871,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Icon(
-                statusIcon,
-                color: statusColor,
-                size: 24,
-              ),
+              child: Icon(statusIcon, color: statusColor, size: 24),
             ),
           ),
           const SizedBox(width: 16),

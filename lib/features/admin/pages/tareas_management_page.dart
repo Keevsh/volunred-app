@@ -36,7 +36,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listener: (context, state) {
-          if (state is TareaCreated || state is TareaUpdated || state is TareaDeleted) {
+          if (state is TareaCreated ||
+              state is TareaUpdated ||
+              state is TareaDeleted) {
             _loadData();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -44,8 +46,8 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                   state is TareaCreated
                       ? 'Tarea creada'
                       : state is TareaUpdated
-                          ? 'Tarea actualizada'
-                          : 'Tarea eliminada',
+                      ? 'Tarea actualizada'
+                      : 'Tarea eliminada',
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -213,7 +215,8 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                             letterSpacing: -0.4,
                           ),
                         ),
-                        if (tarea.descripcion != null && tarea.descripcion!.isNotEmpty) ...[
+                        if (tarea.descripcion != null &&
+                            tarea.descripcion!.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
                             tarea.descripcion!,
@@ -229,7 +232,10 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                     ),
                   ),
                   PopupMenuButton(
-                    icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: Color(0xFF86868B),
+                    ),
                     itemBuilder: (context) => [
                       const PopupMenuItem(
                         value: 'edit',
@@ -245,9 +251,16 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_rounded, size: 20, color: Colors.red),
+                            Icon(
+                              Icons.delete_rounded,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             SizedBox(width: 12),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            Text(
+                              'Eliminar',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -269,7 +282,10 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                 children: [
                   if (tarea.prioridad != null && tarea.prioridad!.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: prioridadColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
@@ -284,7 +300,10 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                       ),
                     ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F7),
                       borderRadius: BorderRadius.circular(6),
@@ -292,7 +311,11 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF86868B)),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: Color(0xFF86868B),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '$fechaInicioStr - $fechaFinStr',
@@ -305,9 +328,14 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: tarea.estado == 'activo' || tarea.estado == 'completada'
+                      color:
+                          tarea.estado == 'activo' ||
+                              tarea.estado == 'completada'
                           ? const Color(0xFF34C759).withOpacity(0.1)
                           : const Color(0xFF8E8E93).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -317,7 +345,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: tarea.estado == 'activo' || tarea.estado == 'completada'
+                        color:
+                            tarea.estado == 'activo' ||
+                                tarea.estado == 'completada'
                             ? const Color(0xFF34C759)
                             : const Color(0xFF8E8E93),
                       ),
@@ -361,10 +391,7 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
           const SizedBox(height: 8),
           const Text(
             'Las tareas aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),
@@ -428,7 +455,8 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                               child: Text(proy.nombre),
                             );
                           }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedProyectoId = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedProyectoId = value),
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
@@ -438,11 +466,21 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                           ),
                           value: selectedPrioridad,
                           items: const [
-                            DropdownMenuItem(value: 'Alta', child: Text('Alta')),
-                            DropdownMenuItem(value: 'Media', child: Text('Media')),
-                            DropdownMenuItem(value: 'Baja', child: Text('Baja')),
+                            DropdownMenuItem(
+                              value: 'Alta',
+                              child: Text('Alta'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Media',
+                              child: Text('Media'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Baja',
+                              child: Text('Baja'),
+                            ),
                           ],
-                          onChanged: (value) => setDialogState(() => selectedPrioridad = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedPrioridad = value),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -454,7 +492,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                     context: context,
                                     initialDate: DateTime.now(),
                                     firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 365 * 5),
+                                    ),
                                   );
                                   if (date != null) {
                                     setDialogState(() => fechaInicio = date);
@@ -463,12 +503,18 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE5E5EA),
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
+                                      const Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 20,
+                                        color: Color(0xFF86868B),
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         fechaInicio != null
@@ -493,7 +539,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                     context: context,
                                     initialDate: fechaInicio ?? DateTime.now(),
                                     firstDate: fechaInicio ?? DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 365 * 5),
+                                    ),
                                   );
                                   if (date != null) {
                                     setDialogState(() => fechaFin = date);
@@ -502,12 +550,18 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE5E5EA),
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
+                                      const Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 20,
+                                        color: Color(0xFF86868B),
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         fechaFin != null
@@ -534,13 +588,29 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                           ),
                           value: selectedEstado,
                           items: const [
-                            DropdownMenuItem(value: 'activo', child: Text('Activo')),
-                            DropdownMenuItem(value: 'pendiente', child: Text('Pendiente')),
-                            DropdownMenuItem(value: 'en_progreso', child: Text('En Progreso')),
-                            DropdownMenuItem(value: 'completada', child: Text('Completada')),
-                            DropdownMenuItem(value: 'cancelada', child: Text('Cancelada')),
+                            DropdownMenuItem(
+                              value: 'activo',
+                              child: Text('Activo'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'pendiente',
+                              child: Text('Pendiente'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'en_progreso',
+                              child: Text('En Progreso'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'completada',
+                              child: Text('Completada'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'cancelada',
+                              child: Text('Cancelada'),
+                            ),
                           ],
-                          onChanged: (value) => setDialogState(() => selectedEstado = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedEstado = value),
                         ),
                       ],
                     ),
@@ -552,20 +622,21 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                     ),
                     FilledButton(
                       onPressed: () {
-                        if (nombreController.text.isNotEmpty && selectedProyectoId != null) {
+                        if (nombreController.text.isNotEmpty &&
+                            selectedProyectoId != null) {
                           context.read<AdminBloc>().add(
-                                CreateTareaRequested(
-                                  proyectoId: selectedProyectoId!,
-                                  nombre: nombreController.text,
-                                  descripcion: descripcionController.text.isEmpty
-                                      ? null
-                                      : descripcionController.text,
-                                  prioridad: selectedPrioridad,
-                                  fechaInicio: fechaInicio,
-                                  fechaFin: fechaFin,
-                                  estado: selectedEstado,
-                                ),
-                              );
+                            CreateTareaRequested(
+                              proyectoId: selectedProyectoId!,
+                              nombre: nombreController.text,
+                              descripcion: descripcionController.text.isEmpty
+                                  ? null
+                                  : descripcionController.text,
+                              prioridad: selectedPrioridad,
+                              fechaInicio: fechaInicio,
+                              fechaFin: fechaFin,
+                              estado: selectedEstado,
+                            ),
+                          );
                           Navigator.pop(context);
                         }
                       },
@@ -583,7 +654,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
 
   void _showEditDialog(Tarea tarea) {
     final nombreController = TextEditingController(text: tarea.nombre);
-    final descripcionController = TextEditingController(text: tarea.descripcion ?? '');
+    final descripcionController = TextEditingController(
+      text: tarea.descripcion ?? '',
+    );
     DateTime? fechaInicio = tarea.fechaInicio;
     DateTime? fechaFin = tarea.fechaFin;
     int? selectedProyectoId = tarea.proyectoId;
@@ -639,7 +712,8 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                               child: Text(proy.nombre),
                             );
                           }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedProyectoId = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedProyectoId = value),
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
@@ -649,11 +723,21 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                           ),
                           value: selectedPrioridad,
                           items: const [
-                            DropdownMenuItem(value: 'Alta', child: Text('Alta')),
-                            DropdownMenuItem(value: 'Media', child: Text('Media')),
-                            DropdownMenuItem(value: 'Baja', child: Text('Baja')),
+                            DropdownMenuItem(
+                              value: 'Alta',
+                              child: Text('Alta'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Media',
+                              child: Text('Media'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Baja',
+                              child: Text('Baja'),
+                            ),
                           ],
-                          onChanged: (value) => setDialogState(() => selectedPrioridad = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedPrioridad = value),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -665,7 +749,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                     context: context,
                                     initialDate: fechaInicio ?? DateTime.now(),
                                     firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 365 * 5),
+                                    ),
                                   );
                                   if (date != null) {
                                     setDialogState(() => fechaInicio = date);
@@ -674,12 +760,18 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE5E5EA),
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
+                                      const Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 20,
+                                        color: Color(0xFF86868B),
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         fechaInicio != null
@@ -702,9 +794,14 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                 onTap: () async {
                                   final date = await showDatePicker(
                                     context: context,
-                                    initialDate: fechaFin ?? fechaInicio ?? DateTime.now(),
+                                    initialDate:
+                                        fechaFin ??
+                                        fechaInicio ??
+                                        DateTime.now(),
                                     firstDate: fechaInicio ?? DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 365 * 5),
+                                    ),
                                   );
                                   if (date != null) {
                                     setDialogState(() => fechaFin = date);
@@ -713,12 +810,18 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE5E5EA),
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
+                                      const Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 20,
+                                        color: Color(0xFF86868B),
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         fechaFin != null
@@ -745,13 +848,29 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                           ),
                           value: selectedEstado,
                           items: const [
-                            DropdownMenuItem(value: 'activo', child: Text('Activo')),
-                            DropdownMenuItem(value: 'pendiente', child: Text('Pendiente')),
-                            DropdownMenuItem(value: 'en_progreso', child: Text('En Progreso')),
-                            DropdownMenuItem(value: 'completada', child: Text('Completada')),
-                            DropdownMenuItem(value: 'cancelada', child: Text('Cancelada')),
+                            DropdownMenuItem(
+                              value: 'activo',
+                              child: Text('Activo'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'pendiente',
+                              child: Text('Pendiente'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'en_progreso',
+                              child: Text('En Progreso'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'completada',
+                              child: Text('Completada'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'cancelada',
+                              child: Text('Cancelada'),
+                            ),
                           ],
-                          onChanged: (value) => setDialogState(() => selectedEstado = value),
+                          onChanged: (value) =>
+                              setDialogState(() => selectedEstado = value),
                         ),
                       ],
                     ),
@@ -763,21 +882,22 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
                     ),
                     FilledButton(
                       onPressed: () {
-                        if (nombreController.text.isNotEmpty && selectedProyectoId != null) {
+                        if (nombreController.text.isNotEmpty &&
+                            selectedProyectoId != null) {
                           context.read<AdminBloc>().add(
-                                UpdateTareaRequested(
-                                  id: tarea.idTarea,
-                                  proyectoId: selectedProyectoId,
-                                  nombre: nombreController.text,
-                                  descripcion: descripcionController.text.isEmpty
-                                      ? null
-                                      : descripcionController.text,
-                                  prioridad: selectedPrioridad,
-                                  fechaInicio: fechaInicio,
-                                  fechaFin: fechaFin,
-                                  estado: selectedEstado,
-                                ),
-                              );
+                            UpdateTareaRequested(
+                              id: tarea.idTarea,
+                              proyectoId: selectedProyectoId,
+                              nombre: nombreController.text,
+                              descripcion: descripcionController.text.isEmpty
+                                  ? null
+                                  : descripcionController.text,
+                              prioridad: selectedPrioridad,
+                              fechaInicio: fechaInicio,
+                              fechaFin: fechaFin,
+                              estado: selectedEstado,
+                            ),
+                          );
                           Navigator.pop(context);
                         }
                       },
@@ -798,7 +918,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Tarea'),
-        content: Text('¿Está seguro que desea eliminar la tarea "${tarea.nombre}"?'),
+        content: Text(
+          '¿Está seguro que desea eliminar la tarea "${tarea.nombre}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -807,7 +929,9 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteTareaRequested(tarea.idTarea));
+              context.read<AdminBloc>().add(
+                DeleteTareaRequested(tarea.idTarea),
+              );
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -817,4 +941,3 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
     );
   }
 }
-

@@ -29,7 +29,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
   final _telefonoOrgController = TextEditingController();
   final _emailOrgController = TextEditingController();
   final _sitioWebController = TextEditingController();
-  
+
   // Controladores Paso 2: Información Legal
   final _rucController = TextEditingController();
   final _razonSocialController = TextEditingController();
@@ -63,18 +63,18 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
     try {
       final authRepo = Modular.get<AuthRepository>();
       final usuario = await authRepo.getStoredUser();
-      
+
       if (usuario != null && usuario.isFuncionario) {
         final funcionarioRepo = Modular.get<FuncionarioRepository>();
         try {
           final organizacion = await funcionarioRepo.getMiOrganizacion();
           final perfil = await funcionarioRepo.getMiPerfil();
-          
+
           setState(() {
             _organizacionExistente = organizacion;
             _perfilFuncionarioExistente = perfil;
             _isEditing = true;
-            
+
             // Cargar datos existentes en los campos
             _nombreOrgController.text = organizacion.nombre;
             _descripcionController.text = organizacion.descripcion ?? '';
@@ -83,10 +83,11 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             _emailOrgController.text = organizacion.email;
             _sitioWebController.text = organizacion.sitioWeb ?? '';
             _rucController.text = organizacion.ruc ?? '';
-            _razonSocialController.text = organizacion.razonSocial ?? organizacion.nombre;
+            _razonSocialController.text =
+                organizacion.razonSocial ?? organizacion.nombre;
             _categoriaSeleccionada = organizacion.idCategoriaOrganizacion;
             _logoBase64 = organizacion.logo;
-            
+
             // Cargar datos del perfil de funcionario
             if (perfil.cargo != null) {
               _cargoController.text = perfil.cargo!;
@@ -127,11 +128,13 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
     try {
       final repo = Modular.get<OrganizacionRepository>();
       print('📋 Repositorio obtenido: $repo');
-      
+
       final categorias = await repo.getCategoriasOrganizaciones();
       print('📋 Categorías recibidas: ${categorias.length}');
-      print('📋 Primera categoría: ${categorias.isNotEmpty ? categorias.first : "ninguna"}');
-      
+      print(
+        '📋 Primera categoría: ${categorias.isNotEmpty ? categorias.first : "ninguna"}',
+      );
+
       setState(() {
         _categorias = categorias;
       });
@@ -151,7 +154,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
 
   Future<void> _nextStep() async {
     bool isValid = false;
-    
+
     switch (_currentStep) {
       case 0:
         isValid = _formKey1.currentState?.validate() ?? false;
@@ -169,7 +172,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         print('🔍 Paso 2 validación: $isValid');
         if (!isValid) {
           print('❌ Paso 2 falló validación. Campos requeridos:');
-          print('   - RUC: ${_rucController.text.isNotEmpty && _rucController.text.length == 13}');
+          print(
+            '   - RUC: ${_rucController.text.isNotEmpty && _rucController.text.length == 13}',
+          );
           print('   - Razón Social: ${_razonSocialController.text.isNotEmpty}');
           print('   - Categoría: ${_categoriaSeleccionada != null}');
         }
@@ -180,7 +185,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         if (!isValid) {
           print('❌ Paso 3 falló validación. Campos requeridos:');
           print('   - Cargo: ${_cargoController.text.isNotEmpty}');
-          print('   - Departamento: ${_departamentoController.text.isNotEmpty}');
+          print(
+            '   - Departamento: ${_departamentoController.text.isNotEmpty}',
+          );
         }
         if (isValid) {
           await _submitAll();
@@ -198,7 +205,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         curve: Curves.easeInOut,
       );
     } else if (!isValid) {
-      print('❌ No se puede avanzar: validación falló para paso ${_currentStep + 1}');
+      print(
+        '❌ No se puede avanzar: validación falló para paso ${_currentStep + 1}',
+      );
       // Mostrar mensaje de error si la validación falló
       String errorMessage = 'Por favor, completa todos los campos obligatorios';
       switch (_currentStep) {
@@ -212,7 +221,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           errorMessage = 'Completa tu información personal';
           break;
       }
-      
+
       if (mounted) {
         AppWidgets.showStyledSnackBar(
           context: context,
@@ -241,7 +250,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       final authRepo = Modular.get<AuthRepository>();
       final orgRepo = Modular.get<OrganizacionRepository>();
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      
+
       // Obtener usuario actual
       final usuario = await authRepo.getStoredUser();
       if (usuario == null) {
@@ -249,7 +258,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       }
 
       Organizacion organizacion;
-      
+
       // Si estamos editando, actualizar la organización existente
       if (_isEditing && _organizacionExistente != null) {
         print('📝 Actualizando organización existente...');
@@ -270,9 +279,10 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             'descripcion': _descripcionController.text.trim(),
           if (_categoriaSeleccionada != null)
             'id_categoria_organizacion': _categoriaSeleccionada,
-          if (_logoBase64 != null && _logoBase64!.isNotEmpty) 'logo': _logoBase64,
+          if (_logoBase64 != null && _logoBase64!.isNotEmpty)
+            'logo': _logoBase64,
         };
-        
+
         organizacion = await orgRepo.updateOrganizacion(
           _organizacionExistente!.idOrganizacion,
           orgData,
@@ -296,10 +306,13 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           if (_descripcionController.text.trim().isNotEmpty)
             'descripcion': _descripcionController.text.trim(),
           'estado': 'activo',
-          if (_logoBase64 != null && _logoBase64!.isNotEmpty) 'logo': _logoBase64,
+          if (_logoBase64 != null && _logoBase64!.isNotEmpty)
+            'logo': _logoBase64,
         };
-        
-        print('🚀 [ORGANIZACIÓN] Enviando datos al backend para crear organización:');
+
+        print(
+          '🚀 [ORGANIZACIÓN] Enviando datos al backend para crear organización:',
+        );
         print('📦 [ORGANIZACIÓN] Data: $orgData');
         print('🏢 Nombre legal: ${_razonSocialController.text.trim()}');
         print('📧 Correo: ${_emailOrgController.text.trim()}');
@@ -309,7 +322,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
 
         organizacion = await orgRepo.createOrganizacion(orgData);
         print('✅ Organización creada: ${organizacion.nombre}');
-        
+
         // Si hay categoría seleccionada, actualizar la organización
         if (_categoriaSeleccionada != null) {
           try {
@@ -325,34 +338,38 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       }
 
       // 2. Actualizar o crear perfil de funcionario
-      print('👤 ${_isEditing && _perfilFuncionarioExistente != null ? "Actualizando" : "Creando"} perfil de funcionario...');
+      print(
+        '👤 ${_isEditing && _perfilFuncionarioExistente != null ? "Actualizando" : "Creando"} perfil de funcionario...',
+      );
       PerfilFuncionario? perfil;
-      
+
       try {
         // Si estamos editando y ya existe el perfil, actualizarlo
         if (_isEditing && _perfilFuncionarioExistente != null) {
           final perfilData = <String, dynamic>{};
-          
+
           // Solo actualizar campos que cambiaron
           if (_cargoController.text.trim().isNotEmpty) {
             perfilData['cargo'] = _cargoController.text.trim();
           }
-          
+
           if (_departamentoController.text.trim().isNotEmpty) {
             perfilData['area'] = _departamentoController.text.trim();
           }
-          
+
           if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) {
             perfilData['foto_perfil'] = _fotoPerfilBase64;
           }
-          
+
           if (perfilData.isNotEmpty) {
             print('📤 Actualizando perfil de funcionario: $perfilData');
             perfil = await funcionarioRepo.updatePerfilFuncionario(
               _perfilFuncionarioExistente!.idPerfilFuncionario,
               perfilData,
             );
-            print('✅ Perfil de funcionario actualizado: ${perfil.idPerfilFuncionario}');
+            print(
+              '✅ Perfil de funcionario actualizado: ${perfil.idPerfilFuncionario}',
+            );
           } else {
             perfil = _perfilFuncionarioExistente;
           }
@@ -361,59 +378,75 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
           final perfilData = <String, dynamic>{
             'usuario_id': usuario.idUsuario,
             'organizacion_id': organizacion.idOrganizacion,
-            'fecha_ingreso': DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+            'fecha_ingreso': DateTime.now()
+                .toUtc()
+                .toIso8601String()
+                .replaceAll(RegExp(r'\.\d+'), ''),
             'estado': 'activo',
           };
-          
+
           if (_cargoController.text.trim().isNotEmpty) {
             perfilData['cargo'] = _cargoController.text.trim();
           }
-          
+
           if (_departamentoController.text.trim().isNotEmpty) {
             perfilData['area'] = _departamentoController.text.trim();
           }
-          
+
           if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) {
             perfilData['foto_perfil'] = _fotoPerfilBase64;
           }
-          
+
           print('📤 Creando perfil de funcionario: $perfilData');
           perfil = await orgRepo.createPerfilFuncionario(perfilData);
-          print('✅ Perfil de funcionario creado: ${perfil.idPerfilFuncionario}');
+          print(
+            '✅ Perfil de funcionario creado: ${perfil.idPerfilFuncionario}',
+          );
         }
       } catch (e) {
-        print('⚠️ Error al ${_isEditing && _perfilFuncionarioExistente != null ? "actualizar" : "crear"} perfil de funcionario: $e');
+        print(
+          '⚠️ Error al ${_isEditing && _perfilFuncionarioExistente != null ? "actualizar" : "crear"} perfil de funcionario: $e',
+        );
         // Intentar obtener el perfil si ya existe
         try {
-          final perfilExistente = await orgRepo.getPerfilFuncionarioByUsuario(usuario.idUsuario);
+          final perfilExistente = await orgRepo.getPerfilFuncionarioByUsuario(
+            usuario.idUsuario,
+          );
           if (perfilExistente != null) {
-            print('✅ Perfil de funcionario ya existe: ${perfilExistente.idPerfilFuncionario}');
+            print(
+              '✅ Perfil de funcionario ya existe: ${perfilExistente.idPerfilFuncionario}',
+            );
             perfil = perfilExistente;
-            
+
             // Actualizar con los datos nuevos si faltan
             final updateData = <String, dynamic>{};
             bool needsUpdate = false;
-            
-            if (_cargoController.text.trim().isNotEmpty && perfilExistente.cargo != _cargoController.text.trim()) {
+
+            if (_cargoController.text.trim().isNotEmpty &&
+                perfilExistente.cargo != _cargoController.text.trim()) {
               updateData['cargo'] = _cargoController.text.trim();
               needsUpdate = true;
             }
-            if (_departamentoController.text.trim().isNotEmpty && 
-                (perfilExistente.area != _departamentoController.text.trim() && 
-                 perfilExistente.departamento != _departamentoController.text.trim())) {
+            if (_departamentoController.text.trim().isNotEmpty &&
+                (perfilExistente.area != _departamentoController.text.trim() &&
+                    perfilExistente.departamento !=
+                        _departamentoController.text.trim())) {
               updateData['area'] = _departamentoController.text.trim();
               needsUpdate = true;
             }
-            
+
             // Verificar si necesita organizacion_id
             if (perfilExistente.idOrganizacion != organizacion.idOrganizacion) {
               updateData['organizacion_id'] = organizacion.idOrganizacion;
               needsUpdate = true;
             }
-            
+
             if (needsUpdate) {
               print('📝 Actualizando perfil existente: $updateData');
-              perfil = await orgRepo.updatePerfilFuncionario(perfilExistente.idPerfilFuncionario, updateData);
+              perfil = await orgRepo.updatePerfilFuncionario(
+                perfilExistente.idPerfilFuncionario,
+                updateData,
+              );
               print('✅ Perfil de funcionario actualizado');
             }
           }
@@ -426,8 +459,8 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       if (mounted) {
         AppWidgets.showStyledSnackBar(
           context: context,
-          message: _isEditing 
-              ? '¡Organización actualizada exitosamente!' 
+          message: _isEditing
+              ? '¡Organización actualizada exitosamente!'
               : '¡Organización creada exitosamente!',
           isError: false,
         );
@@ -466,11 +499,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildStep1(),
-                  _buildStep2(),
-                  _buildStep3(),
-                ],
+                children: [_buildStep1(), _buildStep2(), _buildStep3()],
               ),
             ),
             _buildNavigation(),
@@ -487,7 +516,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       child: Row(
         children: [
           IconButton(
-            onPressed: _currentStep == 0 
+            onPressed: _currentStep == 0
                 ? () => Navigator.of(context).pop()
                 : _previousStep,
             icon: const Icon(Icons.arrow_back_rounded),
@@ -519,7 +548,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               child: Container(
                 height: 4,
                 decoration: BoxDecoration(
-                  color: i <= _currentStep 
+                  color: i <= _currentStep
                       ? const Color(0xFF007AFF)
                       : const Color(0xFFE5E5EA),
                   borderRadius: BorderRadius.circular(2),
@@ -553,15 +582,12 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             const SizedBox(height: 8),
             const Text(
               'Cuéntanos sobre tu organización',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFF86868B),
-              ),
+              style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
             ),
             const SizedBox(height: 24),
             _buildLogoSelector(),
             const SizedBox(height: 24),
-            
+
             _buildTextField(
               controller: _nombreOrgController,
               label: 'Nombre de la Organización',
@@ -570,7 +596,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _descripcionController,
               label: 'Descripción',
@@ -580,7 +606,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _direccionController,
               label: 'Dirección',
@@ -589,7 +615,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _telefonoOrgController,
               label: 'Teléfono',
@@ -598,7 +624,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _emailOrgController,
               label: 'Email de Contacto',
@@ -619,7 +645,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _sitioWebController,
               label: 'Sitio Web (opcional)',
@@ -653,13 +679,10 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             const SizedBox(height: 8),
             const Text(
               'Datos legales de tu organización',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFF86868B),
-              ),
+              style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
             ),
             const SizedBox(height: 24),
-            
+
             _buildTextField(
               controller: _rucController,
               label: 'RUC',
@@ -679,7 +702,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _razonSocialController,
               label: 'Razón Social',
@@ -688,7 +711,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               required: true,
             ),
             const SizedBox(height: 16),
-            
+
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -715,33 +738,46 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                       value: _categoriaSeleccionada,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                       ),
                       hint: const Text('Selecciona una categoría'),
                       isExpanded: true, // Make dropdown take full width
                       items: _categorias.map((cat) {
                         print('📋 Mapeando categoría: $cat');
                         return DropdownMenuItem<int>(
-                          value: cat['id_categoria'] != null 
-                              ? (cat['id_categoria'] is int 
-                                  ? cat['id_categoria'] as int
-                                  : int.tryParse(cat['id_categoria'].toString()) ?? 0)
+                          value: cat['id_categoria'] != null
+                              ? (cat['id_categoria'] is int
+                                    ? cat['id_categoria'] as int
+                                    : int.tryParse(
+                                            cat['id_categoria'].toString(),
+                                          ) ??
+                                          0)
                               : null,
                           child: Container(
-                            constraints: const BoxConstraints(maxWidth: 300), // Limit width
+                            constraints: const BoxConstraints(
+                              maxWidth: 300,
+                            ), // Limit width
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   cat['nombre'] as String? ?? 'Sin nombre',
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 if (cat['descripcion'] != null)
                                   Text(
                                     cat['descripcion'] as String,
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF86868B)),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF86868B),
+                                    ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                   ),
@@ -789,10 +825,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             const SizedBox(height: 8),
             const Text(
               'Información sobre tu rol en la organización',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFF86868B),
-              ),
+              style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
             ),
             const SizedBox(height: 24),
             _buildFotoPerfilSelector(),
@@ -821,7 +854,9 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               decoration: BoxDecoration(
                 color: const Color(0xFF007AFF).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
+                border: Border.all(
+                  color: const Color(0xFF007AFF).withOpacity(0.3),
+                ),
               ),
               child: Row(
                 children: [
@@ -915,10 +950,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         children: [
           const Text(
             '🏢 Logo de la Organización',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           GestureDetector(
@@ -929,10 +961,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE5E5EA),
-                  width: 2,
-                ),
+                border: Border.all(color: const Color(0xFFE5E5EA), width: 2),
               ),
               child: _logoBase64 != null && _logoBase64!.isNotEmpty
                   ? ClipRRect(
@@ -947,11 +976,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.business,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
+                        Icon(Icons.business, size: 48, color: Colors.grey[400]),
                         const SizedBox(height: 8),
                         Text(
                           'Agregar logo',
@@ -965,10 +990,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             ),
           ),
           const SizedBox(height: 8),
-          TextButton(
-            onPressed: _pickLogo,
-            child: const Text('Cambiar logo'),
-          ),
+          TextButton(onPressed: _pickLogo, child: const Text('Cambiar logo')),
         ],
       ),
     );
@@ -980,10 +1002,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
         children: [
           const Text(
             '📷 Foto de Perfil',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Stack(
@@ -993,13 +1012,11 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE5E5EA),
-                    width: 3,
-                  ),
+                  border: Border.all(color: const Color(0xFFE5E5EA), width: 3),
                 ),
                 child: ClipOval(
-                  child: _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
+                  child:
+                      _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
                       ? ImageBase64Widget(
                           base64String: _fotoPerfilBase64!,
                           width: 120,
@@ -1026,7 +1043,11 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                     border: Border.all(color: Colors.white, width: 3),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _pickFotoPerfil,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -1093,17 +1114,22 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                 borderRadius: BorderRadius.all(Radius.circular(8)),
                 borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
             maxLines: maxLines ?? 1,
             maxLength: maxLength,
             keyboardType: keyboardType,
-            validator: validator ?? (value) {
-              if (required && (value == null || value.trim().isEmpty)) {
-                return 'Este campo es obligatorio';
-              }
-              return null;
-            },
+            validator:
+                validator ??
+                (value) {
+                  if (required && (value == null || value.trim().isEmpty)) {
+                    return 'Este campo es obligatorio';
+                  }
+                  return null;
+                },
           ),
         ],
       ),
@@ -1151,7 +1177,7 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: _isLoading 
+              child: _isLoading
                   ? const SizedBox(
                       height: 20,
                       width: 20,
@@ -1160,9 +1186,13 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                         strokeWidth: 2,
                       ),
                     )
-                  : Text(_currentStep == 2 
-                      ? (_isEditing ? 'Actualizar Organización' : 'Crear Organización') 
-                      : 'Continuar'),
+                  : Text(
+                      _currentStep == 2
+                          ? (_isEditing
+                                ? 'Actualizar Organización'
+                                : 'Crear Organización')
+                          : 'Continuar',
+                    ),
             ),
           ),
         ],

@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import '../utils/image_utils.dart';
 
 /// Widget para mostrar imágenes desde base64
-/// 
+///
 /// Maneja automáticamente:
 /// - Imágenes nulas o vacías (muestra placeholder)
 /// - Errores de carga
@@ -12,37 +12,37 @@ import '../utils/image_utils.dart';
 class ImageBase64Widget extends StatelessWidget {
   /// String base64 de la imagen (puede ser null)
   final String? base64String;
-  
+
   /// Texto alternativo para la imagen
   final String? alt;
-  
+
   /// Ancho de la imagen
   final double? width;
-  
+
   /// Alto de la imagen
   final double? height;
-  
+
   /// BoxFit para la imagen
   final BoxFit fit;
 
   /// Calidad del filtro al escalar la imagen
   final FilterQuality filterQuality;
-  
+
   /// Widget a mostrar cuando no hay imagen
   final Widget? placeholder;
-  
+
   /// Widget a mostrar cuando hay error al cargar la imagen
   final Widget? errorWidget;
-  
+
   /// Border radius para la imagen
   final BorderRadius? borderRadius;
-  
+
   /// Color de fondo cuando no hay imagen
   final Color? backgroundColor;
-  
+
   /// Icono a mostrar en el placeholder
   final IconData? placeholderIcon;
-  
+
   /// Color del icono del placeholder
   final Color? placeholderIconColor;
 
@@ -82,25 +82,19 @@ class ImageBase64Widget extends StatelessWidget {
       fit: fit,
       filterQuality: filterQuality,
       errorBuilder: (context, error, stackTrace) {
-        return errorWidget ?? _buildErrorWidget(context, 'Error al cargar la imagen');
+        return errorWidget ??
+            _buildErrorWidget(context, 'Error al cargar la imagen');
       },
     );
 
     // Aplicar border radius si se especifica
     if (borderRadius != null) {
-      imageWidget = ClipRRect(
-        borderRadius: borderRadius!,
-        child: imageWidget,
-      );
+      imageWidget = ClipRRect(borderRadius: borderRadius!, child: imageWidget);
     }
 
     // Aplicar dimensiones si se especifican
     if (width != null || height != null) {
-      imageWidget = SizedBox(
-        width: width,
-        height: height,
-        child: imageWidget,
-      );
+      imageWidget = SizedBox(width: width, height: height, child: imageWidget);
     }
 
     return imageWidget;
@@ -112,8 +106,10 @@ class ImageBase64Widget extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final placeholderColor = placeholderIconColor ?? theme.colorScheme.onSurface.withOpacity(0.3);
-    final bgColor = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final placeholderColor =
+        placeholderIconColor ?? theme.colorScheme.onSurface.withOpacity(0.3);
+    final bgColor =
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
 
     Widget placeholderContent = Container(
       width: width,
@@ -125,7 +121,7 @@ class ImageBase64Widget extends StatelessWidget {
       child: Icon(
         placeholderIcon ?? Icons.image_outlined,
         color: placeholderColor,
-        size: (width != null && height != null) 
+        size: (width != null && height != null)
             ? (width! < height! ? width! * 0.4 : height! * 0.4)
             : 48,
       ),
@@ -148,7 +144,8 @@ class ImageBase64Widget extends StatelessWidget {
 
     final theme = Theme.of(context);
     final errorColor = theme.colorScheme.error;
-    final bgColor = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final bgColor =
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
 
     Widget errorContent = Container(
       width: width,
@@ -163,7 +160,7 @@ class ImageBase64Widget extends StatelessWidget {
           Icon(
             Icons.error_outline,
             color: errorColor,
-            size: (width != null && height != null) 
+            size: (width != null && height != null)
                 ? (width! < height! ? width! * 0.3 : height! * 0.3)
                 : 32,
           ),
@@ -209,19 +206,19 @@ class ImageBase64Widget extends StatelessWidget {
 class CircularImageBase64Widget extends StatelessWidget {
   /// String base64 de la imagen
   final String? base64String;
-  
+
   /// Tamaño del círculo
   final double size;
-  
+
   /// Widget a mostrar cuando no hay imagen
   final Widget? placeholder;
-  
+
   /// Color de fondo cuando no hay imagen
   final Color? backgroundColor;
-  
+
   /// Color del borde
   final Color? borderColor;
-  
+
   /// Ancho del borde
   final double borderWidth;
 
@@ -259,4 +256,3 @@ class CircularImageBase64Widget extends StatelessWidget {
     );
   }
 }
-

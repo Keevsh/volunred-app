@@ -67,10 +67,7 @@ class _CreateFuncionarioProfilePageState
 
     // TODO: Implementar creación de perfil de funcionario
     // Por ahora, solo redirigimos al home
-    _showSnackBar(
-      '¡Perfil de funcionario creado! (Mock)',
-      isError: false,
-    );
+    _showSnackBar('¡Perfil de funcionario creado! (Mock)', isError: false);
 
     Future.delayed(const Duration(milliseconds: 500), () {
       Modular.to.navigate('/home/');
@@ -113,10 +110,7 @@ class _CreateFuncionarioProfilePageState
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withOpacity(0.8),
-          ],
+          colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -252,7 +246,9 @@ class _CreateFuncionarioProfilePageState
                 hintText: 'Cuéntanos sobre tu experiencia y objetivos...',
                 prefixIcon: const Icon(Icons.description_outlined),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    AppStyles.borderRadiusMedium,
+                  ),
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -265,18 +261,14 @@ class _CreateFuncionarioProfilePageState
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(
+                  AppStyles.borderRadiusMedium,
                 ),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
+                  Icon(Icons.info_outline, color: AppColors.primary, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

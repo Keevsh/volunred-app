@@ -7,32 +7,30 @@ import 'pages/register_page.dart';
 
 class AuthModule extends Module {
   @override
-  List<Bind> get binds => [
-        Bind.factory((i) => AuthBloc(i<AuthRepository>())),
-      ];
+  List<Bind> get binds => [Bind.factory((i) => AuthBloc(i<AuthRepository>()))];
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute(
-          '/',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<AuthBloc>(),
-            child: const LoginPage(),
-          ),
-        ),
-        ChildRoute(
-          '/login',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<AuthBloc>(),
-            child: const LoginPage(),
-          ),
-        ),
-        ChildRoute(
-          '/register',
-          child: (_, __) => BlocProvider(
-            create: (_) => Modular.get<AuthBloc>(),
-            child: const RegisterPage(),
-          ),
-        ),
-      ];
+    ChildRoute(
+      '/',
+      child: (_, __) => BlocProvider(
+        create: (_) => Modular.get<AuthBloc>(),
+        child: const LoginPage(),
+      ),
+    ),
+    ChildRoute(
+      '/login',
+      child: (_, __) => BlocProvider(
+        create: (_) => Modular.get<AuthBloc>(),
+        child: const LoginPage(),
+      ),
+    ),
+    ChildRoute(
+      '/register',
+      child: (_, __) => BlocProvider(
+        create: (_) => Modular.get<AuthBloc>(),
+        child: const RegisterPage(),
+      ),
+    ),
+  ];
 }

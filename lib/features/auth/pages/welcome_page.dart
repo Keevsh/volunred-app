@@ -16,12 +16,14 @@ class _WelcomePageState extends State<WelcomePage> {
     {
       'image': 'assets/images/voluntarios.jpg',
       'title': 'Conecta con Causas',
-      'subtitle': 'Encuentra oportunidades de voluntariado que se alineen con tus intereses y pasiones',
+      'subtitle':
+          'Encuentra oportunidades de voluntariado que se alineen con tus intereses y pasiones',
     },
     {
       'image': 'assets/images/lapaz.jpg',
       'title': 'Haz la Diferencia',
-      'subtitle': 'Únete a proyectos que transforman comunidades y el medio ambiente',
+      'subtitle':
+          'Únete a proyectos que transforman comunidades y el medio ambiente',
     },
     {
       'image': 'assets/images/animal.jpg',
@@ -108,7 +110,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 },
               ),
             ),
-            
+
             // Indicadores
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -131,7 +133,7 @@ class _WelcomePageState extends State<WelcomePage> {
               ),
             ),
             const SizedBox(height: 48),
-            
+
             // Botones
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -167,7 +169,11 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  Widget _buildSlide(Map<String, String> slide, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildSlide(
+    Map<String, String> slide,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
       child: Column(
@@ -185,10 +191,7 @@ class _WelcomePageState extends State<WelcomePage> {
                     borderRadius: BorderRadius.circular(28),
                     child: AspectRatio(
                       aspectRatio: 4 / 5, // un poco más alto que ancho
-                      child: Image.asset(
-                        slide['image']!,
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.asset(slide['image']!, fit: BoxFit.cover),
                     ),
                   ),
                 ),
@@ -207,9 +210,15 @@ class _WelcomePageState extends State<WelcomePage> {
                     child: ClipOval(
                       child: Column(
                         children: const [
-                          Expanded(child: ColoredBox(color: Color(0xFFE53935))), // rojo
-                          Expanded(child: ColoredBox(color: Color(0xFFFDD835))), // amarillo
-                          Expanded(child: ColoredBox(color: Color(0xFF43A047))), // verde
+                          Expanded(
+                            child: ColoredBox(color: Color(0xFFE53935)),
+                          ), // rojo
+                          Expanded(
+                            child: ColoredBox(color: Color(0xFFFDD835)),
+                          ), // amarillo
+                          Expanded(
+                            child: ColoredBox(color: Color(0xFF43A047)),
+                          ), // verde
                         ],
                       ),
                     ),
@@ -228,11 +237,7 @@ class _WelcomePageState extends State<WelcomePage> {
                       color: colorScheme.primary,
                     ),
                     child: const Center(
-                      child: Icon(
-                        Icons.public,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.public, color: Colors.white, size: 20),
                     ),
                   ),
                 ),
@@ -240,7 +245,7 @@ class _WelcomePageState extends State<WelcomePage> {
             ),
           ),
           const SizedBox(height: 32),
-          
+
           // Título
           Text(
             slide['title']!,
@@ -250,7 +255,7 @@ class _WelcomePageState extends State<WelcomePage> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          
+
           // Subtítulo
           Text(
             slide['subtitle']!,

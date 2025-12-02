@@ -53,36 +53,41 @@ class _LoginPageState extends State<LoginPage> {
             Future.microtask(() {
               try {
                 if (state.authResponse != null) {
-                  final profileRoute = ProfileCheckService.checkProfileFromLogin(state.authResponse!);
-                  
+                  final profileRoute =
+                      ProfileCheckService.checkProfileFromLogin(
+                        state.authResponse!,
+                      );
+
                   if (profileRoute != null) {
                     Modular.to.navigate(profileRoute);
                     return;
                   }
-                  
+
                   if (state.usuario.isAdmin) {
                     Modular.to.navigate('/admin/');
                   } else {
                     Modular.to.navigate('/home/');
                   }
                 } else {
-                  ProfileCheckService.checkProfile(state.usuario).then((profileRoute) {
-                    if (profileRoute != null) {
-                      Modular.to.navigate(profileRoute);
-                    } else {
-                      if (state.usuario.isAdmin) {
-                        Modular.to.navigate('/admin/');
-                      } else {
-                        Modular.to.navigate('/home/');
-                      }
-                    }
-                  }).catchError((e) {
-                    if (state.usuario.isAdmin) {
-                      Modular.to.navigate('/admin/');
-                    } else {
-                      Modular.to.navigate('/home/');
-                    }
-                  });
+                  ProfileCheckService.checkProfile(state.usuario)
+                      .then((profileRoute) {
+                        if (profileRoute != null) {
+                          Modular.to.navigate(profileRoute);
+                        } else {
+                          if (state.usuario.isAdmin) {
+                            Modular.to.navigate('/admin/');
+                          } else {
+                            Modular.to.navigate('/home/');
+                          }
+                        }
+                      })
+                      .catchError((e) {
+                        if (state.usuario.isAdmin) {
+                          Modular.to.navigate('/admin/');
+                        } else {
+                          Modular.to.navigate('/home/');
+                        }
+                      });
                 }
               } catch (e) {
                 if (state.usuario.isAdmin) {
@@ -130,7 +135,10 @@ class _LoginPageState extends State<LoginPage> {
                             style: theme.textTheme.headlineLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                               // Un poco más grande y ancha visualmente
-                              fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 32) + 4,
+                              fontSize:
+                                  (theme.textTheme.headlineLarge?.fontSize ??
+                                      32) +
+                                  4,
                               letterSpacing: 2.0,
                             ),
                           ),
@@ -138,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 32),
                       const SizedBox(height: 8),
-                      
+
                       Text(
                         'Plataforma de voluntariado y organizaciones solidarias. Inicia sesión para continuar.',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -147,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
-                      
+
                       // Form
                       Form(
                         key: _formKey,
@@ -175,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            
+
                             // Password field
                             TextFormField(
                               controller: _passwordController,
@@ -206,7 +214,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             const SizedBox(height: 8),
-                            
+
                             // Forgot password
                             Align(
                               alignment: Alignment.centerRight,
@@ -216,12 +224,14 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            
+
                             // Login button
                             ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                               ),
                               child: _isLoading
                                   ? const SizedBox(
@@ -229,13 +239,16 @@ class _LoginPageState extends State<LoginPage> {
                                       width: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : const Text('Iniciar sesión'),
                             ),
                             const SizedBox(height: 16),
-                            
+
                             // Register link
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,

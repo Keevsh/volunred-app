@@ -37,7 +37,7 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
         ),
       ),
     );
-    
+
     if (result == true) {
       _loadAptitudes();
     }
@@ -53,7 +53,7 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
         ),
       ),
     );
-    
+
     if (result == true) {
       _loadAptitudes();
     }
@@ -70,144 +70,141 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
       ),
       body: SafeArea(
         child: BlocConsumer<AdminBloc, AdminState>(
-        listener: (context, state) {
-          if (state is AptitudDeleted) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: state.message,
-              isError: false,
-            );
-            _loadAptitudes();
-          } else if (state is AdminError) {
-            AppWidgets.showStyledSnackBar(
-              context: context,
-              message: state.message,
-              isError: true,
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is AdminLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+          listener: (context, state) {
+            if (state is AptitudDeleted) {
+              AppWidgets.showStyledSnackBar(
+                context: context,
+                message: state.message,
+                isError: false,
+              );
+              _loadAptitudes();
+            } else if (state is AdminError) {
+              AppWidgets.showStyledSnackBar(
+                context: context,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is AdminLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is AptitudesLoaded) {
-            return Column(
-              children: [
-                // Header simple
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    children: [
-                      Material(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: () => Navigator.of(context).pop(),
+            if (state is AptitudesLoaded) {
+              return Column(
+                children: [
+                  // Header simple
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Material(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: Color(0xFF1D1D1F),
-                              size: 20,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              child: const Icon(
+                                Icons.arrow_back_rounded,
+                                color: Color(0xFF1D1D1F),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Text(
-                          'Aptitudes',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1D1D1F),
-                            letterSpacing: -0.5,
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Text(
+                            'Aptitudes',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1D1D1F),
+                              letterSpacing: -0.5,
+                            ),
                           ),
                         ),
-                      ),
-                      Material(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: _loadAptitudes,
+                        Material(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Icon(
-                              Icons.refresh_rounded,
-                              color: Color(0xFF1D1D1F),
-                              size: 20,
+                          child: InkWell(
+                            onTap: _loadAptitudes,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              child: const Icon(
+                                Icons.refresh_rounded,
+                                color: Color(0xFF1D1D1F),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                if (state.aptitudes.isEmpty)
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F7),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.emoji_events_rounded,
-                              size: 64,
-                              color: Color(0xFF8E8E93),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'No hay aptitudes',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1D1D1F),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Presiona + para crear la primera',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Color(0xFF86868B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      itemCount: state.aptitudes.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final aptitud = state.aptitudes[index];
-                        return _buildAptitudCard(aptitud);
-                      },
+                      ],
                     ),
                   ),
-              ],
-            );
-          }
 
-          return const Center(
-            child: Text('Cargando aptitudes...'),
-          );
-        },
+                  if (state.aptitudes.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F7),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.emoji_events_rounded,
+                                size: 64,
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'No hay aptitudes',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1D1D1F),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Presiona + para crear la primera',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF86868B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        itemCount: state.aptitudes.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final aptitud = state.aptitudes[index];
+                          return _buildAptitudCard(aptitud);
+                        },
+                      ),
+                    ),
+                ],
+              );
+            }
+
+            return const Center(child: Text('Cargando aptitudes...'));
+          },
         ),
       ),
     );
@@ -236,7 +233,9 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
                 ),
                 child: Icon(
                   Icons.emoji_events_rounded,
-                  color: isActivo ? const Color(0xFF1D1D1F) : const Color(0xFF8E8E93),
+                  color: isActivo
+                      ? const Color(0xFF1D1D1F)
+                      : const Color(0xFF8E8E93),
                   size: 24,
                 ),
               ),
@@ -255,7 +254,8 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
                         letterSpacing: -0.4,
                       ),
                     ),
-                    if (aptitud.descripcion != null && aptitud.descripcion!.isNotEmpty) ...[
+                    if (aptitud.descripcion != null &&
+                        aptitud.descripcion!.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         aptitud.descripcion!,
@@ -274,7 +274,10 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
               const SizedBox(width: 12),
               // Badge de estado
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F7),
                   borderRadius: BorderRadius.circular(6),
@@ -284,7 +287,9 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isActivo ? const Color(0xFF1D1D1F) : const Color(0xFF8E8E93),
+                    color: isActivo
+                        ? const Color(0xFF1D1D1F)
+                        : const Color(0xFF8E8E93),
                   ),
                 ),
               ),
@@ -363,7 +368,9 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${accion.substring(0, 1).toUpperCase()}${accion.substring(1)} Aptitud'),
+        title: Text(
+          '${accion.substring(0, 1).toUpperCase()}${accion.substring(1)} Aptitud',
+        ),
         content: RichText(
           text: TextSpan(
             style: const TextStyle(fontSize: 16, color: Color(0xFF1D1D1F)),
@@ -388,14 +395,16 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
             ),
             onPressed: () {
               BlocProvider.of<AdminBloc>(context).add(
-                    UpdateAptitudRequested(
-                      id: aptitud.idAptitud,
-                      estado: nuevoEstado,
-                    ),
-                  );
+                UpdateAptitudRequested(
+                  id: aptitud.idAptitud,
+                  estado: nuevoEstado,
+                ),
+              );
               Navigator.pop(context);
             },
-            child: Text(accion.substring(0, 1).toUpperCase() + accion.substring(1)),
+            child: Text(
+              accion.substring(0, 1).toUpperCase() + accion.substring(1),
+            ),
           ),
         ],
       ),
@@ -411,14 +420,17 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
           text: TextSpan(
             style: const TextStyle(fontSize: 16, color: Color(0xFF1D1D1F)),
             children: [
-              const TextSpan(text: '¿Está seguro que desea eliminar la aptitud '),
+              const TextSpan(
+                text: '¿Está seguro que desea eliminar la aptitud ',
+              ),
               TextSpan(
                 text: '"${aptitud.nombre}"',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const TextSpan(text: '?\n\n'),
               const TextSpan(
-                text: 'Esta acción no se puede deshacer y afectará a todos los voluntarios que tengan esta aptitud asignada.',
+                text:
+                    'Esta acción no se puede deshacer y afectará a todos los voluntarios que tengan esta aptitud asignada.',
                 style: TextStyle(color: Color(0xFF86868B), fontSize: 14),
               ),
             ],
@@ -431,9 +443,9 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
           ),
           FilledButton(
             onPressed: () {
-              BlocProvider.of<AdminBloc>(context).add(
-                    DeleteAptitudRequested(aptitud.idAptitud),
-                  );
+              BlocProvider.of<AdminBloc>(
+                context,
+              ).add(DeleteAptitudRequested(aptitud.idAptitud));
               Navigator.of(dialogContext).pop();
             },
             style: FilledButton.styleFrom(

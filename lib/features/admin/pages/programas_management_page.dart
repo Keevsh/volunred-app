@@ -11,18 +11,19 @@ class ProgramasManagementPage extends StatefulWidget {
   const ProgramasManagementPage({super.key});
 
   @override
-  State<ProgramasManagementPage> createState() => _ProgramasManagementPageState();
+  State<ProgramasManagementPage> createState() =>
+      _ProgramasManagementPageState();
 }
 
 class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
   String _selectedView = 'programas'; // 'programas', 'aplicaciones', 'modulos'
-  
+
   @override
   void initState() {
     super.initState();
     _loadData();
   }
-  
+
   void _loadData() {
     final bloc = BlocProvider.of<AdminBloc>(context);
     if (_selectedView == 'programas') {
@@ -38,7 +39,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
   Widget build(BuildContext context) {
     return BlocListener<AdminBloc, AdminState>(
       listener: (context, state) {
-        if (state is ProgramaCreated || state is ProgramaUpdated || state is ProgramaDeleted) {
+        if (state is ProgramaCreated ||
+            state is ProgramaUpdated ||
+            state is ProgramaDeleted) {
           _loadData();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -46,14 +49,16 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                 state is ProgramaCreated
                     ? 'Programa creado'
                     : state is ProgramaUpdated
-                        ? 'Programa actualizado'
-                        : 'Programa eliminado',
+                    ? 'Programa actualizado'
+                    : 'Programa eliminado',
               ),
               backgroundColor: Colors.green,
             ),
           );
         }
-        if (state is AplicacionCreated || state is AplicacionUpdated || state is AplicacionDeleted) {
+        if (state is AplicacionCreated ||
+            state is AplicacionUpdated ||
+            state is AplicacionDeleted) {
           _loadData();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -61,8 +66,8 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                 state is AplicacionCreated
                     ? 'Aplicación creada'
                     : state is AplicacionUpdated
-                        ? 'Aplicación actualizada'
-                        : 'Aplicación eliminada',
+                    ? 'Aplicación actualizada'
+                    : 'Aplicación eliminada',
               ),
               backgroundColor: Colors.green,
             ),
@@ -79,10 +84,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
         }
         if (state is AdminError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -94,110 +96,112 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
           child: const Icon(Icons.add, color: Colors.white),
         ),
         body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header simple estilo Apple
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: Color(0xFF1D1D1F),
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text(
-                      'Programas',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1D1D1F),
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                  Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      onTap: _loadData,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: const Icon(
-                          Icons.refresh_rounded,
-                          color: Color(0xFF1D1D1F),
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Tabs de selección
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header simple estilo Apple
+              Padding(
+                padding: const EdgeInsets.all(24),
                 child: Row(
                   children: [
-                    _buildTabButton('Programas', 'programas'),
-                    _buildTabButton('Aplicaciones', 'aplicaciones'),
-                    _buildTabButton('Módulos', 'modulos'),
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Color(0xFF1D1D1F),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        'Programas',
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D1D1F),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: _loadData,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(
+                            Icons.refresh_rounded,
+                            color: Color(0xFF1D1D1F),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Contenido dinámico según la pestaña
-            Expanded(
-              child: BlocBuilder<AdminBloc, AdminState>(
-                builder: (context, state) {
-                  if (state is AdminLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  
-                  if (_selectedView == 'programas' && state is ProgramasLoaded) {
-                    return _buildProgramasList(state.programas);
-                  }
-                  
-                  if (_selectedView == 'aplicaciones' && state is AplicacionesLoaded) {
-                    return _buildAplicacionesList(state.aplicaciones);
-                  }
-                  
-                  if (_selectedView == 'modulos' && state is ModulosLoaded) {
-                    return _buildModulosList(state.modulos);
-                  }
-                  
-                  return _buildEmptyState();
-                },
+
+              // Tabs de selección
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildTabButton('Programas', 'programas'),
+                      _buildTabButton('Aplicaciones', 'aplicaciones'),
+                      _buildTabButton('Módulos', 'modulos'),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 16),
+
+              // Contenido dinámico según la pestaña
+              Expanded(
+                child: BlocBuilder<AdminBloc, AdminState>(
+                  builder: (context, state) {
+                    if (state is AdminLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (_selectedView == 'programas' &&
+                        state is ProgramasLoaded) {
+                      return _buildProgramasList(state.programas);
+                    }
+
+                    if (_selectedView == 'aplicaciones' &&
+                        state is AplicacionesLoaded) {
+                      return _buildAplicacionesList(state.aplicaciones);
+                    }
+
+                    if (_selectedView == 'modulos' && state is ModulosLoaded) {
+                      return _buildModulosList(state.modulos);
+                    }
+
+                    return _buildEmptyState();
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -228,72 +232,75 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
               if (state is AplicacionesLoaded) {
                 aplicaciones = state.aplicaciones;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadAplicacionesRequested());
+                dialogContext.read<AdminBloc>().add(
+                  LoadAplicacionesRequested(),
+                );
               }
 
-            return AlertDialog(
-              title: const Text('Nuevo Programa'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
+              return AlertDialog(
+                title: const Text('Nuevo Programa'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descripcionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descripcionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Aplicación',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: aplicaciones.map((a) {
-                        return DropdownMenuItem<int>(
-                          value: a.idAplicacion,
-                          child: Text(a.nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedAplicacionId = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && selectedAplicacionId != null) {
-                      dialogContext.read<AdminBloc>().add(
-                            CreateProgramaRequested(
-                              nombre: nombreController.text,
-                              descripcion: descripcionController.text.isEmpty
-                                  ? null
-                                  : descripcionController.text,
-                              idAplicacion: selectedAplicacionId!,
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Aplicación',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: aplicaciones.map((a) {
+                          return DropdownMenuItem<int>(
+                            value: a.idAplicacion,
+                            child: Text(a.nombre),
                           );
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Crear'),
+                        }).toList(),
+                        onChanged: (value) => selectedAplicacionId = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          selectedAplicacionId != null) {
+                        dialogContext.read<AdminBloc>().add(
+                          CreateProgramaRequested(
+                            nombre: nombreController.text,
+                            descripcion: descripcionController.text.isEmpty
+                                ? null
+                                : descripcionController.text,
+                            idAplicacion: selectedAplicacionId!,
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Crear'),
+                  ),
+                ],
+              );
             },
           ),
         );
@@ -323,71 +330,72 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
 
               return AlertDialog(
                 title: const Text('Nueva Aplicación'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descripcionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descripcionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Módulo',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: modulos.map((m) {
-                        return DropdownMenuItem<int>(
-                          value: m.idModulo,
-                          child: Text(m.nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedModuloId = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && selectedModuloId != null) {
-                      dialogContext.read<AdminBloc>().add(
-                            CreateAplicacionRequested(
-                              nombre: nombreController.text,
-                              idModulo: selectedModuloId!,
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Módulo',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: modulos.map((m) {
+                          return DropdownMenuItem<int>(
+                            value: m.idModulo,
+                            child: Text(m.nombre),
                           );
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Crear'),
+                        }).toList(),
+                        onChanged: (value) => selectedModuloId = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          selectedModuloId != null) {
+                        dialogContext.read<AdminBloc>().add(
+                          CreateAplicacionRequested(
+                            nombre: nombreController.text,
+                            idModulo: selectedModuloId!,
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Crear'),
+                  ),
+                ],
+              );
             },
           ),
         );
       },
     );
   }
-  
+
   Widget _buildTabButton(String label, String value) {
     final isSelected = _selectedView == value;
     return Expanded(
@@ -418,12 +426,12 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       ),
     );
   }
-  
+
   Widget _buildProgramasList(List<Programa> programas) {
     if (programas.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       itemCount: programas.length,
@@ -434,7 +442,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       },
     );
   }
-  
+
   Widget _buildProgramaCard(Programa programa) {
     return Material(
       color: Colors.white,
@@ -490,7 +498,10 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                 ),
               ),
               PopupMenuButton(
-                icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: Color(0xFF86868B),
+                ),
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'edit',
@@ -530,7 +541,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
 
   void _showEditProgramaDialog(Programa programa) {
     final nombreController = TextEditingController(text: programa.nombre);
-    final descripcionController = TextEditingController(text: programa.descripcion ?? '');
+    final descripcionController = TextEditingController(
+      text: programa.descripcion ?? '',
+    );
     int? selectedAplicacionId = programa.idAplicacion;
 
     final bloc = context.read<AdminBloc>();
@@ -545,74 +558,77 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
               if (state is AplicacionesLoaded) {
                 aplicaciones = state.aplicaciones;
               } else {
-                dialogContext.read<AdminBloc>().add(LoadAplicacionesRequested());
+                dialogContext.read<AdminBloc>().add(
+                  LoadAplicacionesRequested(),
+                );
               }
 
               return AlertDialog(
                 title: const Text('Editar Programa'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descripcionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descripcionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Aplicación',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedAplicacionId,
-                      items: aplicaciones.map((a) {
-                        return DropdownMenuItem<int>(
-                          value: a.idAplicacion,
-                          child: Text(a.nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedAplicacionId = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && selectedAplicacionId != null) {
-                      dialogContext.read<AdminBloc>().add(
-                            UpdateProgramaRequested(
-                              id: programa.idPrograma,
-                              nombre: nombreController.text,
-                              descripcion: descripcionController.text.isEmpty
-                                  ? null
-                                  : descripcionController.text,
-                              idAplicacion: selectedAplicacionId!,
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Aplicación',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedAplicacionId,
+                        items: aplicaciones.map((a) {
+                          return DropdownMenuItem<int>(
+                            value: a.idAplicacion,
+                            child: Text(a.nombre),
                           );
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Guardar'),
+                        }).toList(),
+                        onChanged: (value) => selectedAplicacionId = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          selectedAplicacionId != null) {
+                        dialogContext.read<AdminBloc>().add(
+                          UpdateProgramaRequested(
+                            id: programa.idPrograma,
+                            nombre: nombreController.text,
+                            descripcion: descripcionController.text.isEmpty
+                                ? null
+                                : descripcionController.text,
+                            idAplicacion: selectedAplicacionId!,
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Guardar'),
+                  ),
+                ],
+              );
             },
           ),
         );
@@ -625,7 +641,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Programa'),
-        content: Text('¿Está seguro que desea eliminar el programa "${programa.nombre}"?'),
+        content: Text(
+          '¿Está seguro que desea eliminar el programa "${programa.nombre}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -634,7 +652,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteProgramaRequested(programa.idPrograma));
+              context.read<AdminBloc>().add(
+                DeleteProgramaRequested(programa.idPrograma),
+              );
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -643,12 +663,12 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       ),
     );
   }
-  
+
   Widget _buildAplicacionesList(List<Aplicacion> aplicaciones) {
     if (aplicaciones.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       itemCount: aplicaciones.length,
@@ -659,7 +679,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       },
     );
   }
-  
+
   Widget _buildAplicacionCard(Aplicacion aplicacion) {
     return Material(
       color: Colors.white,
@@ -712,9 +732,12 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: aplicacion.estado == 'activo' 
+                  color: aplicacion.estado == 'activo'
                       ? const Color(0xFF34C759).withOpacity(0.1)
                       : const Color(0xFF8E8E93).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -724,14 +747,17 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: aplicacion.estado == 'activo' 
-                        ? const Color(0xFF34C759) 
+                    color: aplicacion.estado == 'activo'
+                        ? const Color(0xFF34C759)
                         : const Color(0xFF8E8E93),
                   ),
                 ),
               ),
               PopupMenuButton(
-                icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: Color(0xFF86868B),
+                ),
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'edit',
@@ -771,7 +797,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
 
   void _showEditAplicacionDialog(Aplicacion aplicacion) {
     final nombreController = TextEditingController(text: aplicacion.nombre);
-    final descripcionController = TextEditingController(text: aplicacion.descripcion ?? '');
+    final descripcionController = TextEditingController(
+      text: aplicacion.descripcion ?? '',
+    );
     int? selectedModuloId = aplicacion.idModulo;
 
     final bloc = context.read<AdminBloc>();
@@ -791,69 +819,70 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
 
               return AlertDialog(
                 title: const Text('Editar Aplicación'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descripcionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción (opcional)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descripcionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Módulo',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedModuloId,
-                      items: modulos.map((m) {
-                        return DropdownMenuItem<int>(
-                          value: m.idModulo,
-                          child: Text(m.nombre),
-                        );
-                      }).toList(),
-                      onChanged: (value) => selectedModuloId = value,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (nombreController.text.isNotEmpty && selectedModuloId != null) {
-                      context.read<AdminBloc>().add(
-                            UpdateAplicacionRequested(
-                              id: aplicacion.idAplicacion,
-                              nombre: nombreController.text,
-                              descripcion: descripcionController.text.isEmpty
-                                  ? null
-                                  : descripcionController.text,
-                              idModulo: selectedModuloId!,
-                            ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: const InputDecoration(
+                          labelText: 'Módulo',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedModuloId,
+                        items: modulos.map((m) {
+                          return DropdownMenuItem<int>(
+                            value: m.idModulo,
+                            child: Text(m.nombre),
                           );
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Guardar'),
+                        }).toList(),
+                        onChanged: (value) => selectedModuloId = value,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (nombreController.text.isNotEmpty &&
+                          selectedModuloId != null) {
+                        context.read<AdminBloc>().add(
+                          UpdateAplicacionRequested(
+                            id: aplicacion.idAplicacion,
+                            nombre: nombreController.text,
+                            descripcion: descripcionController.text.isEmpty
+                                ? null
+                                : descripcionController.text,
+                            idModulo: selectedModuloId!,
+                          ),
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text('Guardar'),
+                  ),
+                ],
+              );
             },
           ),
         );
@@ -866,7 +895,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Aplicación'),
-        content: Text('¿Está seguro que desea eliminar la aplicación "${aplicacion.nombre}"?'),
+        content: Text(
+          '¿Está seguro que desea eliminar la aplicación "${aplicacion.nombre}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -875,7 +906,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              context.read<AdminBloc>().add(DeleteAplicacionRequested(aplicacion.idAplicacion));
+              context.read<AdminBloc>().add(
+                DeleteAplicacionRequested(aplicacion.idAplicacion),
+              );
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -884,12 +917,12 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       ),
     );
   }
-  
+
   Widget _buildModulosList(List<Modulo> modulos) {
     if (modulos.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       itemCount: modulos.length,
@@ -900,7 +933,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       },
     );
   }
-  
+
   Widget _buildModuloCard(Modulo modulo) {
     return Material(
       color: Colors.white,
@@ -939,7 +972,8 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                         letterSpacing: -0.4,
                       ),
                     ),
-                    if (modulo.descripcion != null && modulo.descripcion!.isNotEmpty) ...[
+                    if (modulo.descripcion != null &&
+                        modulo.descripcion!.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         modulo.descripcion!,
@@ -957,9 +991,12 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: modulo.estado == 'activo' 
+                  color: modulo.estado == 'activo'
                       ? const Color(0xFF34C759).withOpacity(0.1)
                       : const Color(0xFF8E8E93).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -969,8 +1006,8 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: modulo.estado == 'activo' 
-                        ? const Color(0xFF34C759) 
+                    color: modulo.estado == 'activo'
+                        ? const Color(0xFF34C759)
                         : const Color(0xFF8E8E93),
                   ),
                 ),
@@ -988,7 +1025,9 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
 
   void _showEditModuloDialog(Modulo modulo) {
     final nombreController = TextEditingController(text: modulo.nombre);
-    final descripcionController = TextEditingController(text: modulo.descripcion ?? '');
+    final descripcionController = TextEditingController(
+      text: modulo.descripcion ?? '',
+    );
 
     showDialog(
       context: context,
@@ -1026,14 +1065,14 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
             onPressed: () {
               if (nombreController.text.isNotEmpty) {
                 context.read<AdminBloc>().add(
-                      UpdateModuloRequested(
-                        id: modulo.idModulo,
-                        nombre: nombreController.text,
-                        descripcion: descripcionController.text.isEmpty
-                            ? null
-                            : descripcionController.text,
-                      ),
-                    );
+                  UpdateModuloRequested(
+                    id: modulo.idModulo,
+                    nombre: nombreController.text,
+                    descripcion: descripcionController.text.isEmpty
+                        ? null
+                        : descripcionController.text,
+                  ),
+                );
                 Navigator.pop(context);
               }
             },
@@ -1043,7 +1082,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
       ),
     );
   }
-  
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -1073,10 +1112,7 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
           const SizedBox(height: 8),
           const Text(
             'Los elementos aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),

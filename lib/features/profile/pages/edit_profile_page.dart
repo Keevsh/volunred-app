@@ -20,7 +20,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
   final _telefonoController = TextEditingController();
-  
+
   final List<String> _disponibilidadOptions = [
     'Lunes a Viernes',
     'Fines de semana',
@@ -29,9 +29,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     'Noches',
     'Flexible',
   ];
-  
+
   final Set<String> _selectedDisponibilidad = {};
-  
+
   bool _isLoading = true;
   bool _isSaving = false;
   PerfilVoluntario? _perfil;
@@ -50,9 +50,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
       final authRepo = Modular.get<AuthRepository>();
       final usuario = await authRepo.getStoredUser();
-      
+
       if (usuario != null) {
-        final perfil = await voluntarioRepo.getPerfilByUsuario(usuario.idUsuario);
+        final perfil = await voluntarioRepo.getPerfilByUsuario(
+          usuario.idUsuario,
+        );
         if (perfil != null && mounted) {
           setState(() {
             _perfil = perfil;
@@ -67,9 +69,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
             _apellidoController.text = usuario.apellidos;
             _telefonoController.text = usuario.telefono?.toString() ?? '';
             _fotoPerfilBase64 = perfil.fotoPerfil;
-            
-            if (perfil.disponibilidad != null && perfil.disponibilidad!.isNotEmpty) {
-              final disponibilidadList = perfil.disponibilidad!.split(',').map((e) => e.trim()).toList();
+
+            if (perfil.disponibilidad != null &&
+                perfil.disponibilidad!.isNotEmpty) {
+              final disponibilidadList = perfil.disponibilidad!
+                  .split(',')
+                  .map((e) => e.trim())
+                  .toList();
               for (var disp in disponibilidadList) {
                 if (_disponibilidadOptions.contains(disp)) {
                   _selectedDisponibilidad.add(disp);
@@ -126,29 +132,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
-      
+
       final disponibilidad = _selectedDisponibilidad.isEmpty
           ? null
           : _selectedDisponibilidad.join(', ');
 
       final datosActualizacion = <String, dynamic>{
-        'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+        'bio': _bioController.text.trim().isEmpty
+            ? null
+            : _bioController.text.trim(),
         'disponibilidad': disponibilidad,
       };
-      
+
       if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) {
         datosActualizacion['foto_perfil'] = _fotoPerfilBase64;
       }
-      
+
       datosActualizacion.removeWhere((key, value) => value == null);
-      
+
       await voluntarioRepo.updatePerfil(
         _perfil!.idPerfilVoluntario,
         datosActualizacion,
       );
-      
+
       _showSnackBar('Perfil actualizado exitosamente', isError: false);
-      
+
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) Modular.to.pop(true);
       });
@@ -244,7 +252,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               ],
                             ),
                             child: ClipOval(
-                              child: _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
+                              child:
+                                  _fotoPerfilBase64 != null &&
+                                      _fotoPerfilBase64!.isNotEmpty
                                   ? ImageBase64Widget(
                                       base64String: _fotoPerfilBase64!,
                                       width: 120,
@@ -252,7 +262,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       fit: BoxFit.cover,
                                     )
                                   : Container(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       child: Icon(
                                         Icons.person,
                                         size: 60,
@@ -271,7 +282,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 decoration: BoxDecoration(
                                   color: colorScheme.primary,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
@@ -294,13 +308,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Sección: Información Personal
-                    _buildSectionHeader('Información Personal', Icons.person_outline),
+                    _buildSectionHeader(
+                      'Información Personal',
+                      Icons.person_outline,
+                    ),
                     const SizedBox(height: 16),
-                    
+
                     // Nombres (solo lectura)
                     _buildReadOnlyField(
                       label: 'Nombres',
@@ -308,7 +325,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       icon: Icons.badge_outlined,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Apellidos (solo lectura)
                     _buildReadOnlyField(
                       label: 'Apellidos',
@@ -316,7 +333,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       icon: Icons.badge_outlined,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Email (solo lectura)
                     _buildReadOnlyField(
                       label: 'Email',
@@ -324,36 +341,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       icon: Icons.email_outlined,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Teléfono (solo lectura)
                     _buildReadOnlyField(
                       label: 'Teléfono',
-                      value: _telefonoController.text.isEmpty ? 'No registrado' : _telefonoController.text,
+                      value: _telefonoController.text.isEmpty
+                          ? 'No registrado'
+                          : _telefonoController.text,
                       icon: Icons.phone_outlined,
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Sección: Sobre mí
                     _buildSectionHeader('Sobre mí', Icons.edit_note),
                     const SizedBox(height: 16),
-                    
+
                     TextFormField(
                       controller: _bioController,
                       maxLines: 4,
                       maxLength: 250,
                       decoration: InputDecoration(
-                        hintText: 'Cuéntanos sobre ti, tus intereses y motivaciones...',
+                        hintText:
+                            'Cuéntanos sobre ti, tus intereses y motivaciones...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        fillColor: colorScheme.surfaceContainerHighest
+                            .withOpacity(0.3),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Sección: Disponibilidad
                     _buildSectionHeader('Disponibilidad', Icons.schedule),
                     const SizedBox(height: 8),
@@ -364,12 +385,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: _disponibilidadOptions.map((option) {
-                        final isSelected = _selectedDisponibilidad.contains(option);
+                        final isSelected = _selectedDisponibilidad.contains(
+                          option,
+                        );
                         return FilterChip(
                           label: Text(option),
                           selected: isSelected,
@@ -395,9 +418,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         );
                       }).toList(),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Botón guardar
                     SizedBox(
                       width: double.infinity,
@@ -418,7 +441,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Row(
@@ -437,9 +462,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Botón cancelar
                     SizedBox(
                       width: double.infinity,
@@ -454,7 +479,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         child: const Text('Cancelar'),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -492,9 +517,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
-        ),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -514,10 +537,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: colorScheme.onSurface,
-                  ),
+                  style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
                 ),
               ],
             ),

@@ -37,7 +37,7 @@ class _ParticipacionesPageState extends State<ParticipacionesPage> {
       }
 
       final participaciones = await _repository.getParticipaciones();
-      
+
       // Filtrar solo las participaciones del usuario actual
       final participacionesUsuario = participaciones.where((part) {
         if (part.inscripcion != null) {
@@ -66,121 +66,157 @@ class _ParticipacionesPageState extends State<ParticipacionesPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Participaciones'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Mis Participaciones'), elevation: 0),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error al cargar participaciones', style: theme.textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Text(_error!, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: _loadData,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar participaciones',
+                    style: theme.textTheme.titleLarge,
                   ),
-                )
-              : _participaciones.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.inbox_outlined, size: 64, color: colorScheme.onSurfaceVariant),
-                          const SizedBox(height: 16),
-                          Text('No tienes participaciones', style: theme.textTheme.titleLarge),
-                          const SizedBox(height: 8),
-                          Text('Explora proyectos para participar', style: theme.textTheme.bodyMedium),
-                          const SizedBox(height: 16),
-                          FilledButton(
-                            onPressed: () {
-                              Modular.to.pushNamed('/voluntario/proyectos');
-                            },
-                            child: const Text('Explorar Proyectos'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadData,
-                      child: ListView.builder(
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loadData,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          : _participaciones.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 64,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No tienes participaciones',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Explora proyectos para participar',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      Modular.to.pushNamed('/voluntario/proyectos');
+                    },
+                    child: const Text('Explorar Proyectos'),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _participaciones.length,
+                itemBuilder: (context, index) {
+                  final participacion = _participaciones[index];
+                  final proyecto = participacion.proyecto;
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: InkWell(
+                      onTap: () {
+                        Modular.to.pushNamed(
+                          '/voluntario/participaciones/${participacion.idParticipacion}',
+                        );
+                      },
+                      child: Padding(
                         padding: const EdgeInsets.all(16),
-                        itemCount: _participaciones.length,
-                        itemBuilder: (context, index) {
-                          final participacion = _participaciones[index];
-                          final proyecto = participacion.proyecto;
-                          
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: InkWell(
-                              onTap: () {
-                                Modular.to.pushNamed('/voluntario/participaciones/${participacion.idParticipacion}');
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            proyecto?['nombre']?.toString() ?? 'Proyecto',
-                                            style: theme.textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        Chip(
-                                          label: Text(participacion.estado.toUpperCase()),
-                                          backgroundColor: _getEstadoColor(participacion.estado, colorScheme),
-                                          labelStyle: TextStyle(
-                                            color: _getEstadoTextColor(participacion.estado, colorScheme),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (participacion.rolAsignado != null) ...[
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.person, size: 16, color: colorScheme.onSurfaceVariant),
-                                          const SizedBox(width: 4),
-                                          Text('Rol: ${participacion.rolAsignado}', style: theme.textTheme.bodyMedium),
-                                        ],
-                                      ),
-                                    ],
-                                    if (participacion.horasComprometidasSemana != null) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.access_time, size: 16, color: colorScheme.onSurfaceVariant),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${participacion.horasComprometidasSemana} horas/semana',
-                                            style: theme.textTheme.bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    proyecto?['nombre']?.toString() ??
+                                        'Proyecto',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                              ),
+                                Chip(
+                                  label: Text(
+                                    participacion.estado.toUpperCase(),
+                                  ),
+                                  backgroundColor: _getEstadoColor(
+                                    participacion.estado,
+                                    colorScheme,
+                                  ),
+                                  labelStyle: TextStyle(
+                                    color: _getEstadoTextColor(
+                                      participacion.estado,
+                                      colorScheme,
+                                    ),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
+                            if (participacion.rolAsignado != null) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    size: 16,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Rol: ${participacion.rolAsignado}',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                            if (participacion.horasComprometidasSemana !=
+                                null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 16,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${participacion.horasComprometidasSemana} horas/semana',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
     );
   }
 
@@ -214,4 +250,3 @@ class _ParticipacionesPageState extends State<ParticipacionesPage> {
     }
   }
 }
-

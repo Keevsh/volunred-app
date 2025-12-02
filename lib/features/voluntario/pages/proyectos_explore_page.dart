@@ -50,17 +50,20 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
 
   List<Proyecto> get _proyectosFiltrados {
     if (_categoriasSeleccionadas.isEmpty) return _proyectos;
-    
+
     return _proyectos.where((proyecto) {
-      if (proyecto.categoriasProyectos == null || proyecto.categoriasProyectos!.isEmpty) {
+      if (proyecto.categoriasProyectos == null ||
+          proyecto.categoriasProyectos!.isEmpty) {
         return false;
       }
-      
+
       // Verificar si el proyecto tiene alguna de las categorías seleccionadas
       for (var catProy in proyecto.categoriasProyectos!) {
         if (catProy is Map) {
-          final categoriaId = catProy['categoria_id'] ?? catProy['categoria']?['id_categoria'];
-          if (categoriaId != null && _categoriasSeleccionadas.contains(categoriaId)) {
+          final categoriaId =
+              catProy['categoria_id'] ?? catProy['categoria']?['id_categoria'];
+          if (categoriaId != null &&
+              _categoriasSeleccionadas.contains(categoriaId)) {
             return true;
           }
         }
@@ -81,14 +84,14 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
     final String? orgLogo = org != null ? org['logo']?.toString() : null;
     final String orgNombre = org != null
         ? (org['nombre']?.toString() ??
-            org['nombre_legal']?.toString() ??
-            org['nombre_corto']?.toString() ??
-            'Organización')
+              org['nombre_legal']?.toString() ??
+              org['nombre_corto']?.toString() ??
+              'Organización')
         : 'Organización';
     final int? orgId = org != null
         ? (org['id_organizacion'] is int
-            ? org['id_organizacion'] as int
-            : int.tryParse(org['id_organizacion']?.toString() ?? ''))
+              ? org['id_organizacion'] as int
+              : int.tryParse(org['id_organizacion']?.toString() ?? ''))
         : null;
 
     return GestureDetector(
@@ -144,7 +147,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.45),
                       borderRadius: BorderRadius.circular(999),
@@ -159,7 +165,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                   ),
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(999),
@@ -266,7 +275,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.bookmark_border, color: Colors.white),
+                      icon: const Icon(
+                        Icons.bookmark_border,
+                        color: Colors.white,
+                      ),
                       iconSize: 32,
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -318,13 +330,16 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                       Row(
                         children: [
                           if (proyecto.organizacion!['logo'] != null &&
-                              proyecto.organizacion!['logo'].toString().isNotEmpty)
+                              proyecto.organizacion!['logo']
+                                  .toString()
+                                  .isNotEmpty)
                             CircleAvatar(
                               radius: 16,
                               backgroundColor: Colors.white,
                               child: ClipOval(
                                 child: ImageBase64Widget(
-                                  base64String: proyecto.organizacion!['logo'].toString(),
+                                  base64String: proyecto.organizacion!['logo']
+                                      .toString(),
                                   width: 32,
                                   height: 32,
                                   fit: BoxFit.cover,
@@ -345,7 +360,8 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                           Expanded(
                             child: Text(
                               proyecto.organizacion!['nombre']?.toString() ??
-                                  proyecto.organizacion!['nombre_legal']?.toString() ??
+                                  proyecto.organizacion!['nombre_legal']
+                                      ?.toString() ??
                                   'Organización',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: Colors.white,
@@ -378,7 +394,8 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                     const SizedBox(height: 8),
 
                     // Objetivo/descripción
-                    if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
+                    if (proyecto.objetivo != null &&
+                        proyecto.objetivo!.isNotEmpty)
                       Text(
                         proyecto.objetivo!,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -402,7 +419,10 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                       children: [
                         if (proyecto.estado == 'activo')
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.primary,
                               borderRadius: BorderRadius.circular(20),
@@ -415,9 +435,13 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                               ),
                             ),
                           ),
-                        if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                        if (proyecto.ubicacion != null &&
+                            proyecto.ubicacion!.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(20),
@@ -425,7 +449,11 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.location_on, size: 14, color: Colors.white),
+                                const Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   proyecto.ubicacion!,
@@ -458,54 +486,65 @@ class _ProyectosExplorePageState extends State<ProyectosExplorePage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error al cargar proyectos', style: theme.textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Text(_error!, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: _loadData,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar proyectos',
+                    style: theme.textTheme.titleLarge,
                   ),
-                )
-              : SafeArea(
-                  child: _proyectosFiltrados.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.inbox_outlined, size: 64, color: colorScheme.onSurfaceVariant),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No hay proyectos disponibles',
-                                style: theme.textTheme.titleLarge,
-                              ),
-                            ],
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loadData,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          : SafeArea(
+              child: _proyectosFiltrados.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 64,
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                        )
-                      : PageView.builder(
-                          scrollDirection: Axis.vertical,
-                          itemCount: _proyectosFiltrados.length,
-                          itemBuilder: (context, index) {
-                            final proyecto = _proyectosFiltrados[index];
-                            return _buildProyectoCard(
-                              context,
-                              proyecto,
-                              theme,
-                              colorScheme,
-                              index,
-                              _proyectosFiltrados.length,
-                            );
-                          },
-                        ),
-                ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No hay proyectos disponibles',
+                            style: theme.textTheme.titleLarge,
+                          ),
+                        ],
+                      ),
+                    )
+                  : PageView.builder(
+                      scrollDirection: Axis.vertical,
+                      itemCount: _proyectosFiltrados.length,
+                      itemBuilder: (context, index) {
+                        final proyecto = _proyectosFiltrados[index];
+                        return _buildProyectoCard(
+                          context,
+                          proyecto,
+                          theme,
+                          colorScheme,
+                          index,
+                          _proyectosFiltrados.length,
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

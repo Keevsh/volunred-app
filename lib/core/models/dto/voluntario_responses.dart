@@ -57,7 +57,12 @@ class ResumenVoluntario extends Equatable {
       participacionesPendientes: _getInt(json['participaciones_pendientes']),
       tareas: json['tareas'] != null
           ? ResumenTareas.fromJson(json['tareas'] as Map<String, dynamic>)
-          : const ResumenTareas(asignadas: 0, enProgreso: 0, completadas: 0, total: 0),
+          : const ResumenTareas(
+              asignadas: 0,
+              enProgreso: 0,
+              completadas: 0,
+              total: 0,
+            ),
     );
   }
 
@@ -116,10 +121,7 @@ class ProyectoResumido extends Equatable {
   final int idProyecto;
   final String nombre;
 
-  const ProyectoResumido({
-    required this.idProyecto,
-    required this.nombre,
-  });
+  const ProyectoResumido({required this.idProyecto, required this.nombre});
 
   factory ProyectoResumido.fromJson(Map<String, dynamic> json) {
     return ProyectoResumido(
@@ -176,7 +178,13 @@ class UltimaTarea extends Equatable {
   };
 
   @override
-  List<Object?> get props => [idAsignacion, estado, fechaAsignacion, tarea, proyecto];
+  List<Object?> get props => [
+    idAsignacion,
+    estado,
+    fechaAsignacion,
+    tarea,
+    proyecto,
+  ];
 }
 
 /// Respuesta del dashboard del voluntario
@@ -192,7 +200,7 @@ class VoluntarioDashboardResponse extends Equatable {
   factory VoluntarioDashboardResponse.fromJson(Map<String, dynamic> json) {
     final ultimasTareasJson = json['ultimas_tareas'];
     List<UltimaTarea> ultimasTareas = [];
-    
+
     if (ultimasTareasJson != null && ultimasTareasJson is List) {
       ultimasTareas = ultimasTareasJson
           .whereType<Map<String, dynamic>>()
@@ -207,7 +215,12 @@ class VoluntarioDashboardResponse extends Equatable {
               organizacionesInscritas: 0,
               proyectosParticipando: 0,
               participacionesPendientes: 0,
-              tareas: ResumenTareas(asignadas: 0, enProgreso: 0, completadas: 0, total: 0),
+              tareas: ResumenTareas(
+                asignadas: 0,
+                enProgreso: 0,
+                completadas: 0,
+                total: 0,
+              ),
             ),
       ultimasTareas: ultimasTareas,
     );
@@ -299,19 +312,25 @@ class MiParticipacion extends Equatable {
     'id_participacion': idParticipacion,
     if (rolAsignado != null) 'rol_asignado': rolAsignado,
     'estado': estado,
-    if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
+    if (horasComprometidasSemana != null)
+      'horas_comprometidas_semana': horasComprometidasSemana,
   };
 
   /// Indica si la participación está activa
   bool get isActive {
     final estadoLower = estado.toLowerCase();
-    return estadoLower == 'aprobada' || 
-           estadoLower == 'programada' || 
-           estadoLower == 'en_progreso';
+    return estadoLower == 'aprobada' ||
+        estadoLower == 'programada' ||
+        estadoLower == 'en_progreso';
   }
 
   @override
-  List<Object?> get props => [idParticipacion, rolAsignado, estado, horasComprometidasSemana];
+  List<Object?> get props => [
+    idParticipacion,
+    rolAsignado,
+    estado,
+    horasComprometidasSemana,
+  ];
 }
 
 // ==================== PROYECTO DEL VOLUNTARIO ====================
@@ -353,10 +372,14 @@ class ProyectoVoluntario extends Equatable {
       fechaInicio: _parseDateTimeNullable(json['fecha_inicio']),
       fechaFin: _parseDateTimeNullable(json['fecha_fin']),
       organizacion: json['organizacion'] != null
-          ? OrganizacionResumida.fromJson(json['organizacion'] as Map<String, dynamic>)
+          ? OrganizacionResumida.fromJson(
+              json['organizacion'] as Map<String, dynamic>,
+            )
           : const OrganizacionResumida(idOrganizacion: 0, nombreLegal: ''),
       miParticipacion: json['mi_participacion'] != null
-          ? MiParticipacion.fromJson(json['mi_participacion'] as Map<String, dynamic>)
+          ? MiParticipacion.fromJson(
+              json['mi_participacion'] as Map<String, dynamic>,
+            )
           : const MiParticipacion(idParticipacion: 0, estado: 'pendiente'),
     );
   }
@@ -368,16 +391,26 @@ class ProyectoVoluntario extends Equatable {
     if (ubicacion != null) 'ubicacion': ubicacion,
     if (imagen != null) 'imagen': imagen,
     'estado': estado,
-    if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
-    if (fechaFin != null) 'fecha_fin': fechaFin!.toIso8601String().split('T').first,
+    if (fechaInicio != null)
+      'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
+    if (fechaFin != null)
+      'fecha_fin': fechaFin!.toIso8601String().split('T').first,
     'organizacion': organizacion.toJson(),
     'mi_participacion': miParticipacion.toJson(),
   };
 
   @override
   List<Object?> get props => [
-    idProyecto, nombre, objetivo, ubicacion, imagen, estado,
-    fechaInicio, fechaFin, organizacion, miParticipacion,
+    idProyecto,
+    nombre,
+    objetivo,
+    ubicacion,
+    imagen,
+    estado,
+    fechaInicio,
+    fechaFin,
+    organizacion,
+    miParticipacion,
   ];
 }
 
@@ -406,7 +439,8 @@ class MiAsignacion extends Equatable {
   Map<String, dynamic> toJson() => {
     'id_asignacion': idAsignacion,
     'estado': estado,
-    if (fechaAsignacion != null) 'fecha_asignacion': fechaAsignacion!.toIso8601String(),
+    if (fechaAsignacion != null)
+      'fecha_asignacion': fechaAsignacion!.toIso8601String(),
   };
 
   @override
@@ -458,14 +492,22 @@ class TareaProyecto extends Equatable {
     if (descripcion != null) 'descripcion': descripcion,
     'estado': estado,
     if (prioridad != null) 'prioridad': prioridad,
-    if (fechaFin != null) 'fecha_fin': fechaFin!.toIso8601String().split('T').first,
+    if (fechaFin != null)
+      'fecha_fin': fechaFin!.toIso8601String().split('T').first,
     'asignada_a_mi': asignadaAMi,
     if (miAsignacion != null) 'mi_asignacion': miAsignacion!.toJson(),
   };
 
   @override
   List<Object?> get props => [
-    idTarea, nombre, descripcion, estado, prioridad, fechaFin, asignadaAMi, miAsignacion,
+    idTarea,
+    nombre,
+    descripcion,
+    estado,
+    prioridad,
+    fechaFin,
+    asignadaAMi,
+    miAsignacion,
   ];
 }
 
@@ -506,7 +548,13 @@ class ResumenTareasProyecto extends Equatable {
   };
 
   @override
-  List<Object?> get props => [total, pendientes, enProgreso, completadas, asignadasAMi];
+  List<Object?> get props => [
+    total,
+    pendientes,
+    enProgreso,
+    completadas,
+    asignadasAMi,
+  ];
 }
 
 // ==================== DETALLE PROYECTO VOLUNTARIO ====================
@@ -544,7 +592,7 @@ class ProyectoDetalleVoluntario extends Equatable {
   factory ProyectoDetalleVoluntario.fromJson(Map<String, dynamic> json) {
     final tareasJson = json['tareas'];
     List<TareaProyecto> tareas = [];
-    
+
     if (tareasJson != null && tareasJson is List) {
       tareas = tareasJson
           .whereType<Map<String, dynamic>>()
@@ -562,16 +610,26 @@ class ProyectoDetalleVoluntario extends Equatable {
       fechaInicio: _parseDateTimeNullable(json['fecha_inicio']),
       fechaFin: _parseDateTimeNullable(json['fecha_fin']),
       organizacion: json['organizacion'] != null
-          ? OrganizacionResumida.fromJson(json['organizacion'] as Map<String, dynamic>)
+          ? OrganizacionResumida.fromJson(
+              json['organizacion'] as Map<String, dynamic>,
+            )
           : const OrganizacionResumida(idOrganizacion: 0, nombreLegal: ''),
       miParticipacion: json['mi_participacion'] != null
-          ? MiParticipacion.fromJson(json['mi_participacion'] as Map<String, dynamic>)
+          ? MiParticipacion.fromJson(
+              json['mi_participacion'] as Map<String, dynamic>,
+            )
           : const MiParticipacion(idParticipacion: 0, estado: 'pendiente'),
       tareas: tareas,
       resumenTareas: json['resumen_tareas'] != null
-          ? ResumenTareasProyecto.fromJson(json['resumen_tareas'] as Map<String, dynamic>)
+          ? ResumenTareasProyecto.fromJson(
+              json['resumen_tareas'] as Map<String, dynamic>,
+            )
           : const ResumenTareasProyecto(
-              total: 0, pendientes: 0, enProgreso: 0, completadas: 0, asignadasAMi: 0,
+              total: 0,
+              pendientes: 0,
+              enProgreso: 0,
+              completadas: 0,
+              asignadasAMi: 0,
             ),
     );
   }
@@ -583,8 +641,10 @@ class ProyectoDetalleVoluntario extends Equatable {
     if (ubicacion != null) 'ubicacion': ubicacion,
     if (imagen != null) 'imagen': imagen,
     'estado': estado,
-    if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
-    if (fechaFin != null) 'fecha_fin': fechaFin!.toIso8601String().split('T').first,
+    if (fechaInicio != null)
+      'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
+    if (fechaFin != null)
+      'fecha_fin': fechaFin!.toIso8601String().split('T').first,
     'organizacion': organizacion.toJson(),
     'mi_participacion': miParticipacion.toJson(),
     'tareas': tareas.map((e) => e.toJson()).toList(),
@@ -593,8 +653,18 @@ class ProyectoDetalleVoluntario extends Equatable {
 
   @override
   List<Object?> get props => [
-    idProyecto, nombre, objetivo, ubicacion, imagen, estado,
-    fechaInicio, fechaFin, organizacion, miParticipacion, tareas, resumenTareas,
+    idProyecto,
+    nombre,
+    objetivo,
+    ubicacion,
+    imagen,
+    estado,
+    fechaInicio,
+    fechaFin,
+    organizacion,
+    miParticipacion,
+    tareas,
+    resumenTareas,
   ];
 }
 
@@ -683,14 +753,23 @@ class TareaCompletaInfo extends Equatable {
     if (descripcion != null) 'descripcion': descripcion,
     'estado': estado,
     if (prioridad != null) 'prioridad': prioridad,
-    if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
-    if (fechaFin != null) 'fecha_fin': fechaFin!.toIso8601String().split('T').first,
+    if (fechaInicio != null)
+      'fecha_inicio': fechaInicio!.toIso8601String().split('T').first,
+    if (fechaFin != null)
+      'fecha_fin': fechaFin!.toIso8601String().split('T').first,
     'proyecto': proyecto.toJson(),
   };
 
   @override
   List<Object?> get props => [
-    idTarea, nombre, descripcion, estado, prioridad, fechaInicio, fechaFin, proyecto,
+    idTarea,
+    nombre,
+    descripcion,
+    estado,
+    prioridad,
+    fechaInicio,
+    fechaFin,
+    proyecto,
   ];
 }
 
@@ -713,7 +792,7 @@ class AsignacionTareaVoluntario extends Equatable {
   factory AsignacionTareaVoluntario.fromJson(Map<String, dynamic> json) {
     final evidenciasJson = json['evidencias'];
     List<Evidencia> evidencias = [];
-    
+
     if (evidenciasJson != null && evidenciasJson is List) {
       evidencias = evidenciasJson
           .whereType<Map<String, dynamic>>()
@@ -746,7 +825,13 @@ class AsignacionTareaVoluntario extends Equatable {
   };
 
   @override
-  List<Object?> get props => [idAsignacion, estado, fechaAsignacion, tarea, evidencias];
+  List<Object?> get props => [
+    idAsignacion,
+    estado,
+    fechaAsignacion,
+    tarea,
+    evidencias,
+  ];
 }
 
 // ==================== PARTICIPACION VOLUNTARIO ====================
@@ -780,7 +865,9 @@ class ProyectoParticipacion extends Equatable {
       imagen: _getString(json['imagen']),
       estado: _getString(json['estado']) ?? 'activo',
       organizacion: json['organizacion'] != null
-          ? OrganizacionResumida.fromJson(json['organizacion'] as Map<String, dynamic>)
+          ? OrganizacionResumida.fromJson(
+              json['organizacion'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -796,7 +883,15 @@ class ProyectoParticipacion extends Equatable {
   };
 
   @override
-  List<Object?> get props => [idProyecto, nombre, objetivo, ubicacion, imagen, estado, organizacion];
+  List<Object?> get props => [
+    idProyecto,
+    nombre,
+    objetivo,
+    ubicacion,
+    imagen,
+    estado,
+    organizacion,
+  ];
 }
 
 /// Participación del voluntario (para GET /voluntarios/my/participaciones)
@@ -846,7 +941,9 @@ class ParticipacionVoluntario extends Equatable {
       horasComprometidasSemana: horas,
       creadoEn: _parseDateTime(json['creado_en']),
       proyecto: json['proyecto'] != null
-          ? ProyectoParticipacion.fromJson(json['proyecto'] as Map<String, dynamic>)
+          ? ProyectoParticipacion.fromJson(
+              json['proyecto'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -858,7 +955,8 @@ class ParticipacionVoluntario extends Equatable {
     'proyecto_id': proyectoId,
     if (rolAsignado != null) 'rol_asignado': rolAsignado,
     'estado': estado,
-    if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
+    if (horasComprometidasSemana != null)
+      'horas_comprometidas_semana': horasComprometidasSemana,
     'creado_en': creadoEn.toIso8601String(),
     if (proyecto != null) 'proyecto': proyecto!.toJson(),
   };
@@ -866,9 +964,9 @@ class ParticipacionVoluntario extends Equatable {
   /// Indica si la participación está activa
   bool get isActive {
     final estadoLower = estado.toLowerCase();
-    return estadoLower == 'aprobada' || 
-           estadoLower == 'programada' || 
-           estadoLower == 'en_progreso';
+    return estadoLower == 'aprobada' ||
+        estadoLower == 'programada' ||
+        estadoLower == 'en_progreso';
   }
 
   /// Indica si la participación está pendiente
@@ -876,8 +974,15 @@ class ParticipacionVoluntario extends Equatable {
 
   @override
   List<Object?> get props => [
-    idParticipacion, inscripcionId, perfilVolId, proyectoId,
-    rolAsignado, estado, horasComprometidasSemana, creadoEn, proyecto,
+    idParticipacion,
+    inscripcionId,
+    perfilVolId,
+    proyectoId,
+    rolAsignado,
+    estado,
+    horasComprometidasSemana,
+    creadoEn,
+    proyecto,
   ];
 }
 
@@ -930,7 +1035,9 @@ class CrearParticipacionResponse extends Equatable {
       horasComprometidasSemana: horas,
       creadoEn: _parseDateTime(json['creado_en']),
       proyecto: json['proyecto'] != null
-          ? ProyectoParticipacion.fromJson(json['proyecto'] as Map<String, dynamic>)
+          ? ProyectoParticipacion.fromJson(
+              json['proyecto'] as Map<String, dynamic>,
+            )
           : null,
       mensaje: _getString(json['mensaje']),
     );
@@ -943,7 +1050,8 @@ class CrearParticipacionResponse extends Equatable {
     'proyecto_id': proyectoId,
     if (rolAsignado != null) 'rol_asignado': rolAsignado,
     'estado': estado,
-    if (horasComprometidasSemana != null) 'horas_comprometidas_semana': horasComprometidasSemana,
+    if (horasComprometidasSemana != null)
+      'horas_comprometidas_semana': horasComprometidasSemana,
     'creado_en': creadoEn.toIso8601String(),
     if (proyecto != null) 'proyecto': proyecto!.toJson(),
     if (mensaje != null) 'mensaje': mensaje,
@@ -951,8 +1059,16 @@ class CrearParticipacionResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-    idParticipacion, inscripcionId, perfilVolId, proyectoId,
-    rolAsignado, estado, horasComprometidasSemana, creadoEn, proyecto, mensaje,
+    idParticipacion,
+    inscripcionId,
+    perfilVolId,
+    proyectoId,
+    rolAsignado,
+    estado,
+    horasComprometidasSemana,
+    creadoEn,
+    proyecto,
+    mensaje,
   ];
 }
 

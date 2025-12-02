@@ -9,10 +9,7 @@ import '../../../core/widgets/image_base64_widget.dart';
 class TareaDetailPage extends StatefulWidget {
   final int tareaId;
 
-  const TareaDetailPage({
-    super.key,
-    required this.tareaId,
-  });
+  const TareaDetailPage({super.key, required this.tareaId});
 
   @override
   State<TareaDetailPage> createState() => _TareaDetailPageState();
@@ -20,7 +17,7 @@ class TareaDetailPage extends StatefulWidget {
 
 class _TareaDetailPageState extends State<TareaDetailPage> {
   final VoluntarioRepository _repository = Modular.get<VoluntarioRepository>();
-  
+
   Map<String, dynamic>? _tareaDetail;
   List<Map<String, dynamic>> _evidencias = [];
   bool _isLoading = true;
@@ -53,7 +50,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
         final tarea = await _repository.getTareaById(widget.tareaId);
         detail = tarea.toJson();
       }
-      
+
       if (mounted) {
         setState(() {
           _tareaDetail = detail;
@@ -72,7 +69,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
 
   Future<void> _loadEvidencias() async {
     setState(() => _isLoadingEvidencias = true);
-    
+
     try {
       final evidencias = await _repository.getMyTaskEvidences(widget.tareaId);
       if (mounted) {
@@ -91,7 +88,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
 
   Future<void> _updateEstado(String nuevoEstado) async {
     setState(() => _isUpdating = true);
-    
+
     try {
       try {
         await _repository.updateMyTaskStatus(widget.tareaId, nuevoEstado);
@@ -102,7 +99,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Estado actualizado a ${_getEstadoLabel(nuevoEstado)}'),
+            content: Text(
+              'Estado actualizado a ${_getEstadoLabel(nuevoEstado)}',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -126,7 +125,12 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
 
   void _showEstadoDialog() {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentEstado = _tareaDetail?['estado']?.toString().toLowerCase().replaceAll(' ', '_') ?? 'pendiente';
+    final currentEstado =
+        _tareaDetail?['estado']?.toString().toLowerCase().replaceAll(
+          ' ',
+          '_',
+        ) ??
+        'pendiente';
 
     showModalBottomSheet(
       context: context,
@@ -150,12 +154,12 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             Text(
               'Cambiar Estado',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -165,7 +169,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             _buildEstadoOption(
               icon: Icons.play_circle_filled,
               label: 'En Progreso',
@@ -178,9 +182,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                 _updateEstado('en_progreso');
               },
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildEstadoOption(
               icon: Icons.check_circle,
               label: 'Completada',
@@ -193,7 +197,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                 _updateEstado('completada');
               },
             ),
-            
+
             const SizedBox(height: 24),
           ],
         ),
@@ -236,7 +240,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               Row(
                 children: [
                   Icon(Icons.add_photo_alternate, color: colorScheme.primary),
@@ -250,16 +254,16 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                 ],
               ),
               const SizedBox(height: 24),
-              
+
               // Selector de imagen
               Text(
                 'Foto (opcional)',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
-              
+
               if (selectedImage != null) ...[
                 Stack(
                   children: [
@@ -306,7 +310,8 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                           );
                           if (image != null) {
                             try {
-                              final base64 = await ImageUtils.convertXFileToBase64(image);
+                              final base64 =
+                                  await ImageUtils.convertXFileToBase64(image);
                               setModalState(() {
                                 selectedImage = image;
                                 fotoBase64 = base64;
@@ -340,7 +345,8 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                           );
                           if (image != null) {
                             try {
-                              final base64 = await ImageUtils.convertXFileToBase64(image);
+                              final base64 =
+                                  await ImageUtils.convertXFileToBase64(image);
                               setModalState(() {
                                 selectedImage = image;
                                 fotoBase64 = base64;
@@ -364,15 +370,15 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                   ],
                 ),
               ],
-              
+
               const SizedBox(height: 24),
-              
+
               // Comentario
               Text(
                 'Comentario *',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -385,9 +391,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Botón guardar
               SizedBox(
                 width: double.infinity,
@@ -402,16 +408,16 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                       );
                       return;
                     }
-                    
+
                     Navigator.pop(context);
-                    
+
                     try {
                       await _repository.createMyTaskEvidence(
                         widget.tareaId,
                         comentario: comentarioController.text.trim(),
                         fotoBase64: fotoBase64,
                       );
-                      
+
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -468,15 +474,15 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return InkWell(
       onTap: isDisabled ? null : onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? color.withOpacity(0.15) 
+          color: isSelected
+              ? color.withOpacity(0.15)
               : colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -489,7 +495,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDisabled 
+                color: isDisabled
                     ? Colors.grey.withOpacity(0.2)
                     : color.withOpacity(0.2),
                 shape: BoxShape.circle,
@@ -518,14 +524,15 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                     description,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDisabled ? Colors.grey : colorScheme.onSurfaceVariant,
+                      color: isDisabled
+                          ? Colors.grey
+                          : colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: color, size: 24),
+            if (isSelected) Icon(Icons.check_circle, color: color, size: 24),
           ],
         ),
       ),
@@ -551,234 +558,261 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle de Tarea'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Detalle de Tarea'), elevation: 0),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error al cargar tarea', style: theme.textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(_error!, textAlign: TextAlign.center),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: _loadData,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar tarea',
+                    style: theme.textTheme.titleLarge,
                   ),
-                )
-              : _tareaDetail == null
-                  ? const Center(child: Text('Tarea no encontrada'))
-                  : SingleChildScrollView(
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(_error!, textAlign: TextAlign.center),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loadData,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          : _tareaDetail == null
+          ? const Center(child: Text('Tarea no encontrada'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título
+                  Text(
+                    _tareaDetail!['titulo']?.toString() ??
+                        _tareaDetail!['nombre']?.toString() ??
+                        'Sin título',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Estado
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getEstadoColor(
+                        _tareaDetail!['estado']?.toString() ?? 'pendiente',
+                        colorScheme,
+                      ).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _getEstadoLabel(
+                        _tareaDetail!['estado']?.toString() ?? 'pendiente',
+                      ),
+                      style: TextStyle(
+                        color: _getEstadoColor(
+                          _tareaDetail!['estado']?.toString() ?? 'pendiente',
+                          colorScheme,
+                        ),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Descripción
+                  if (_tareaDetail!['descripcion'] != null &&
+                      _tareaDetail!['descripcion'].toString().isNotEmpty) ...[
+                    Text(
+                      'Descripción',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _tareaDetail!['descripcion'].toString(),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Información
+                  Card(
+                    child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Título
                           Text(
-                            _tareaDetail!['titulo']?.toString() ?? 
-                            _tareaDetail!['nombre']?.toString() ?? 
-                            'Sin título',
-                            style: theme.textTheme.headlineSmall?.copyWith(
+                            'Información',
+                            style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
-                          const SizedBox(height: 12),
-
-                          // Estado
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _getEstadoColor(
-                                _tareaDetail!['estado']?.toString() ?? 'pendiente',
-                                colorScheme,
-                              ).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _getEstadoLabel(_tareaDetail!['estado']?.toString() ?? 'pendiente'),
-                              style: TextStyle(
-                                color: _getEstadoColor(
-                                  _tareaDetail!['estado']?.toString() ?? 'pendiente',
-                                  colorScheme,
-                                ),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Descripción
-                          if (_tareaDetail!['descripcion'] != null &&
-                              _tareaDetail!['descripcion'].toString().isNotEmpty) ...[
-                            Text(
-                              'Descripción',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _tareaDetail!['descripcion'].toString(),
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Información
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Información',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  if (_tareaDetail!['prioridad'] != null)
-                                    _buildInfoRow(
-                                      Icons.flag,
-                                      'Prioridad',
-                                      _tareaDetail!['prioridad'].toString().toUpperCase(),
-                                      theme,
-                                    ),
-                                  if (_tareaDetail!['fecha_inicio'] != null ||
-                                      _tareaDetail!['fechaAsignacion'] != null) ...[
-                                    const SizedBox(height: 12),
-                                    _buildInfoRow(
-                                      Icons.calendar_today,
-                                      'Fecha inicio',
-                                      _formatDate(_tareaDetail!['fecha_inicio']?.toString() ??
-                                          _tareaDetail!['fechaAsignacion']?.toString() ?? ''),
-                                      theme,
-                                    ),
-                                  ],
-                                  if (_tareaDetail!['fecha_fin'] != null ||
-                                      _tareaDetail!['fechaVencimiento'] != null) ...[
-                                    const SizedBox(height: 12),
-                                    _buildInfoRow(
-                                      Icons.event,
-                                      'Fecha fin',
-                                      _formatDate(_tareaDetail!['fecha_fin']?.toString() ??
-                                          _tareaDetail!['fechaVencimiento']?.toString() ?? ''),
-                                      theme,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // EVIDENCIAS
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Evidencias',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              FilledButton.icon(
-                                onPressed: _showCrearEvidenciaSheet,
-                                icon: const Icon(Icons.add_photo_alternate, size: 18),
-                                label: const Text('Crear'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-
-                          if (_isLoadingEvidencias)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(24),
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          else if (_evidencias.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.photo_library_outlined,
-                                    size: 48,
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No hay evidencias',
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Agrega fotos y comentarios de tu avance',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _evidencias.length,
-                              itemBuilder: (context, index) {
-                                final evidencia = _evidencias[index];
-                                return _buildEvidenciaCard(evidencia, theme, colorScheme);
-                              },
-                            ),
-
-                          const SizedBox(height: 32),
-
-                          // Botón cambiar estado
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _isUpdating ? null : _showEstadoDialog,
-                              icon: _isUpdating 
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Icon(Icons.swap_horiz),
-                              label: Text(_isUpdating ? 'Actualizando...' : 'Cambiar Estado'),
-                            ),
-                          ),
-                          
                           const SizedBox(height: 16),
+                          if (_tareaDetail!['prioridad'] != null)
+                            _buildInfoRow(
+                              Icons.flag,
+                              'Prioridad',
+                              _tareaDetail!['prioridad']
+                                  .toString()
+                                  .toUpperCase(),
+                              theme,
+                            ),
+                          if (_tareaDetail!['fecha_inicio'] != null ||
+                              _tareaDetail!['fechaAsignacion'] != null) ...[
+                            const SizedBox(height: 12),
+                            _buildInfoRow(
+                              Icons.calendar_today,
+                              'Fecha inicio',
+                              _formatDate(
+                                _tareaDetail!['fecha_inicio']?.toString() ??
+                                    _tareaDetail!['fechaAsignacion']
+                                        ?.toString() ??
+                                    '',
+                              ),
+                              theme,
+                            ),
+                          ],
+                          if (_tareaDetail!['fecha_fin'] != null ||
+                              _tareaDetail!['fechaVencimiento'] != null) ...[
+                            const SizedBox(height: 12),
+                            _buildInfoRow(
+                              Icons.event,
+                              'Fecha fin',
+                              _formatDate(
+                                _tareaDetail!['fecha_fin']?.toString() ??
+                                    _tareaDetail!['fechaVencimiento']
+                                        ?.toString() ??
+                                    '',
+                              ),
+                              theme,
+                            ),
+                          ],
                         ],
                       ),
                     ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // EVIDENCIAS
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Evidencias',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: _showCrearEvidenciaSheet,
+                        icon: const Icon(Icons.add_photo_alternate, size: 18),
+                        label: const Text('Crear'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (_isLoadingEvidencias)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_evidencias.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                          0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.photo_library_outlined,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant.withOpacity(
+                              0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No hay evidencias',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Agrega fotos y comentarios de tu avance',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withOpacity(
+                                0.7,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _evidencias.length,
+                      itemBuilder: (context, index) {
+                        final evidencia = _evidencias[index];
+                        return _buildEvidenciaCard(
+                          evidencia,
+                          theme,
+                          colorScheme,
+                        );
+                      },
+                    ),
+
+                  const SizedBox(height: 32),
+
+                  // Botón cambiar estado
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isUpdating ? null : _showEstadoDialog,
+                      icon: _isUpdating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.swap_horiz),
+                      label: Text(
+                        _isUpdating ? 'Actualizando...' : 'Cambiar Estado',
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
     );
   }
 
@@ -789,7 +823,8 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
   ) {
     final foto = evidencia['foto']?.toString();
     final comentario = evidencia['comentario']?.toString() ?? '';
-    final fecha = evidencia['creado_en']?.toString() ?? evidencia['fecha']?.toString();
+    final fecha =
+        evidencia['creado_en']?.toString() ?? evidencia['fecha']?.toString();
     final tipoRaw = evidencia['tipo']?.toString() ?? '';
     final tipo = tipoRaw.isEmpty ? 'EVIDENCIA' : tipoRaw.toUpperCase();
 
@@ -802,7 +837,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
         children: [
           if (foto != null && foto.isNotEmpty)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: ImageBase64Widget(
                 base64String: foto,
                 width: double.infinity,
@@ -820,7 +857,10 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -873,7 +913,12 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, ThemeData theme) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value,
+    ThemeData theme,
+  ) {
     return Row(
       children: [
         Icon(icon, size: 20),

@@ -5,7 +5,7 @@ import 'app_styles.dart';
 /// Widgets reutilizables para la aplicación
 class AppWidgets {
   // ==================== TEXT FIELDS ====================
-  
+
   /// Campo de texto estilizado moderno
   static Widget styledTextField({
     required TextEditingController controller,
@@ -31,12 +31,20 @@ class AppWidgets {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: prefixIcon != null 
-            ? Icon(prefixIcon, color: AppColors.iconSecondary, size: AppStyles.iconSizeMedium)
+        prefixIcon: prefixIcon != null
+            ? Icon(
+                prefixIcon,
+                color: AppColors.iconSecondary,
+                size: AppStyles.iconSizeMedium,
+              )
             : null,
         suffixIcon: suffixIcon != null
             ? IconButton(
-                icon: Icon(suffixIcon, color: AppColors.iconSecondary, size: AppStyles.iconSizeMedium),
+                icon: Icon(
+                  suffixIcon,
+                  color: AppColors.iconSecondary,
+                  size: AppStyles.iconSizeMedium,
+                ),
                 onPressed: onSuffixIconPressed,
               )
             : null,
@@ -56,7 +64,10 @@ class AppWidgets {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppStyles.radiusSmall,
-          borderSide: const BorderSide(color: AppColors.borderFocus, width: AppStyles.borderWidthThick),
+          borderSide: const BorderSide(
+            color: AppColors.borderFocus,
+            width: AppStyles.borderWidthThick,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppStyles.radiusSmall,
@@ -64,7 +75,10 @@ class AppWidgets {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppStyles.radiusSmall,
-          borderSide: const BorderSide(color: AppColors.error, width: AppStyles.borderWidthThick),
+          borderSide: const BorderSide(
+            color: AppColors.error,
+            width: AppStyles.borderWidthThick,
+          ),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: AppStyles.radiusSmall,
@@ -75,9 +89,9 @@ class AppWidgets {
       ),
     );
   }
-  
+
   // ==================== BOTONES ====================
-  
+
   /// Botón principal con gradiente
   static Widget gradientButton({
     required VoidCallback onPressed,
@@ -107,9 +121,7 @@ class AppWidgets {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             foregroundColor: AppColors.textLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppStyles.radiusSmall,
-            ),
+            shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
             padding: EdgeInsets.zero,
           ),
           child: isLoading
@@ -126,7 +138,9 @@ class AppWidgets {
                   children: [
                     Text(
                       text,
-                      style: AppStyles.textButton.copyWith(color: AppColors.textLight),
+                      style: AppStyles.textButton.copyWith(
+                        color: AppColors.textLight,
+                      ),
                     ),
                     if (icon != null) ...[
                       const SizedBox(width: AppStyles.spacingSmall),
@@ -138,7 +152,7 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Botón secundario (outline)
   static Widget outlineButton({
     required VoidCallback onPressed,
@@ -161,9 +175,7 @@ class AppWidgets {
             color: borderColor ?? AppColors.border,
             width: AppStyles.borderWidthNormal,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: AppStyles.radiusSmall,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
           padding: const EdgeInsets.symmetric(
             horizontal: AppStyles.spacingLarge,
           ),
@@ -193,7 +205,7 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Botón de texto
   static Widget textButton({
     required VoidCallback onPressed,
@@ -211,17 +223,14 @@ class AppWidgets {
             Icon(icon, size: AppStyles.iconSizeSmall, color: textColor),
             const SizedBox(width: AppStyles.spacingSmall),
           ],
-          Text(
-            text,
-            style: AppStyles.textLink.copyWith(color: textColor),
-          ),
+          Text(text, style: AppStyles.textLink.copyWith(color: textColor)),
         ],
       ),
     );
   }
-  
+
   // ==================== SNACKBARS ====================
-  
+
   /// SnackBar estilizado
   static void showStyledSnackBar({
     required BuildContext context,
@@ -249,19 +258,17 @@ class AppWidgets {
       ),
       backgroundColor: isError ? AppColors.error : AppColors.success,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppStyles.radiusSmall,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusSmall),
       duration: duration,
       action: action,
       margin: const EdgeInsets.all(AppStyles.spacingNormal),
     );
-    
+
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-  
+
   // ==================== LOADING INDICATORS ====================
-  
+
   /// Loading overlay
   static Widget loadingOverlay({String? message}) {
     return Container(
@@ -292,28 +299,23 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Loading spinner simple
-  static Widget loadingSpinner({
-    Color? color,
-    double size = 40,
-  }) {
+  static Widget loadingSpinner({Color? color, double size = 40}) {
     return Center(
       child: SizedBox(
         width: size,
         height: size,
         child: CircularProgressIndicator(
           strokeWidth: 3,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            color ?? AppColors.primary,
-          ),
+          valueColor: AlwaysStoppedAnimation<Color>(color ?? AppColors.primary),
         ),
       ),
     );
   }
-  
+
   // ==================== CARDS ====================
-  
+
   /// Card simple con sombra
   static Widget card({
     required Widget child,
@@ -331,7 +333,7 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Card con borde (sin sombra)
   static Widget flatCard({
     required Widget child,
@@ -349,7 +351,7 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Card con gradiente (compatibilidad)
   static Widget gradientCard({
     required Widget child,
@@ -376,22 +378,18 @@ class AppWidgets {
       child: child,
     );
   }
-  
+
   /// Icono decorativo (compatibilidad)
   static Widget decorativeIcon({
     required IconData icon,
     Color? color,
     double size = 48,
   }) {
-    return Icon(
-      icon,
-      size: size,
-      color: color ?? AppColors.primary,
-    );
+    return Icon(icon, size: size, color: color ?? AppColors.primary);
   }
-  
+
   // ==================== EMPTY STATES ====================
-  
+
   /// Estado vacío
   static Widget emptyState({
     required IconData icon,
@@ -421,7 +419,9 @@ class AppWidgets {
             const SizedBox(height: AppStyles.spacingXLarge),
             Text(
               title,
-              style: AppStyles.textTitle.copyWith(color: AppColors.textSecondary),
+              style: AppStyles.textTitle.copyWith(
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
@@ -441,9 +441,9 @@ class AppWidgets {
       ),
     );
   }
-  
+
   // ==================== MODALES ====================
-  
+
   /// Bottom sheet moderno
   static Future<T?> showBottomSheet<T>({
     required BuildContext context,
@@ -466,7 +466,7 @@ class AppWidgets {
       ),
     );
   }
-  
+
   /// Modal de confirmación
   static Future<bool?> showConfirmDialog({
     required BuildContext context,
@@ -479,9 +479,7 @@ class AppWidgets {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: AppStyles.radiusMedium,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: AppStyles.radiusMedium),
         title: Text(title, style: AppStyles.textTitle),
         content: Text(message, style: AppStyles.textBody),
         actions: [
@@ -499,9 +497,9 @@ class AppWidgets {
       ),
     );
   }
-  
+
   // ==================== BADGES ====================
-  
+
   /// Badge de notificación
   static Widget badge({
     required Widget child,
@@ -522,10 +520,7 @@ class AppWidgets {
                 color: AppColors.badge,
                 shape: BoxShape.circle,
               ),
-              constraints: const BoxConstraints(
-                minWidth: 18,
-                minHeight: 18,
-              ),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
               child: Text(
                 count > 99 ? '99+' : count.toString(),
                 style: const TextStyle(

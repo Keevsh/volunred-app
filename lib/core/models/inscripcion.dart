@@ -34,14 +34,14 @@ class Inscripcion extends Equatable {
         if (value == null) return null;
         return value.toString();
       }
-      
+
       // Helper function to safely get int value
       int _getInt(dynamic value, {int defaultValue = 0}) {
         if (value == null) return defaultValue;
         if (value is int) return value;
         return int.tryParse(value.toString()) ?? defaultValue;
       }
-      
+
       // Handle fecha_recepcion
       DateTime fechaRecepcion;
       final fechaRecepcionValue = json['fecha_recepcion'];
@@ -54,7 +54,7 @@ class Inscripcion extends Equatable {
       } else {
         fechaRecepcion = DateTime.now();
       }
-      
+
       // Handle creado_en
       DateTime creadoEn;
       final creadoEnValue = json['creado_en'];
@@ -67,7 +67,7 @@ class Inscripcion extends Equatable {
       } else {
         creadoEn = DateTime.now();
       }
-      
+
       // Handle actualizado_en
       DateTime? actualizadoEn;
       final actualizadoEnValue = json['actualizado_en'];
@@ -78,11 +78,11 @@ class Inscripcion extends Equatable {
           actualizadoEn = null;
         }
       }
-      
+
       // Manejar estado: normalizar a mayúsculas (PENDIENTE, APROBADO, RECHAZADO)
       String estadoValue = _getString(json['estado']) ?? 'PENDIENTE';
       estadoValue = estadoValue.toUpperCase();
-      
+
       return Inscripcion(
         idInscripcion: _getInt(json['id_inscripcion']),
         usuarioId: _getInt(json['usuario_id']),
@@ -92,15 +92,17 @@ class Inscripcion extends Equatable {
         motivoRechazo: _getString(json['motivo_rechazo']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
-        usuario: json['usuario'] is Map 
-            ? json['usuario'] as Map<String, dynamic>? 
+        usuario: json['usuario'] is Map
+            ? json['usuario'] as Map<String, dynamic>?
             : null,
-        organizacion: json['organizacion'] is Map 
-            ? json['organizacion'] as Map<String, dynamic>? 
+        organizacion: json['organizacion'] is Map
+            ? json['organizacion'] as Map<String, dynamic>?
             : null,
       );
     } catch (e, stackTrace) {
-      throw Exception('Error parsing Inscripcion from JSON: $e\nJSON: $json\nStackTrace: $stackTrace');
+      throw Exception(
+        'Error parsing Inscripcion from JSON: $e\nJSON: $json\nStackTrace: $stackTrace',
+      );
     }
   }
 
@@ -113,7 +115,8 @@ class Inscripcion extends Equatable {
       'estado': estado,
       if (motivoRechazo != null) 'motivo_rechazo': motivoRechazo,
       'creado_en': creadoEn.toIso8601String(),
-      if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
+      if (actualizadoEn != null)
+        'actualizado_en': actualizadoEn!.toIso8601String(),
       if (usuario != null) 'usuario': usuario,
       if (organizacion != null) 'organizacion': organizacion,
     };
@@ -121,14 +124,13 @@ class Inscripcion extends Equatable {
 
   @override
   List<Object?> get props => [
-        idInscripcion,
-        usuarioId,
-        organizacionId,
-        fechaRecepcion,
-        estado,
-        motivoRechazo,
-        creadoEn,
-        actualizadoEn,
-      ];
+    idInscripcion,
+    usuarioId,
+    organizacionId,
+    fechaRecepcion,
+    estado,
+    motivoRechazo,
+    creadoEn,
+    actualizadoEn,
+  ];
 }
-

@@ -7,6 +7,6 @@ class ExperienciasModule extends Module {
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute('/', child: (_, __) => const ExperienciasPage()),
-      ];
+    ChildRoute('/', child: (_, __) => const ExperienciasPage()),
+  ];
 }

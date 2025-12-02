@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 class VoluntarioDashboard extends StatefulWidget {
   final String userName;
   final String? photoBase64;
-  
+
   const VoluntarioDashboard({
     super.key,
     required this.userName,
@@ -83,11 +83,17 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
     if (_filterCategoriaNombre != null && _filterCategoriaNombre!.isNotEmpty) {
       final categoriaLower = _filterCategoriaNombre!.toLowerCase();
       list = list.where((p) {
-        final catMap = p.categoriaProyecto ?? (p.categoriasProyectos != null && p.categoriasProyectos!.isNotEmpty && p.categoriasProyectos!.first is Map
-            ? p.categoriasProyectos!.first as Map
-            : null);
+        final catMap =
+            p.categoriaProyecto ??
+            (p.categoriasProyectos != null &&
+                    p.categoriasProyectos!.isNotEmpty &&
+                    p.categoriasProyectos!.first is Map
+                ? p.categoriasProyectos!.first as Map
+                : null);
         final nombreCat = catMap != null
-            ? (catMap['nombre'] ?? catMap['nombre_categoria'] ?? '').toString().toLowerCase()
+            ? (catMap['nombre'] ?? catMap['nombre_categoria'] ?? '')
+                  .toString()
+                  .toLowerCase()
             : '';
         return nombreCat.contains(categoriaLower);
       }).toList();
@@ -97,13 +103,19 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
       final q = _searchQuery.toLowerCase();
       list = list.where((p) {
         final nombre = p.nombre.toLowerCase();
-        final orgNombre = (p.organizacion != null
-                ? (p.organizacion!['nombre'] ?? p.organizacion!['nombre_legal'] ?? p.organizacion!['nombre_corto'] ?? '')
-                : '')
-            .toString()
-            .toLowerCase();
+        final orgNombre =
+            (p.organizacion != null
+                    ? (p.organizacion!['nombre'] ??
+                          p.organizacion!['nombre_legal'] ??
+                          p.organizacion!['nombre_corto'] ??
+                          '')
+                    : '')
+                .toString()
+                .toLowerCase();
         final ubicacion = p.ubicacion?.toLowerCase() ?? '';
-        return nombre.contains(q) || orgNombre.contains(q) || ubicacion.contains(q);
+        return nombre.contains(q) ||
+            orgNombre.contains(q) ||
+            ubicacion.contains(q);
       }).toList();
     }
 
@@ -151,22 +163,16 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
               _buildWelcomeHeader(theme),
 
               // Barra de búsqueda
-              SliverToBoxAdapter(
-                child: _buildSearchBar(theme),
-              ),
+              SliverToBoxAdapter(child: _buildSearchBar(theme)),
 
               // Organizaciones destacadas (carrusel horizontal)
               _buildOrganizacionesCarousel(theme),
 
               // Espacio extra entre organizaciones y banner
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 24),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
               // Banner principal grande
-              SliverToBoxAdapter(
-                child: _buildMainBanner(theme, colorScheme),
-              ),
+              SliverToBoxAdapter(child: _buildMainBanner(theme, colorScheme)),
 
               // Proyectos destacados
               _buildFeaturedProjects(theme),
@@ -247,7 +253,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    controller: TextEditingController(text: categoriaTemp ?? ''),
+                    controller: TextEditingController(
+                      text: categoriaTemp ?? '',
+                    ),
                     onChanged: (value) {
                       setModalState(() {
                         categoriaTemp = value.isEmpty ? null : value;
@@ -331,17 +339,18 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
               child: CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.white,
-                backgroundImage: widget.photoBase64 != null && widget.photoBase64!.isNotEmpty
+                backgroundImage:
+                    widget.photoBase64 != null && widget.photoBase64!.isNotEmpty
                     ? MemoryImage(
                         // photoBase64 puede venir con prefijo data:..., nos quedamos con la parte base64
-                        const Base64Decoder().convert(widget.photoBase64!.split(',').last),
+                        const Base64Decoder().convert(
+                          widget.photoBase64!.split(',').last,
+                        ),
                       )
                     : null,
-                child: (widget.photoBase64 == null || widget.photoBase64!.isEmpty)
-                    ? const Icon(
-                        Icons.person,
-                        color: Color(0xFF1976D2),
-                      )
+                child:
+                    (widget.photoBase64 == null || widget.photoBase64!.isEmpty)
+                    ? const Icon(Icons.person, color: Color(0xFF1976D2))
                     : null,
               ),
             ),
@@ -402,7 +411,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
               ),
             ),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
       ),
@@ -418,7 +430,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
         final id = org['id_organizacion'] is int
             ? org['id_organizacion'] as int
             : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
-        
+
         if (id != -1 && !organizacionesMap.containsKey(id)) {
           organizacionesMap[id] = org;
         }
@@ -450,21 +462,27 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
-              itemCount: organizaciones.length > 10 ? 10 : organizaciones.length,
+              itemCount: organizaciones.length > 10
+                  ? 10
+                  : organizaciones.length,
               itemBuilder: (context, index) {
                 final org = organizaciones[index];
-                final nombre = (org['nombre'] ?? org['nombre_legal'] ?? 'Org').toString();
+                final nombre = (org['nombre'] ?? org['nombre_legal'] ?? 'Org')
+                    .toString();
                 final logo = org['logo']?.toString();
                 final idOrg = org['id_organizacion'] is int
                     ? org['id_organizacion'] as int
-                    : int.tryParse(org['id_organizacion']?.toString() ?? '') ?? -1;
+                    : int.tryParse(org['id_organizacion']?.toString() ?? '') ??
+                          -1;
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: InkWell(
                     onTap: () {
                       if (idOrg != -1) {
-                        Modular.to.pushNamed('/voluntario/organizaciones/$idOrg');
+                        Modular.to.pushNamed(
+                          '/voluntario/organizaciones/$idOrg',
+                        );
                       }
                     },
                     borderRadius: BorderRadius.circular(16),
@@ -495,7 +513,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                                 : Container(
                                     decoration: const BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
+                                        colors: [
+                                          Color(0xFF1976D2),
+                                          Color(0xFF42A5F5),
+                                        ],
                                       ),
                                     ),
                                     child: const Icon(
@@ -537,9 +558,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Container(
         width: double.infinity,
-        constraints: const BoxConstraints(
-          minHeight: 180,
-        ),
+        constraints: const BoxConstraints(minHeight: 180),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -576,13 +595,19 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.18),
                         borderRadius: BorderRadius.circular(999),
@@ -636,7 +661,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                           style: FilledButton.styleFrom(
                             foregroundColor: colorScheme.primary,
                             backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -645,7 +673,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         ),
                         const SizedBox(width: 10),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.18),
                             borderRadius: BorderRadius.circular(16),
@@ -747,7 +778,8 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Modular.to.pushNamed('/voluntario/proyectos'),
+                  onPressed: () =>
+                      Modular.to.pushNamed('/voluntario/proyectos'),
                   child: const Text('Ver todos'),
                 ),
               ],
@@ -765,7 +797,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: proyectosFiltrados.length > 6 ? 6 : proyectosFiltrados.length,
+              itemCount: proyectosFiltrados.length > 6
+                  ? 6
+                  : proyectosFiltrados.length,
               itemBuilder: (context, index) {
                 return _buildProyectoCardGrid(proyectosFiltrados[index], theme);
               },
@@ -779,7 +813,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
 
   Widget _buildProyectoCardGrid(Proyecto proyecto, ThemeData theme) {
     final orgNombre = proyecto.organizacion != null
-        ? (proyecto.organizacion!['nombre'] ?? proyecto.organizacion!['nombre_legal'] ?? 'Organización').toString()
+        ? (proyecto.organizacion!['nombre'] ??
+                  proyecto.organizacion!['nombre_legal'] ??
+                  'Organización')
+              .toString()
         : 'Organización';
 
     return Container(
@@ -797,7 +834,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => Modular.to.pushNamed('/voluntario/proyectos/${proyecto.idProyecto}'),
+          onTap: () => Modular.to.pushNamed(
+            '/voluntario/proyectos/${proyecto.idProyecto}',
+          ),
           borderRadius: BorderRadius.circular(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -805,7 +844,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
             children: [
               // Imagen
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
                 child: Stack(
                   children: [
                     if (proyecto.imagen != null && proyecto.imagen!.isNotEmpty)
@@ -860,7 +901,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
@@ -884,7 +928,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  proyecto.estado == 'activo' ? 'Activo' : 'Inactivo',
+                                  proyecto.estado == 'activo'
+                                      ? 'Activo'
+                                      : 'Inactivo',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -996,7 +1042,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1976D2),
                     borderRadius: BorderRadius.circular(12),
@@ -1018,7 +1067,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
             child: Column(
               children: participacionesActivas
                   .take(3)
-                  .map((participacion) => _buildParticipacionCard(participacion, theme))
+                  .map(
+                    (participacion) =>
+                        _buildParticipacionCard(participacion, theme),
+                  )
                   .toList(),
             ),
           ),

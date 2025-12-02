@@ -7,7 +7,7 @@ class Aplicacion extends Equatable {
   final String estado;
   final int idModulo;
   final Modulo? modulo;
-  final String descripcion ;
+  final String descripcion;
 
   const Aplicacion({
     required this.idAplicacion,
@@ -25,15 +25,13 @@ class Aplicacion extends Equatable {
       if (value is int) return value;
       return int.tryParse(value.toString());
     }
-    
+
     return Aplicacion(
       idAplicacion: _getInt(json['id_aplicacion']) ?? 0,
       nombre: json['nombre'] as String? ?? '',
       estado: json['estado'] as String? ?? 'activo',
       idModulo: _getInt(json['id_modulo']) ?? 0,
-      modulo: json['modulo'] != null
-          ? Modulo.fromJson(json['modulo'])
-          : null,
+      modulo: json['modulo'] != null ? Modulo.fromJson(json['modulo']) : null,
       descripcion: json['descripcion'] as String? ?? 'sin descripcion',
     );
   }
@@ -50,5 +48,12 @@ class Aplicacion extends Equatable {
   }
 
   @override
-  List<Object?> get props => [idAplicacion, nombre, estado, idModulo, modulo, descripcion];
+  List<Object?> get props => [
+    idAplicacion,
+    nombre,
+    estado,
+    idModulo,
+    modulo,
+    descripcion,
+  ];
 }

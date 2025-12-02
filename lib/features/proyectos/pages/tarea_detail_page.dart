@@ -20,7 +20,8 @@ class TareaDetailPage extends StatefulWidget {
   State<TareaDetailPage> createState() => _TareaDetailPageState();
 }
 
-class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProviderStateMixin {
+class _TareaDetailPageState extends State<TareaDetailPage>
+    with SingleTickerProviderStateMixin {
   Tarea? _tarea;
   List<AsignacionTarea> _asignaciones = [];
   bool _isLoading = true;
@@ -52,7 +53,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
         final tarea = await funcionarioRepo.getTareaById(widget.tareaId);
         // Cargar asignaciones si es funcionario
         try {
-          final asignaciones = await funcionarioRepo.getAsignacionesByTarea(widget.tareaId);
+          final asignaciones = await funcionarioRepo.getAsignacionesByTarea(
+            widget.tareaId,
+          );
           setState(() {
             _asignaciones = asignaciones;
           });
@@ -221,7 +224,10 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.radio_button_unchecked, color: Colors.grey),
+                  leading: const Icon(
+                    Icons.radio_button_unchecked,
+                    color: Colors.grey,
+                  ),
                   title: const Text('Pendiente'),
                   onTap: () => Navigator.pop(context, 'pendiente'),
                 ),
@@ -266,29 +272,30 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
   Future<void> _updateTarea(String field, dynamic value) async {
     try {
       final data = <String, dynamic>{};
-      
+
       if (field == 'fecha_inicio' || field == 'fecha_fin') {
         final date = value as DateTime;
-        data[field] = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        data[field] =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
       } else {
         data[field] = value;
       }
 
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       await funcionarioRepo.updateTarea(widget.tareaId, data);
-      
+
       await _loadData();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tarea actualizada')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Tarea actualizada')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -313,9 +320,11 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
             IconButton(
               icon: const Icon(Icons.person_add),
               onPressed: () {
-                Modular.to.pushNamed(
-                  '/proyectos/tarea/${widget.tareaId}/asignar-voluntarios?nombre=${Uri.encodeComponent(_tarea?.nombre ?? 'Tarea')}',
-                ).then((_) => _loadData());
+                Modular.to
+                    .pushNamed(
+                      '/proyectos/tarea/${widget.tareaId}/asignar-voluntarios?nombre=${Uri.encodeComponent(_tarea?.nombre ?? 'Tarea')}',
+                    )
+                    .then((_) => _loadData());
               },
               tooltip: 'Asignar Voluntario',
             ),
@@ -324,31 +333,28 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                      const SizedBox(height: 16),
-                      Text('Error: $_error'),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _loadData,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text('Error: $_error'),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _loadData,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
                   ),
-                )
-              : _tarea == null
-                  ? const Center(child: Text('Tarea no encontrada'))
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildDetailsTab(),
-                        _buildActivityTab(),
-                      ],
-                    ),
+                ],
+              ),
+            )
+          : _tarea == null
+          ? const Center(child: Text('Tarea no encontrada'))
+          : TabBarView(
+              controller: _tabController,
+              children: [_buildDetailsTab(), _buildActivityTab()],
+            ),
     );
   }
 
@@ -423,7 +429,10 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
               icon: Icons.flag,
               title: 'Prioridad',
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: _getPrioridadColor(_tarea!.prioridad).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -543,7 +552,8 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
                           child: ListTile(
                             leading: CircleAvatar(
                               child: Text(
-                                asignacion.perfilVoluntario?['usuario']?['nombres']
+                                asignacion
+                                        .perfilVoluntario?['usuario']?['nombres']
                                         ?.toString()
                                         .substring(0, 1)
                                         .toUpperCase() ??
@@ -560,8 +570,9 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: _getEstadoColor(asignacion.estado)
-                                    .withOpacity(0.1),
+                                color: _getEstadoColor(
+                                  asignacion.estado,
+                                ).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -625,11 +636,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.timeline,
-            size: 64,
-            color: colorScheme.outlineVariant,
-          ),
+          Icon(Icons.timeline, size: 64, color: colorScheme.outlineVariant),
           const SizedBox(height: 16),
           Text(
             'Historial de Actividad',
@@ -663,9 +670,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,9 +714,7 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,5 +737,4 @@ class _TareaDetailPageState extends State<TareaDetailPage> with SingleTickerProv
       ),
     );
   }
-
 }

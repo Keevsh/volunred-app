@@ -19,7 +19,7 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
   Rol? _selectedRol;
   final Map<int, bool> _selectedProgramas = {};
   bool _isLoading = false;
-  
+
   // Datos almacenados localmente
   List<Rol> _roles = [];
   List<Modulo> _modulos = [];
@@ -50,7 +50,8 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
 
   void _togglePrograma(int programaId) {
     setState(() {
-      _selectedProgramas[programaId] = !(_selectedProgramas[programaId] ?? false);
+      _selectedProgramas[programaId] =
+          !(_selectedProgramas[programaId] ?? false);
     });
   }
 
@@ -79,11 +80,11 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
     });
 
     context.read<AdminBloc>().add(
-          AsignarPermisosRequested(
-            idRol: _selectedRol!.idRol,
-            programas: programasSeleccionados,
-          ),
-        );
+      AsignarPermisosRequested(
+        idRol: _selectedRol!.idRol,
+        programas: programasSeleccionados,
+      ),
+    );
   }
 
   @override
@@ -125,8 +126,8 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
             );
             if (_selectedRol != null) {
               context.read<AdminBloc>().add(
-                    LoadPermisosByRolRequested(_selectedRol!.idRol),
-                  );
+                LoadPermisosByRolRequested(_selectedRol!.idRol),
+              );
             }
           }
           if (state is PermisosByRolLoaded) {
@@ -281,7 +282,9 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Text(
@@ -327,13 +330,13 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
                 borderRadius: BorderRadius.circular(10),
                 borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
             items: roles.map((rol) {
-              return DropdownMenuItem<Rol>(
-                value: rol,
-                child: Text(rol.nombre),
-              );
+              return DropdownMenuItem<Rol>(value: rol, child: Text(rol.nombre));
             }).toList(),
             onChanged: (rol) {
               if (rol != null) {
@@ -389,110 +392,133 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final modulo = _modulos[index];
-        final aplicacionesDelModulo = aplicacionesPorModulo[modulo.idModulo] ?? [];
+        final aplicacionesDelModulo =
+            aplicacionesPorModulo[modulo.idModulo] ?? [];
 
         return Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF34C759).withOpacity(0.1),
-                      shape: BoxShape.circle,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              childrenPadding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                bottom: 16,
+              ),
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF34C759).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.dashboard_rounded,
+                  color: Color(0xFF34C759),
+                  size: 24,
+                ),
+              ),
+              title: Text(
+                modulo.nombre,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1D1D1F),
+                ),
+              ),
+              subtitle:
+                  modulo.descripcion != null && modulo.descripcion!.isNotEmpty
+                  ? Text(
+                      modulo.descripcion!,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF86868B),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : null,
+              children: aplicacionesDelModulo.map((aplicacion) {
+                final programasDeAplicacion =
+                    programasPorAplicacion[aplicacion.idAplicacion] ?? [];
+
+                return Theme(
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    child: const Icon(
-                      Icons.dashboard_rounded,
-                      color: Color(0xFF34C759),
-                      size: 24,
+                    childrenPadding: const EdgeInsets.only(
+                      left: 8,
+                      right: 8,
+                      bottom: 8,
                     ),
-                  ),
-                  title: Text(
-                    modulo.nombre,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1D1D1F),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF007AFF).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.widgets_rounded,
+                        color: Color(0xFF007AFF),
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  subtitle: modulo.descripcion != null && modulo.descripcion!.isNotEmpty
-                      ? Text(
-                          modulo.descripcion!,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF86868B),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : null,
-                  children: aplicacionesDelModulo.map((aplicacion) {
-                    final programasDeAplicacion = programasPorAplicacion[aplicacion.idAplicacion] ?? [];
-                    
-                    return Theme(
-                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF007AFF).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.widgets_rounded,
-                            color: Color(0xFF007AFF),
-                            size: 20,
-                          ),
-                        ),
+                    title: Text(
+                      aplicacion.nombre,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1D1D1F),
+                      ),
+                    ),
+                    children: programasDeAplicacion.map((programa) {
+                      final isSelected =
+                          _selectedProgramas[programa.idPrograma] ?? false;
+
+                      return CheckboxListTile(
+                        value: isSelected,
+                        onChanged: (value) =>
+                            _togglePrograma(programa.idPrograma),
                         title: Text(
-                          aplicacion.nombre,
+                          programa.nombre,
                           style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
                             color: Color(0xFF1D1D1F),
                           ),
                         ),
-                        children: programasDeAplicacion.map((programa) {
-                          final isSelected = _selectedProgramas[programa.idPrograma] ?? false;
-                          
-                          return CheckboxListTile(
-                            value: isSelected,
-                            onChanged: (value) => _togglePrograma(programa.idPrograma),
-                            title: Text(
-                              programa.nombre,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF1D1D1F),
-                              ),
-                            ),
-                            subtitle: programa.descripcion != null
-                                ? Text(
-                                    programa.descripcion!,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF86868B),
-                                    ),
-                                  )
-                                : null,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                            controlAffinity: ListTileControlAffinity.leading,
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            );
-          },
+                        subtitle: programa.descripcion != null
+                            ? Text(
+                                programa.descripcion!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF86868B),
+                                ),
+                              )
+                            : null,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                      );
+                    }).toList(),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         );
+      },
+    );
   }
 }

@@ -16,80 +16,80 @@ import 'pages/inscripciones_management_page.dart';
 class AdminModule extends Module {
   @override
   List<Bind> get binds => [
-        Bind.factory((i) => AdminBloc(i<AdminRepository>())),
-      ];
+    Bind.factory((i) => AdminBloc(i<AdminRepository>())),
+  ];
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute(
-          '/',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const AdminDashboardPage(),
-          ),
-        ),
-        ChildRoute(
-          '/usuarios',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const UsuariosManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/roles',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const RolesManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/permisos',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const PermisosManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/programas',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const ProgramasManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/aptitudes',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const AptitudesManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/organizaciones',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const OrganizacionesManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/proyectos',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const ProyectosManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/tareas',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const TareasManagementPage(),
-          ),
-        ),
-        ChildRoute(
-          '/inscripciones',
-          child: (_, __) => BlocProvider(
-            create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-            child: const InscripcionesManagementPage(),
-          ),
-        ),
-      ];
+    ChildRoute(
+      '/',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const AdminDashboardPage(),
+      ),
+    ),
+    ChildRoute(
+      '/usuarios',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const UsuariosManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/roles',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const RolesManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/permisos',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const PermisosManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/programas',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const ProgramasManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/aptitudes',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const AptitudesManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/organizaciones',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const OrganizacionesManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/proyectos',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const ProyectosManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/tareas',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const TareasManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/inscripciones',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const InscripcionesManagementPage(),
+      ),
+    ),
+  ];
 }

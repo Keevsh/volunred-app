@@ -36,14 +36,14 @@ class Tarea extends Equatable {
         if (value == null) return null;
         return value.toString();
       }
-      
+
       // Helper function to safely get int value
       int _getInt(dynamic value, {int defaultValue = 0}) {
         if (value == null) return defaultValue;
         if (value is int) return value;
         return int.tryParse(value.toString()) ?? defaultValue;
       }
-      
+
       // Handle fecha_inicio
       DateTime? fechaInicio;
       final fechaInicioValue = json['fecha_inicio'];
@@ -54,7 +54,7 @@ class Tarea extends Equatable {
           fechaInicio = null;
         }
       }
-      
+
       // Handle fecha_fin
       DateTime? fechaFin;
       final fechaFinValue = json['fecha_fin'];
@@ -65,7 +65,7 @@ class Tarea extends Equatable {
           fechaFin = null;
         }
       }
-      
+
       // Handle creado_en
       DateTime creadoEn;
       final creadoEnValue = json['creado_en'];
@@ -78,7 +78,7 @@ class Tarea extends Equatable {
       } else {
         creadoEn = DateTime.now();
       }
-      
+
       // Handle actualizado_en
       DateTime? actualizadoEn;
       final actualizadoEnValue = json['actualizado_en'];
@@ -89,7 +89,7 @@ class Tarea extends Equatable {
           actualizadoEn = null;
         }
       }
-      
+
       return Tarea(
         idTarea: _getInt(json['id_tarea']),
         proyectoId: _getInt(json['proyecto_id']),
@@ -101,12 +101,14 @@ class Tarea extends Equatable {
         estado: _getString(json['estado']) ?? 'activo',
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
-        proyecto: json['proyecto'] is Map 
-            ? json['proyecto'] as Map<String, dynamic>? 
+        proyecto: json['proyecto'] is Map
+            ? json['proyecto'] as Map<String, dynamic>?
             : null,
       );
     } catch (e, stackTrace) {
-      throw Exception('Error parsing Tarea from JSON: $e\nJSON: $json\nStackTrace: $stackTrace');
+      throw Exception(
+        'Error parsing Tarea from JSON: $e\nJSON: $json\nStackTrace: $stackTrace',
+      );
     }
   }
 
@@ -117,27 +119,35 @@ class Tarea extends Equatable {
       'nombre': nombre,
       if (descripcion != null) 'descripcion': descripcion,
       if (prioridad != null) 'prioridad': prioridad,
-      if (fechaInicio != null) 'fecha_inicio': fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
-      if (fechaFin != null) 'fecha_fin': fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+      if (fechaInicio != null)
+        'fecha_inicio': fechaInicio!.toUtc().toIso8601String().replaceAll(
+          RegExp(r'\.\d+'),
+          '',
+        ),
+      if (fechaFin != null)
+        'fecha_fin': fechaFin!.toUtc().toIso8601String().replaceAll(
+          RegExp(r'\.\d+'),
+          '',
+        ),
       'estado': estado,
       'creado_en': creadoEn.toIso8601String(),
-      if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
+      if (actualizadoEn != null)
+        'actualizado_en': actualizadoEn!.toIso8601String(),
       if (proyecto != null) 'proyecto': proyecto,
     };
   }
 
   @override
   List<Object?> get props => [
-        idTarea,
-        proyectoId,
-        nombre,
-        descripcion,
-        prioridad,
-        fechaInicio,
-        fechaFin,
-        estado,
-        creadoEn,
-        actualizadoEn,
-      ];
+    idTarea,
+    proyectoId,
+    nombre,
+    descripcion,
+    prioridad,
+    fechaInicio,
+    fechaFin,
+    estado,
+    creadoEn,
+    actualizadoEn,
+  ];
 }
-

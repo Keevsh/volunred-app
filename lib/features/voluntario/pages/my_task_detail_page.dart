@@ -37,9 +37,9 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
         setState(() {
           _isUpdating = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Estado actualizado a $estado')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Estado actualizado a $estado')));
       }
     } catch (e) {
       if (mounted) {
@@ -62,9 +62,7 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle de tarea'),
-      ),
+      appBar: AppBar(title: const Text('Detalle de tarea')),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _futureDetail,
         builder: (context, snapshot) {
@@ -79,9 +77,16 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: colorScheme.error,
+                    ),
                     const SizedBox(height: 8),
-                    Text('Error al cargar detalle de la tarea', style: theme.textTheme.titleMedium),
+                    Text(
+                      'Error al cargar detalle de la tarea',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       snapshot.error.toString(),
@@ -95,13 +100,24 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
           }
 
           final data = snapshot.data ?? {};
-          final tareaMap = data['tarea'] is Map ? Map<String, dynamic>.from(data['tarea'] as Map) : null;
-          final evidencias = data['evidencias'] is List ? List.from(data['evidencias'] as List) : <dynamic>[];
-          final estado = (data['estado'] ?? tareaMap?['estado'] ?? 'pendiente').toString();
+          final tareaMap = data['tarea'] is Map
+              ? Map<String, dynamic>.from(data['tarea'] as Map)
+              : null;
+          final evidencias = data['evidencias'] is List
+              ? List.from(data['evidencias'] as List)
+              : <dynamic>[];
+          final estado = (data['estado'] ?? tareaMap?['estado'] ?? 'pendiente')
+              .toString();
 
-          final nombre = tareaMap != null ? (tareaMap['nombre']?.toString() ?? 'Tarea') : 'Tarea';
-          final descripcion = tareaMap != null ? tareaMap['descripcion']?.toString() : null;
-          final prioridad = tareaMap != null ? tareaMap['prioridad']?.toString() : null;
+          final nombre = tareaMap != null
+              ? (tareaMap['nombre']?.toString() ?? 'Tarea')
+              : 'Tarea';
+          final descripcion = tareaMap != null
+              ? tareaMap['descripcion']?.toString()
+              : null;
+          final prioridad = tareaMap != null
+              ? tareaMap['prioridad']?.toString()
+              : null;
           final proyectoMap = tareaMap != null && tareaMap['proyecto'] is Map
               ? Map<String, dynamic>.from(tareaMap['proyecto'] as Map)
               : null;
@@ -119,7 +135,8 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
             }
           }
           if (proyectoId == null && proyectoMap != null) {
-            final rawProyectoId = proyectoMap['id_proyecto'] ?? proyectoMap['proyecto_id'];
+            final rawProyectoId =
+                proyectoMap['id_proyecto'] ?? proyectoMap['proyecto_id'];
             if (rawProyectoId is int) {
               proyectoId = rawProyectoId;
             } else if (rawProyectoId is String) {
@@ -134,19 +151,21 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
               children: [
                 Text(
                   nombre,
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   proyectoNombre,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Chip(
-                      label: Text(estado.toUpperCase()),
-                    ),
+                    Chip(label: Text(estado.toUpperCase())),
                     if (prioridad != null && prioridad.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Chip(
@@ -163,12 +182,16 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                   const SizedBox(height: 16),
                 ],
                 if (proyectoId != null) ...[
-                  Text('Otras tareas de este proyecto', style: theme.textTheme.titleMedium),
+                  Text(
+                    'Otras tareas de este proyecto',
+                    style: theme.textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   FutureBuilder<List<Map<String, dynamic>>>(
                     future: _repository.getMyTasks(proyectoId: proyectoId),
                     builder: (context, tasksSnapshot) {
-                      if (tasksSnapshot.connectionState == ConnectionState.waiting) {
+                      if (tasksSnapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8),
                           child: LinearProgressIndicator(minHeight: 2),
@@ -207,28 +230,39 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                           final tareaNombre = otherTareaMap != null
                               ? (otherTareaMap['nombre']?.toString() ?? 'Tarea')
                               : 'Tarea';
-                          final otherEstado = (item['estado'] ?? otherTareaMap?['estado'] ?? 'pendiente')
-                              .toString();
+                          final otherEstado =
+                              (item['estado'] ??
+                                      otherTareaMap?['estado'] ??
+                                      'pendiente')
+                                  .toString();
 
                           int? otherTareaId;
                           if (otherTareaMap != null) {
-                            final rawId = otherTareaMap['id_tarea'] ?? otherTareaMap['id'];
+                            final rawId =
+                                otherTareaMap['id_tarea'] ??
+                                otherTareaMap['id'];
                             if (rawId is int) {
                               otherTareaId = rawId;
                             } else if (rawId is String) {
                               otherTareaId = int.tryParse(rawId);
                             }
                           }
-                          otherTareaId ??= item['tarea_id'] is int ? item['tarea_id'] as int : null;
+                          otherTareaId ??= item['tarea_id'] is int
+                              ? item['tarea_id'] as int
+                              : null;
 
                           return ListTile(
                             title: Text(tareaNombre),
-                            subtitle: Text('Estado: ${otherEstado.toUpperCase()}'),
+                            subtitle: Text(
+                              'Estado: ${otherEstado.toUpperCase()}',
+                            ),
                             onTap: otherTareaId == null
                                 ? null
                                 : () {
                                     if (otherTareaId == widget.tareaId) return;
-                                    Modular.to.pushReplacementNamed('/voluntario/my-tasks/$otherTareaId');
+                                    Modular.to.pushReplacementNamed(
+                                      '/voluntario/my-tasks/$otherTareaId',
+                                    );
                                   },
                           );
                         },
@@ -237,7 +271,10 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                   ),
                   const SizedBox(height: 24),
                 ],
-                Text('Evidencias (${evidencias.length})', style: theme.textTheme.titleMedium),
+                Text(
+                  'Evidencias (${evidencias.length})',
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 if (evidencias.isEmpty)
                   Text(
@@ -247,8 +284,12 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                 else
                   Column(
                     children: evidencias.map((e) {
-                      final tipo = e is Map && e['tipo'] != null ? e['tipo'].toString() : 'EVIDENCIA';
-                      final desc = e is Map && e['descripcion'] != null ? e['descripcion'].toString() : '';
+                      final tipo = e is Map && e['tipo'] != null
+                          ? e['tipo'].toString()
+                          : 'EVIDENCIA';
+                      final desc = e is Map && e['descripcion'] != null
+                          ? e['descripcion'].toString()
+                          : '';
                       return ListTile(
                         leading: const Icon(Icons.insert_drive_file_outlined),
                         title: Text(tipo),
@@ -264,15 +305,21 @@ class _MyTaskDetailPageState extends State<MyTaskDetailPage> {
                   runSpacing: 8,
                   children: [
                     FilledButton(
-                      onPressed: _isUpdating || estado == 'en_progreso' ? null : () => _changeStatus('en_progreso'),
+                      onPressed: _isUpdating || estado == 'en_progreso'
+                          ? null
+                          : () => _changeStatus('en_progreso'),
                       child: const Text('Marcar en progreso'),
                     ),
                     FilledButton(
-                      onPressed: _isUpdating || estado == 'completada' ? null : () => _changeStatus('completada'),
+                      onPressed: _isUpdating || estado == 'completada'
+                          ? null
+                          : () => _changeStatus('completada'),
                       child: const Text('Marcar completada'),
                     ),
                     OutlinedButton(
-                      onPressed: _isUpdating || estado == 'pendiente' ? null : () => _changeStatus('pendiente'),
+                      onPressed: _isUpdating || estado == 'pendiente'
+                          ? null
+                          : () => _changeStatus('pendiente'),
                       child: const Text('Volver a pendiente'),
                     ),
                   ],

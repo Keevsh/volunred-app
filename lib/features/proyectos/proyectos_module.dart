@@ -12,43 +12,37 @@ class ProyectosModule extends Module {
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute(
-          '/create',
-          child: (_, __) => const CreateProyectoPage(),
-        ),
-        ChildRoute(
-          '/:id',
-          child: (_, args) => ProyectoDetailPage(
-            proyectoId: int.parse(args.params['id']!),
-          ),
-        ),
-        ChildRoute(
-          '/:id/tareas',
-          child: (_, args) => TareasManagementPage(
-            proyectoId: int.parse(args.params['id']!),
-          ),
-        ),
-        ChildRoute(
-          '/:id/tareas-kanban',
-          child: (_, args) => TareasKanbanPage(
-            proyectoId: int.parse(args.params['id']!),
-            isFuncionario: args.queryParams['role'] == 'funcionario',
-          ),
-        ),
-        ChildRoute(
-          '/tarea/:tareaId',
-          child: (_, args) => TareaDetailPage(
-            tareaId: int.parse(args.params['tareaId']!),
-            isFuncionario: args.queryParams['role'] == 'funcionario',
-          ),
-        ),
-        ChildRoute(
-          '/tarea/:tareaId/asignar-voluntarios',
-          child: (_, args) => AsignarVoluntariosPage(
-            tareaId: int.parse(args.params['tareaId']!),
-            tareaNombre: args.queryParams['nombre'] ?? 'Tarea',
-          ),
-        ),
-      ];
+    ChildRoute('/create', child: (_, __) => const CreateProyectoPage()),
+    ChildRoute(
+      '/:id',
+      child: (_, args) =>
+          ProyectoDetailPage(proyectoId: int.parse(args.params['id']!)),
+    ),
+    ChildRoute(
+      '/:id/tareas',
+      child: (_, args) =>
+          TareasManagementPage(proyectoId: int.parse(args.params['id']!)),
+    ),
+    ChildRoute(
+      '/:id/tareas-kanban',
+      child: (_, args) => TareasKanbanPage(
+        proyectoId: int.parse(args.params['id']!),
+        isFuncionario: args.queryParams['role'] == 'funcionario',
+      ),
+    ),
+    ChildRoute(
+      '/tarea/:tareaId',
+      child: (_, args) => TareaDetailPage(
+        tareaId: int.parse(args.params['tareaId']!),
+        isFuncionario: args.queryParams['role'] == 'funcionario',
+      ),
+    ),
+    ChildRoute(
+      '/tarea/:tareaId/asignar-voluntarios',
+      child: (_, args) => AsignarVoluntariosPage(
+        tareaId: int.parse(args.params['tareaId']!),
+        tareaNombre: args.queryParams['nombre'] ?? 'Tarea',
+      ),
+    ),
+  ];
 }
-

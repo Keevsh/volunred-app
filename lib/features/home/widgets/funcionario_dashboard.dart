@@ -846,18 +846,13 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.builder(
+            child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
-              ),
               itemCount: _proyectos.length > 6 ? 6 : _proyectos.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                return _buildProyectoSmartCard(_proyectos[index], theme);
+                return _buildProyectoListCard(_proyectos[index], theme);
               },
             ),
           ),
@@ -867,219 +862,191 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     );
   }
 
-  Widget _buildProyectoSmartCard(Proyecto proyecto, ThemeData theme) {
+  Widget _buildProyectoListCard(Proyecto proyecto, ThemeData theme) {
     final isActivo = proyecto.estado.toLowerCase() == 'activo';
     final hasImage = proyecto.imagen != null && proyecto.imagen!.isNotEmpty;
 
     return Container(
+      height: 140,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: () =>
               Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
-          borderRadius: BorderRadius.circular(20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Fondo: Imagen o gradiente
-                if (hasImage)
-                  Image.memory(
-                    base64Decode(proyecto.imagen!.split(',').last),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildGradientBackground(isActivo);
-                    },
-                  )
-                else
-                  _buildGradientBackground(isActivo),
-
-                // Overlay oscuro para legibilidad
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.3),
-                        Colors.black.withOpacity(0.7),
-                      ],
-                    ),
+          borderRadius: BorderRadius.circular(16),
+          child: Row(
+            children: [
+              // Imagen lateral
+              Container(
+                width: 140,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16),
                   ),
                 ),
-
-                // Contenido
-                Padding(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (hasImage)
+                        Image.memory(
+                          base64Decode(proyecto.imagen!.split(',').last),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildGradientBackground(isActivo);
+                          },
+                        )
+                      else
+                        _buildGradientBackground(isActivo),
+                      // Overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.2),
+                              Colors.black.withOpacity(0.5),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Contenido
+              Expanded(
+                child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Badge de estado
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isActivo
-                                ? const Color(0xFF4CAF50)
-                                : const Color(0xFFFF9800),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                proyecto.estado.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Info del proyecto
-                      Column(
+                      // Header con título y badge
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Nombre
-                          Text(
-                            proyecto.nombre,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.2,
-                              letterSpacing: -0.3,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black45,
-                                  blurRadius: 4,
-                                ),
-                              ],
+                          Expanded(
+                            child: Text(
+                              proyecto.nombre,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1A1A1A),
+                                height: 1.2,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 8),
-
-                          // Ubicación
-                          if (proyecto.ubicacion != null &&
-                              proyecto.ubicacion!.isNotEmpty)
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.location_on,
-                                    color: Colors.white,
-                                    size: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    proyecto.ubicacion!,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black45,
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          const SizedBox(height: 10),
-
-                          // Botón de acción
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
+                              color: isActivo
+                                  ? const Color(0xFFE8F5E9)
+                                  : const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              proyecto.estado.toUpperCase(),
+                              style: TextStyle(
+                                color: isActivo
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFFFF9800),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Text(
-                                  'Ver detalles',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                              ],
+                          ),
+                        ],
+                      ),
+                      // Ubicación
+                      if (proyecto.ubicacion != null &&
+                          proyecto.ubicacion!.isNotEmpty)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: Color(0xFF757575),
                             ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                proyecto.ubicacion!,
+                                style: const TextStyle(
+                                  color: Color(0xFF757575),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      // Footer con botón
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.people_rounded,
+                                  size: 16,
+                                  color: Color(0xFF1976D2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Ver equipo',
+                                style: TextStyle(
+                                  color: Color(0xFF757575),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: Color(0xFF9E9E9E),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1100,7 +1067,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       child: Center(
         child: Icon(
           Icons.folder_special_rounded,
-          size: 60,
+          size: 50,
           color: Colors.white.withOpacity(0.3),
         ),
       ),

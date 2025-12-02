@@ -531,12 +531,12 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
         children: [
           Text(
             'Resumen',
-            style: theme.textTheme.titleLarge?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: const Color(0xFF1A1A1A),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -566,7 +566,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -606,7 +606,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     ThemeData theme,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -626,14 +626,14 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [iconColor, iconColor.withOpacity(0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
                       color: iconColor.withOpacity(0.3),
@@ -642,7 +642,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                     ),
                   ],
                 ),
-                child: Icon(icon, color: Colors.white, size: 24),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
               Container(
                 padding: const EdgeInsets.all(6),
@@ -652,23 +652,23 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                 ),
                 child: Icon(
                   Icons.trending_up_rounded,
-                  size: 16,
+                  size: 14,
                   color: iconColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: theme.textTheme.headlineLarge?.copyWith(
+            style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w900,
               color: const Color(0xFF1A1A1A),
-              fontSize: 32,
+              fontSize: 26,
               height: 1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(

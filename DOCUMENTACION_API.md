@@ -216,10 +216,42 @@ Si recibes este error (HTTP 400), significa que:
 ### 📋 Pasos para resolver en el frontend:
 
 #### 1. **Obtén la participación aprobada del voluntario:**
-   - Endpoint: `GET /funcionarios/proyectos/{proyectoId}/participaciones`
-   - Filtra por participaciones con `estado === 'APROBADA'`
-   - Selecciona una que tenga el `perfil_vol_id` que necesitas
+   - **Endpoint recomendado**: `GET /funcionarios/proyectos/{proyectoId}/participaciones`
+   - Este endpoint devuelve participaciones completas incluyendo:
+     - `id_participacion`: ID de la participación
+     - `perfil_vol_id`: ID del perfil de voluntario (disponible directamente)
+     - `inscripcion`: Objeto con datos de la inscripción y usuario anidado
+     - `estado`: Estado de la participación (filtrar por 'APROBADA')
+   - Filtra por participaciones con `estado === 'APROBADA'` (mayúsculas)
+   - Extrae el `usuario_id` desde `inscripcion.usuario.id_usuario`
    - Guarda tanto el `id_participacion` como el `perfil_vol_id` de esa participación
+
+#### Ejemplo de respuesta del endpoint:
+```json
+[
+  {
+    "id_participacion": 5,
+    "inscripcion_id": 7,
+    "perfil_vol_id": 9,
+    "proyecto_id": 12,
+    "estado": "APROBADA",
+    "creado_en": "2025-12-01T04:25:02.546Z",
+    "inscripcion": {
+      "id_inscripcion": 7,
+      "usuario_id": 41,
+      "perfil_vol_id": 9,
+      "organizacion_id": 20,
+      "estado": "APROBADO",
+      "usuario": {
+        "id_usuario": 41,
+        "nombres": "Kevin",
+        "apellidos": "Echalar",
+        "email": "romero2@gmail.com"
+      }
+    }
+  }
+]
+```
 
 #### 2. **Envía AMBOS valores en la asignación:**
 ```json

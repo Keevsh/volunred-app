@@ -33,6 +33,8 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
   final Map<int, int> _usuarioToParticipacionMap =
       {}; // usuarioId -> participacionId
   final Map<int, int> _usuarioToPerfilVolMap = {}; // usuarioId -> perfilVolId
+  final Map<int, Participacion> _participaciones =
+      {}; // participacionId -> Participacion
 
   @override
   void initState() {
@@ -97,13 +99,34 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
     final usuarioIds = <int>{};
     _usuarioToParticipacionMap.clear(); // Limpiar mapas anteriores
     _usuarioToPerfilVolMap.clear();
+    _participaciones.clear();
+
+    print('🔍 Analizando ${participaciones.length} participaciones...');
 
     for (final participacion in participaciones) {
-      // Filtrar solo participaciones APROBADAS
+      print('📝 Participación ${participacion.idParticipacion}:');
+      print('   - Estado: "${participacion.estado}"');
+      print('   - perfil_vol_id: ${participacion.perfilVolId}');
+      print('   - inscripcion_id: ${participacion.inscripcionId}');
+
+      // Guardar la participación completa
+      _participaciones[participacion.idParticipacion] = participacion;
+
+      // Aceptar participaciones que no estén eliminadas o rechazadas
+      // El usuario podrá aprobar las que estén en otros estados
       final estadoUpper = participacion.estado.toUpperCase();
-      if (estadoUpper != 'APROBADA') {
+      if (estadoUpper == 'ELIMINADA' || estadoUpper == 'RECHAZADA') {
         print(
-          '⏭️ Participación ${participacion.idParticipacion} no está aprobada (estado: ${participacion.estado})',
+          '⏭️ Participación ${participacion.idParticipacion} está ${participacion.estado}, se omite',
+        );
+        continue;
+      }
+
+      // El perfil_vol_id viene directamente en el objeto Participacion
+      final perfilVolId = participacion.perfilVolId;
+      if (perfilVolId == null) {
+        print(
+          '⚠️ Participación ${participacion.idParticipacion} no tiene perfil_vol_id',
         );
         continue;
       }
@@ -116,54 +139,45 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
         continue;
       }
 
-      // Intentar extraer el usuario_id y perfil_vol_id
-      int? usuarioId;
-      int? perfilVolId;
+      print('   - inscripcion keys: ${inscripcion.keys.toList()}');
 
-      // 1. Intentar desde el campo directo
+      // Extraer usuario_id: primero intentar del nivel directo de inscripcion,
+      // luego del objeto usuario anidado
+      int? usuarioId;
+
       final rawUserId = inscripcion['usuario_id'] ?? inscripcion['usuarioId'];
       if (rawUserId != null) {
         usuarioId = rawUserId is int
             ? rawUserId
             : int.tryParse(rawUserId.toString());
+        print('   - usuario_id encontrado en nivel directo: $usuarioId');
       }
 
-      // 2. Intentar obtener perfil_vol_id desde inscripcion
-      final rawPerfilVolId =
-          inscripcion['perfil_vol_id'] ?? inscripcion['perfilVolId'];
-      if (rawPerfilVolId != null) {
-        perfilVolId = rawPerfilVolId is int
-            ? rawPerfilVolId
-            : int.tryParse(rawPerfilVolId.toString());
-      }
-
-      // 3. Si no se encontró usuario, intentar desde el objeto usuario anidado
+      // Si no se encontró, intentar desde el objeto usuario anidado
       if (usuarioId == null && inscripcion['usuario'] is Map) {
         final usuario = inscripcion['usuario'] as Map<String, dynamic>;
+        print('   - usuario object keys: ${usuario.keys.toList()}');
         final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
         if (rawUsuarioId != null) {
           usuarioId = rawUsuarioId is int
               ? rawUsuarioId
               : int.tryParse(rawUsuarioId.toString());
+          print('   - usuario_id encontrado en objeto anidado: $usuarioId');
         }
       }
 
-      if (usuarioId != null &&
-          usuarioId > 0 &&
-          perfilVolId != null &&
-          perfilVolId > 0) {
+      if (usuarioId != null && usuarioId > 0) {
         usuarioIds.add(usuarioId);
         // Guardar los mapeos necesarios para la asignación
         _usuarioToParticipacionMap[usuarioId] = participacion.idParticipacion;
         _usuarioToPerfilVolMap[usuarioId] = perfilVolId;
         print(
-          '✅ Usuario $usuarioId participa en el proyecto (participación ${participacion.idParticipacion}, perfil_vol ${perfilVolId})',
+          '✅ Usuario $usuarioId participa en el proyecto (participación ${participacion.idParticipacion}, perfil_vol $perfilVolId)',
         );
       } else {
         print(
-          '⚠️ No se pudo extraer datos completos de la participación ${participacion.idParticipacion}',
+          '⚠️ No se pudo extraer usuario_id de la participación ${participacion.idParticipacion}',
         );
-        print('   usuarioId: $usuarioId, perfilVolId: $perfilVolId');
       }
     }
 
@@ -176,6 +190,35 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
   Future<void> _refresh() async {
     setState(_loadData);
     await Future.wait([_futureVoluntarios, _futureAsignaciones]);
+  }
+
+  Future<void> _aprobarParticipacion(int participacionId) async {
+    try {
+      print('📝 Aprobando participación $participacionId...');
+      await _repository.updateParticipacion(participacionId, {
+        'estado': 'APROBADA',
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Participación aprobada exitosamente'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+        // Recargar datos
+        _refresh();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al aprobar: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _asignarVoluntario(PerfilVoluntario voluntario) async {
@@ -359,7 +402,7 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                                   _searchQuery.isEmpty) ...[
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Solo puedes asignar tareas a voluntarios que participan en este proyecto.',
+                                  'Solo puedes asignar tareas a voluntarios con participaciones APROBADAS en este proyecto.',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -367,7 +410,7 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Primero agrega voluntarios al proyecto desde la página del proyecto.',
+                                  'Verifica que las participaciones de los voluntarios estén en estado "APROBADA" (no "programada", "en_progreso", etc.).',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -394,6 +437,16 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                       final isAsignado = _idsAsignados.contains(
                         voluntario.idPerfilVoluntario,
                       );
+
+                      // Obtener la participación del voluntario
+                      final participacionId =
+                          _usuarioToParticipacionMap[voluntario.usuarioId];
+                      final participacion = participacionId != null
+                          ? _participaciones[participacionId]
+                          : null;
+                      final estadoParticipacion =
+                          participacion?.estado.toUpperCase() ?? '';
+                      final isAprobada = estadoParticipacion == 'APROBADA';
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -429,6 +482,19 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                                 backgroundColor: colorScheme.primaryContainer,
                                 labelStyle: TextStyle(
                                   color: colorScheme.onPrimaryContainer,
+                                ),
+                              )
+                            : !isAprobada
+                            ? FilledButton.icon(
+                                onPressed: participacionId != null
+                                    ? () =>
+                                          _aprobarParticipacion(participacionId)
+                                    : null,
+                                icon: const Icon(Icons.check_circle, size: 18),
+                                label: const Text('Aprobar'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: colorScheme.tertiary,
+                                  foregroundColor: colorScheme.onTertiary,
                                 ),
                               )
                             : FilledButton.icon(

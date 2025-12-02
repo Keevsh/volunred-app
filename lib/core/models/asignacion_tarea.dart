@@ -1,49 +1,49 @@
 import 'package:equatable/equatable.dart';
 
 /// Modelo de Asignación de Tarea
-/// 
+///
 /// Representa la asignación de una tarea específica a un voluntario aprobado.
 /// Permite asignar tareas individuales a voluntarios con información adicional.
-/// 
+///
 /// Relaciones:
 /// - **Tarea (N:1)**: Una asignación pertenece a una tarea.
 /// - **Perfil Voluntario (N:1)**: Una asignación pertenece a un perfil de voluntario.
 class AsignacionTarea extends Equatable {
   /// ID único de la asignación
   final int idAsignacion;
-  
+
   /// ID de la tarea asignada
   final int tareaId;
-  
+
   /// ID del perfil de voluntario al que se asigna la tarea
-  /// 
+  ///
   /// NOTA: El voluntario debe tener una inscripción APROBADA en la organización.
   final int perfilVolId;
-  
+
   /// Título de la asignación (opcional)
   final String? titulo;
-  
+
   /// Descripción de la asignación (opcional)
   final String? descripcion;
-  
+
   /// Fecha de asignación (opcional)
   final DateTime? fechaAsignacion;
-  
+
   /// Estado de la asignación
   /// Valores posibles: 'activo', 'en_progreso', 'completada', 'cancelada'
   final String estado;
-  
+
   /// Fecha de creación de la asignación
   final DateTime creadoEn;
-  
+
   /// Fecha de última actualización (opcional)
   final DateTime? actualizadoEn;
 
   // Relaciones opcionales (se incluyen cuando se hace join en la consulta)
-  
+
   /// Datos de la tarea (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? tarea;
-  
+
   /// Datos del perfil de voluntario (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? perfilVoluntario;
 
@@ -67,14 +67,14 @@ class AsignacionTarea extends Equatable {
       if (value == null) return null;
       return value.toString();
     }
-    
+
     // Helper function to safely get int value
     int _getInt(dynamic value, {int defaultValue = 0}) {
       if (value == null) return defaultValue;
       if (value is int) return value;
       return int.tryParse(value.toString()) ?? defaultValue;
     }
-    
+
     // Handle fecha_asignacion
     DateTime? fechaAsignacion;
     final fechaAsignacionValue = json['fecha_asignacion'];
@@ -85,7 +85,7 @@ class AsignacionTarea extends Equatable {
         fechaAsignacion = null;
       }
     }
-    
+
     // Handle creado_en
     DateTime creadoEn;
     final creadoEnValue = json['creado_en'];
@@ -98,7 +98,7 @@ class AsignacionTarea extends Equatable {
     } else {
       creadoEn = DateTime.now();
     }
-    
+
     // Handle actualizado_en
     DateTime? actualizadoEn;
     final actualizadoEnValue = json['actualizado_en'];
@@ -109,9 +109,11 @@ class AsignacionTarea extends Equatable {
         actualizadoEn = null;
       }
     }
-    
+
     return AsignacionTarea(
-      idAsignacion: _getInt(json['id_asignacion'] ?? json['id_asignacion_tarea']),
+      idAsignacion: _getInt(
+        json['id_asignacion'] ?? json['id_asignacion_tarea'],
+      ),
       tareaId: _getInt(json['tarea_id']),
       perfilVolId: _getInt(json['perfil_vol_id']),
       titulo: _getString(json['titulo']),
@@ -120,12 +122,14 @@ class AsignacionTarea extends Equatable {
       estado: _getString(json['estado']) ?? 'activo',
       creadoEn: creadoEn,
       actualizadoEn: actualizadoEn,
-      tarea: json['tarea'] is Map 
-          ? json['tarea'] as Map<String, dynamic>? 
+      tarea: json['tarea'] is Map
+          ? json['tarea'] as Map<String, dynamic>?
           : null,
-      perfilVoluntario: json['perfilVoluntario'] is Map 
-          ? json['perfilVoluntario'] as Map<String, dynamic>? 
-          : null,
+      perfilVoluntario: json['perfil_voluntario'] is Map
+          ? json['perfil_voluntario'] as Map<String, dynamic>?
+          : (json['perfilVoluntario'] is Map
+                ? json['perfilVoluntario'] as Map<String, dynamic>?
+                : null),
     );
   }
 
@@ -136,10 +140,15 @@ class AsignacionTarea extends Equatable {
       'perfil_vol_id': perfilVolId,
       if (titulo != null) 'titulo': titulo,
       if (descripcion != null) 'descripcion': descripcion,
-                  if (fechaAsignacion != null) 'fecha_asignacion': fechaAsignacion!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+      if (fechaAsignacion != null)
+        'fecha_asignacion': fechaAsignacion!
+            .toUtc()
+            .toIso8601String()
+            .replaceAll(RegExp(r'\.\d+'), ''),
       'estado': estado,
       'creado_en': creadoEn.toIso8601String(),
-      if (actualizadoEn != null) 'actualizado_en': actualizadoEn!.toIso8601String(),
+      if (actualizadoEn != null)
+        'actualizado_en': actualizadoEn!.toIso8601String(),
       if (tarea != null) 'tarea': tarea,
       if (perfilVoluntario != null) 'perfilVoluntario': perfilVoluntario,
     };
@@ -147,15 +156,14 @@ class AsignacionTarea extends Equatable {
 
   @override
   List<Object?> get props => [
-        idAsignacion,
-        tareaId,
-        perfilVolId,
-        titulo,
-        descripcion,
-        fechaAsignacion,
-        estado,
-        creadoEn,
-        actualizadoEn,
-      ];
+    idAsignacion,
+    tareaId,
+    perfilVolId,
+    titulo,
+    descripcion,
+    fechaAsignacion,
+    estado,
+    creadoEn,
+    actualizadoEn,
+  ];
 }
-

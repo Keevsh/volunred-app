@@ -5,6 +5,7 @@ import 'bloc/profile_bloc.dart';
 import 'pages/create_profile_page.dart';
 import 'pages/create_funcionario_profile_page.dart';
 import 'pages/edit_profile_page.dart';
+import 'pages/view_funcionario_profile_page.dart';
 import 'pages/select_aptitudes_page.dart';
 import 'pages/create_organizacion_page.dart';
 import 'pages/funcionario_options_page.dart';
@@ -44,5 +45,6 @@ class ProfileModule extends Module {
       ),
     ),
     ChildRoute('/edit', child: (_, __) => const EditProfilePage()),
+    ChildRoute('/view-funcionario', child: (_, __) => const ViewFuncionarioProfilePage()),
   ];
 }

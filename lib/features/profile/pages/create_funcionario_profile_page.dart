@@ -21,6 +21,10 @@ class _CreateFuncionarioProfilePageState
   final _departamentoController = TextEditingController();
   final _bioController = TextEditingController();
   final _organizacionController = TextEditingController();
+  final _sitioWebController = TextEditingController();
+  final _telefonoController = TextEditingController();
+
+  int _completionPercentage = 0;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -37,15 +41,46 @@ class _CreateFuncionarioProfilePageState
       curve: Curves.easeInOut,
     );
     _animationController.forward();
+
+    // Agregar listeners a los controllers
+    _organizacionController.addListener(_updateCompletionPercentage);
+    _cargoController.addListener(_updateCompletionPercentage);
+    _departamentoController.addListener(_updateCompletionPercentage);
+    _bioController.addListener(_updateCompletionPercentage);
+
+    // Actualizar porcentaje inicial
+    _updateCompletionPercentage();
+  }
+
+  void _updateCompletionPercentage() {
+    int filled = 0;
+    if (_organizacionController.text.isNotEmpty) filled++;
+    if (_cargoController.text.isNotEmpty) filled++;
+    if (_departamentoController.text.isNotEmpty) filled++;
+    if (_bioController.text.isNotEmpty) filled++;
+
+    setState(() {
+      _completionPercentage = (filled / 4 * 100).toInt();
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _cargoController.dispose();
-    _departamentoController.dispose();
-    _bioController.dispose();
-    _organizacionController.dispose();
+    _cargoController
+      ..removeListener(_updateCompletionPercentage)
+      ..dispose();
+    _departamentoController
+      ..removeListener(_updateCompletionPercentage)
+      ..dispose();
+    _bioController
+      ..removeListener(_updateCompletionPercentage)
+      ..dispose();
+    _organizacionController
+      ..removeListener(_updateCompletionPercentage)
+      ..dispose();
+    _sitioWebController.dispose();
+    _telefonoController.dispose();
     super.dispose();
   }
 
@@ -55,15 +90,17 @@ class _CreateFuncionarioProfilePageState
     final authRepo = Modular.get<AuthRepository>();
     final usuario = await authRepo.getStoredUser();
 
-    print('👤 Usuario funcionario: ${usuario?.toJson()}');
-    print('👤 Cargo: ${_cargoController.text}');
-    print('👤 Departamento: ${_departamentoController.text}');
-    print('👤 Organización: ${_organizacionController.text}');
-
     if (usuario == null) {
       _showSnackBar('Error: Usuario no encontrado');
       return;
     }
+
+    print('👤 Usuario funcionario: ${usuario.toJson()}');
+    print('📋 Cargo: ${_cargoController.text}');
+    print('🏢 Departamento: ${_departamentoController.text}');
+    print('🌐 Organización: ${_organizacionController.text}');
+    print('🔗 Sitio Web: ${_sitioWebController.text}');
+    print('📞 Teléfono: ${_telefonoController.text}');
 
     // TODO: Implementar creación de perfil de funcionario
     // Por ahora, solo redirigimos al home
@@ -92,6 +129,7 @@ class _CreateFuncionarioProfilePageState
         child: Column(
           children: [
             _buildHeader(colorScheme),
+            _buildProgressIndicator(colorScheme),
             Expanded(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -100,6 +138,48 @@ class _CreateFuncionarioProfilePageState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Completitud del perfil',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                '$_completionPercentage%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: _completionPercentage / 100,
+              minHeight: 6,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -160,127 +240,148 @@ class _CreateFuncionarioProfilePageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Organización
-            const Text(
-              'Organización',
-              style: TextStyle(
-                fontSize: AppStyles.fontSizeBody,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            AppWidgets.styledTextField(
-              controller: _organizacionController,
-              label: 'Nombre de la organización',
-              hint: 'Ej: Cruz Roja Boliviana',
-              prefixIcon: Icons.business,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Este campo es requerido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppStyles.spacingLarge),
-
-            // Cargo
-            const Text(
-              'Cargo',
-              style: TextStyle(
-                fontSize: AppStyles.fontSizeBody,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            AppWidgets.styledTextField(
-              controller: _cargoController,
-              label: 'Tu cargo en la organización',
-              hint: 'Ej: Coordinador de Voluntariado',
-              prefixIcon: Icons.work_outline,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Este campo es requerido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppStyles.spacingLarge),
-
-            // Departamento
-            const Text(
-              'Departamento',
-              style: TextStyle(
-                fontSize: AppStyles.fontSizeBody,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            AppWidgets.styledTextField(
-              controller: _departamentoController,
-              label: 'Departamento o área',
-              hint: 'Ej: Recursos Humanos',
-              prefixIcon: Icons.corporate_fare,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Este campo es requerido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppStyles.spacingLarge),
-
-            // Bio
-            const Text(
-              'Descripción',
-              style: TextStyle(
-                fontSize: AppStyles.fontSizeBody,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _bioController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Descripción de tu rol',
-                hintText: 'Cuéntanos sobre tu experiencia y objetivos...',
-                prefixIcon: const Icon(Icons.description_outlined),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppStyles.borderRadiusMedium,
-                  ),
+            // Sección: Información de la Organización
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              title: 'Información de la Organización',
+              icon: Icons.business,
+              children: [
+                AppWidgets.styledTextField(
+                  controller: _organizacionController,
+                  label: 'Nombre de la organización',
+                  hint: 'Ej: Cruz Roja Boliviana',
+                  prefixIcon: Icons.business,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Este campo es requerido';
+                    }
+                    if (value.length < 3) {
+                      return 'Mínimo 3 caracteres';
+                    }
+                    return null;
+                  },
                 ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: AppStyles.spacingXLarge),
-
-            // Información adicional
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(
-                  AppStyles.borderRadiusMedium,
+                const SizedBox(height: 16),
+                AppWidgets.styledTextField(
+                  controller: _sitioWebController,
+                  label: 'Sitio web (opcional)',
+                  hint: 'Ej: www.cruzroja.org.bo',
+                  prefixIcon: Icons.language,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      if (!value.contains('.')) {
+                        return 'Ingresa un sitio web válido';
+                      }
+                    }
+                    return null;
+                  },
                 ),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: AppColors.primary, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Como funcionario, podrás crear proyectos, gestionar voluntarios y generar reportes de impacto.',
-                      style: TextStyle(
-                        fontSize: AppStyles.fontSizeSmall,
-                        color: AppColors.textSecondary,
+              ],
+            ),
+            const SizedBox(height: AppStyles.spacingLarge),
+
+            // Sección: Información Personal del Funcionario
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              title: 'Tu Información',
+              icon: Icons.person,
+              children: [
+                AppWidgets.styledTextField(
+                  controller: _cargoController,
+                  label: 'Tu cargo en la organización',
+                  hint: 'Ej: Coordinador de Voluntariado',
+                  prefixIcon: Icons.work_outline,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Este campo es requerido';
+                    }
+                    if (value.length < 3) {
+                      return 'Mínimo 3 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                AppWidgets.styledTextField(
+                  controller: _departamentoController,
+                  label: 'Departamento o área',
+                  hint: 'Ej: Recursos Humanos',
+                  prefixIcon: Icons.corporate_fare,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Este campo es requerido';
+                    }
+                    if (value.length < 2) {
+                      return 'Mínimo 2 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                AppWidgets.styledTextField(
+                  controller: _telefonoController,
+                  label: 'Teléfono (opcional)',
+                  hint: 'Ej: +591 2 1234567',
+                  prefixIcon: Icons.phone,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      if (value.length < 7) {
+                        return 'Teléfono inválido';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: AppStyles.spacingLarge),
+
+            // Sección: Descripción
+            _buildSectionCard(
+              colorScheme: colorScheme,
+              title: 'Descripción del Rol',
+              icon: Icons.description,
+              children: [
+                TextFormField(
+                  controller: _bioController,
+                  maxLines: 5,
+                  maxLength: 500,
+                  decoration: InputDecoration(
+                    labelText: 'Descripción de tu rol',
+                    hintText:
+                        'Cuéntanos sobre tu experiencia, responsabilidades y objetivos como funcionario...',
+                    prefixIcon: const Icon(Icons.description_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppStyles.borderRadiusMedium,
                       ),
                     ),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest
+                        .withOpacity(0.3),
                   ),
-                ],
-              ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Este campo es requerido';
+                    }
+                    if (value.length < 10) {
+                      return 'Mínimo 10 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: AppStyles.spacingLarge),
+
+            // Información adicional
+            _buildInfoBox(
+              colorScheme: colorScheme,
+              icon: Icons.info_outline,
+              title: 'Funcionalidades de Funcionario',
+              description:
+                  'Como funcionario podrás crear proyectos, gestionar voluntarios, generar reportes de impacto y coordinar actividades de voluntariado.',
             ),
             const SizedBox(height: AppStyles.spacingXLarge),
 
@@ -310,6 +411,95 @@ class _CreateFuncionarioProfilePageState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required ColorScheme colorScheme,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoBox({
+    required ColorScheme colorScheme,
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: AppStyles.fontSizeSmall,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }

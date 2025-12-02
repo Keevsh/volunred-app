@@ -18,6 +18,7 @@ import '../widgets/funcionario_dashboard.dart';
 import '../widgets/voluntario_dashboard.dart';
 import '../widgets/mi_actividad_widget.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui';
 
 class HomePage extends StatefulWidget {
@@ -32,7 +33,6 @@ class _HomePageState extends State<HomePage> {
   String _userName = 'Usuario';
   bool _isAdmin = false;
   bool _isFuncionario = false;
-  int _selectedProjectTab = 0;
   bool _isProfileLoading = true;
   PerfilVoluntario? _perfilVoluntario;
   Map<String, dynamic>? _perfilFuncionario;
@@ -851,6 +851,16 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<List<Participacion>> _loadParticipacionesOrganizacion() async {
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      return await funcionarioRepo.getParticipaciones();
+    } catch (e) {
+      print('Error cargando participaciones: $e');
+      return [];
+    }
+  }
+
   Future<Map<String, dynamic>> _loadFuncionarioStats() async {
     try {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
@@ -912,7 +922,7 @@ class _HomePageState extends State<HomePage> {
                         fit: BoxFit.cover,
                       )
                     : Container(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         child: Center(
                           child: Icon(
                             Icons.volunteer_activism,
@@ -1052,7 +1062,7 @@ class _HomePageState extends State<HomePage> {
                       decoration: BoxDecoration(
                         color: proyecto.estado.toLowerCase() == 'activo'
                             ? colorScheme.primaryContainer
-                            : colorScheme.surfaceVariant,
+                            : colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -1393,7 +1403,7 @@ class _HomePageState extends State<HomePage> {
                           splashColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           hoverColor: Colors.transparent,
-                          overlayColor: MaterialStateProperty.all(
+                          overlayColor: WidgetStateProperty.all(
                             Colors.transparent,
                           ),
                           onTap: () {
@@ -1942,136 +1952,147 @@ class _HomePageState extends State<HomePage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final fechaInicio = proyecto.fechaInicio;
-    final fechaFin = proyecto.fechaFin;
     final bool isActivo = proyecto.estado.toLowerCase() == 'activo';
+    final imageBytes = _decodeProjectImage(proyecto.imagen);
 
-    return Card(
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
+    return Container(
+      height: 140,
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+          child: Row(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.folder_open_rounded,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          proyecto.nombre,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+              // Image panel on the left
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+                child: SizedBox(
+                  width: 140,
+                  height: 140,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (imageBytes != null)
+                        Image.memory(
+                          imageBytes,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => _buildGradientBackgroundForProject(isActivo),
+                        )
+                      else
+                        _buildGradientBackgroundForProject(isActivo),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.1),
+                              Colors.black.withOpacity(0.3),
+                            ],
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        if (proyecto.objetivo != null &&
-                            proyecto.objetivo!.isNotEmpty)
-                          Text(
-                            proyecto.objetivo!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Content on the right
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title and badge row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              proyecto.nombre,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1A1A1A),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Chip(
-                    label: Text(isActivo ? 'Activo' : proyecto.estado),
-                    backgroundColor: isActivo
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
-                    labelStyle: TextStyle(
-                      color: isActivo
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  const SizedBox(width: 8),
-                  if (fechaInicio != null)
-                    Chip(
-                      avatar: const Icon(Icons.calendar_today, size: 16),
-                      label: Text(
-                        '${fechaInicio.day.toString().padLeft(2, '0')}/${fechaInicio.month.toString().padLeft(2, '0')}/${fechaInicio.year}',
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isActivo ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isActivo ? 'Activo' : 'Inactivo',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      backgroundColor: colorScheme.surfaceContainerHighest,
-                      labelStyle: theme.textTheme.bodySmall,
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  if (fechaFin != null) ...[
-                    const SizedBox(width: 6),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${fechaFin.day.toString().padLeft(2, '0')}/${fechaFin.month.toString().padLeft(2, '0')}/${fechaFin.year}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 8),
+                      // Location
+                      if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                proyecto.ubicacion!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      const Spacer(),
+                      // Footer action
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+                            icon: const Icon(Icons.visibility_outlined, size: 16),
+                            label: const Text('Ver detalles'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    proyecto.ubicacion ?? 'Sin ubicación definida',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    ],
                   ),
-                  TextButton.icon(
-                    onPressed: () => Modular.to.pushNamed(
-                      '/proyectos/${proyecto.idProyecto}',
-                    ),
-                    icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                    label: const Text('Ver detalles'),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -2080,218 +2101,292 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildGradientBackgroundForProject(bool isActivo) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isActivo
+              ? [const Color(0xFF4CAF50), const Color(0xFF2E7D32)]
+              : [const Color(0xFFFF9800), const Color(0xFFE65100)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.folder_rounded,
+          size: 48,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProyectoListCard(
+    Proyecto proyecto,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
+    return _buildProyectoCardCompact(proyecto, theme, colorScheme);
+  }
+
+  Widget _buildModernStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+    Color bgColor,
+    ThemeData theme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: iconColor.withOpacity(0.1), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: iconColor.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [iconColor, iconColor.withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF1A1A1A),
+              fontSize: 26,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: const Color(0xFF757575),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Decode image safely with error handling
+  Uint8List? _decodeProjectImage(String? imageData) {
+    if (imageData == null || imageData.isEmpty) {
+      return null;
+    }
+    
+    try {
+      return base64Decode(imageData);
+    } catch (e) {
+      // Image is corrupted or invalid, return null to use gradient fallback
+      return null;
+    }
+  }
+
   // ========== VISTA PROYECTOS FUNCIONARIO ==========
   Widget _buildFuncionarioProyectosView() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLow,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: const Text('Mis Proyectos'),
-            backgroundColor: colorScheme.surface,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilledButton.icon(
-                  onPressed: () => Modular.to.pushNamed('/proyectos/create'),
-                  icon: const Icon(Icons.add_rounded, size: 20),
-                  label: const Text('Nuevo'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                  ),
+          SliverAppBar(
+            expandedHeight: 120,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Mis Proyectos',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Gestiona tus proyectos y tareas',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),
           ),
-          FutureBuilder<List<Proyecto>>(
-            future: _loadProyectosOrganizacion(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: FutureBuilder<List<Proyecto>>(
+              future: _loadProyectosOrganizacion(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              final proyectos = snapshot.data ?? [];
+                final proyectos = snapshot.data ?? [];
 
-              if (proyectos.isEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(
-                              0.3,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.folder_open_rounded,
-                            size: 80,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No tienes proyectos',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Crea tu primer proyecto para comenzar',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton.icon(
-                          onPressed: () =>
-                              Modular.to.pushNamed('/proyectos/create'),
-                          icon: const Icon(Icons.add_rounded),
-                          label: const Text('Crear Proyecto'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 16,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              final total = proyectos.length;
-              final activos = proyectos
-                  .where((p) => p.estado.toLowerCase() == 'activo')
-                  .length;
-              final inactivos = total - activos;
-
-              return SliverList(
-                delegate: SliverChildListDelegate([
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
+                if (proyectos.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(40),
                             decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '$total',
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Proyectos totales',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onPrimaryContainer
-                                        .withOpacity(0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: colorScheme.outline.withOpacity(0.2),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '$activos activos',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green[700],
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '$inactivos inactivos',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF1976D2).withOpacity(0.2),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
+                            child: const Icon(
+                              Icons.folder_open_rounded,
+                              size: 80,
+                              color: Color(0xFF1976D2),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Proyectos de tu organización',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurfaceVariant,
+                          const SizedBox(height: 32),
+                          Text(
+                            'No tienes proyectos',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1A1A1A),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Crea tu primer proyecto para comenzar\na gestionar actividades de voluntariado',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: const Color(0xFF757575),
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Column(
-                      children: proyectos.map((proyecto) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildProyectoCardCompact(
-                            proyecto,
-                            theme,
-                            colorScheme,
+                  );
+                }
+
+                final total = proyectos.length;
+                final activos = proyectos
+                    .where((p) => p.estado.toLowerCase() == 'activo')
+                    .length;
+                final inactivos = total - activos;
+
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildModernStatCard(
+                                'Total',
+                                total.toString(),
+                                Icons.folder_special_rounded,
+                                const Color(0xFF1976D2),
+                                const Color(0xFFE3F2FD),
+                                theme,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildModernStatCard(
+                                'Activos',
+                                activos.toString(),
+                                Icons.check_circle_rounded,
+                                const Color(0xFF4CAF50),
+                                const Color(0xFFE8F5E9),
+                                theme,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildModernStatCard(
+                                'Inactivos',
+                                inactivos.toString(),
+                                Icons.pause_circle_rounded,
+                                const Color(0xFFFF9800),
+                                const Color(0xFFFFF3E0),
+                                theme,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                        child: Text(
+                          'Proyectos',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1A1A1A),
                           ),
-                        );
-                      }).toList(),
-                    ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        child: Column(
+                          children: proyectos.map((proyecto) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildProyectoListCard(
+                                proyecto,
+                                theme,
+                                colorScheme,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
-                ]),
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -2301,324 +2396,558 @@ class _HomePageState extends State<HomePage> {
   // ========== VISTA INSCRIPCIONES FUNCIONARIO ==========
   Widget _buildFuncionarioInscripcionesView() {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLow,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: const Text('Solicitudes'),
-            backgroundColor: colorScheme.surface,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Revisa y gestiona las solicitudes de inscripción',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+          SliverAppBar(
+            expandedHeight: 120,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Solicitudes',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFFFE5E5), Color(0xFFFFFFFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),
           ),
-          FutureBuilder<List<Inscripcion>>(
-            future: _loadInscripcionesOrganizacion(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: FutureBuilder<List<Inscripcion>>(
+              future: _loadInscripcionesOrganizacion(),
+              builder: (context, snapshotInscripciones) {
+                return FutureBuilder<List<Participacion>>(
+                  future: _loadParticipacionesOrganizacion(),
+                  builder: (context, snapshotParticipaciones) {
+                    if (snapshotInscripciones.connectionState ==
+                            ConnectionState.waiting ||
+                        snapshotParticipaciones.connectionState ==
+                            ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-              final inscripciones = snapshot.data ?? [];
-              final pendientes = inscripciones
-                  .where((i) => i.estado.toUpperCase() == 'PENDIENTE')
-                  .toList();
-              final procesadas = inscripciones
-                  .where((i) => i.estado.toUpperCase() != 'PENDIENTE')
-                  .toList();
+                    final inscripciones = snapshotInscripciones.data ?? [];
+                    final participaciones = snapshotParticipaciones.data ?? [];
 
-              if (inscripciones.isEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(
-                              0.3,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.person_add_rounded,
-                            size: 80,
-                            color: colorScheme.primary,
+                    // Filter participation requests
+                    final participacionesPendientes = participaciones
+                        .where((p) => p.estado.toLowerCase() == 'pendiente')
+                        .toList();
+
+                    final inscripcionesPendientes = inscripciones
+                        .where((i) => i.estado.toUpperCase() == 'PENDIENTE')
+                        .toList();
+
+                    final totalSolicitudes =
+                        inscripciones.length + participacionesPendientes.length;
+
+                    if (inscripciones.isEmpty &&
+                        participacionesPendientes.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(40),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFFE5E5),
+                                      Color(0xFFFFBBBB)
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFF6B6B)
+                                          .withOpacity(0.2),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.inbox_rounded,
+                                  size: 80,
+                                  color: Color(0xFFFF6B6B),
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              Text(
+                                'No hay solicitudes',
+                                style:
+                                    theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Las solicitudes de voluntarios y\nparticipantes aparecerán aquí',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: const Color(0xFF757575),
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No hay solicitudes',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Las solicitudes de voluntarios aparecerán aquí',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
+                      );
+                    }
 
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    if (index == 0 && pendientes.isNotEmpty) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    return SingleChildScrollView(
+                      child: Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                             child: Row(
                               children: [
-                                Text(
-                                  'Pendientes',
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: _buildModernStatCard(
+                                    'Total',
+                                    totalSolicitudes.toString(),
+                                    Icons.person_add_rounded,
+                                    const Color(0xFFFF6B6B),
+                                    const Color(0xFFFFE5E5),
+                                    theme,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildModernStatCard(
+                                    'Pendientes',
+                                    (inscripcionesPendientes.length +
+                                            participacionesPendientes.length)
+                                        .toString(),
+                                    Icons.hourglass_empty_rounded,
+                                    const Color(0xFFFFA500),
+                                    const Color(0xFFFFF3E0),
+                                    theme,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.error,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    pendientes.length.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildModernStatCard(
+                                    'Aprobadas',
+                                    inscripciones
+                                        .where((i) =>
+                                            i.estado.toUpperCase() ==
+                                            'APROBADO')
+                                        .length
+                                        .toString(),
+                                    Icons.check_circle_rounded,
+                                    const Color(0xFF4CAF50),
+                                    const Color(0xFFE8F5E9),
+                                    theme,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          ...pendientes.map(
-                            (inscripcion) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildInscripcionCard(
-                                inscripcion,
-                                theme,
-                                colorScheme,
-                              ),
-                            ),
-                          ),
-                          if (procesadas.isNotEmpty) ...[
-                            const SizedBox(height: 16),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                'Procesadas',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                          if (inscripciones.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                  child: Text(
+                                    'Solicitudes de Inscripción',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF1A1A1A),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            ...procesadas.map(
-                              (inscripcion) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildInscripcionCard(
-                                  inscripcion,
-                                  theme,
-                                  colorScheme,
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                  child: Column(
+                                    children: inscripciones.map((inscripcion) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12),
+                                        child: _buildInscripcionCardModern(
+                                          inscripcion,
+                                          theme,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          if (participacionesPendientes.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                  child: Text(
+                                    'Solicitudes de Participación',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF1A1A1A),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                  child: Column(
+                                    children: participacionesPendientes
+                                        .map((participacion) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 12),
+                                        child:
+                                            _buildParticipacionCardModern(
+                                          participacion,
+                                          theme,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }, childCount: 1),
-                ),
-              );
-            },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInscripcionCard(
+  Widget _buildInscripcionCardModern(
     Inscripcion inscripcion,
     ThemeData theme,
-    ColorScheme colorScheme,
   ) {
     final usuario = inscripcion.usuario;
     final nombreUsuario = usuario != null
         ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
-        : 'Usuario ${inscripcion.usuarioId}';
+        : 'Usuario';
+    final email = usuario?['email'] ?? 'Sin email';
+    final iniciales = nombreUsuario.isNotEmpty
+        ? nombreUsuario.split(' ').map((w) => w[0]).take(2).join()
+        : 'U';
 
-    final estadoColor = inscripcion.estado.toUpperCase() == 'APROBADO'
-        ? colorScheme.primaryContainer
-        : inscripcion.estado.toUpperCase() == 'RECHAZADO'
-        ? colorScheme.errorContainer
-        : colorScheme.tertiaryContainer;
+    Color estadoColor;
+    String estadoText;
+    IconData estadoIcon;
 
-    final estadoTextColor = inscripcion.estado.toUpperCase() == 'APROBADO'
-        ? colorScheme.onPrimaryContainer
-        : inscripcion.estado.toUpperCase() == 'RECHAZADO'
-        ? colorScheme.onErrorContainer
-        : colorScheme.onTertiaryContainer;
-
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            nombreUsuario.isNotEmpty ? nombreUsuario[0].toUpperCase() : 'U',
-            style: TextStyle(
-              color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(
-          nombreUsuario,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (usuario?['email'] != null) ...[
-              const SizedBox(height: 4),
-              Text(usuario!['email']),
-            ],
-            const SizedBox(height: 8),
-            Chip(
-              label: Text(inscripcion.estado),
-              backgroundColor: estadoColor,
-              labelStyle: TextStyle(
-                color: estadoTextColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        trailing: inscripcion.estado.toUpperCase() == 'PENDIENTE'
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.check),
-                    color: colorScheme.primary,
-                    onPressed: () =>
-                        _aprobarInscripcion(inscripcion.idInscripcion),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    color: colorScheme.error,
-                    onPressed: () =>
-                        _rechazarInscripcion(inscripcion.idInscripcion),
-                  ),
-                ],
-              )
-            : const Icon(Icons.check_circle, color: Colors.green),
-      ),
-    );
-  }
-
-  Future<void> _aprobarInscripcion(int id) async {
-    try {
-      final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      await funcionarioRepo.aprobarInscripcion(id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inscripción aprobada exitosamente')),
-        );
-        setState(() {});
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
+    switch (inscripcion.estado.toUpperCase()) {
+      case 'APROBADO':
+        estadoColor = const Color(0xFF4CAF50);
+        estadoText = 'Aprobado';
+        estadoIcon = Icons.check_circle_rounded;
+        break;
+      case 'RECHAZADO':
+        estadoColor = const Color(0xFFFF6B6B);
+        estadoText = 'Rechazado';
+        estadoIcon = Icons.cancel_rounded;
+        break;
+      default:
+        estadoColor = const Color(0xFFFFA500);
+        estadoText = 'Pendiente';
+        estadoIcon = Icons.hourglass_empty_rounded;
     }
-  }
 
-  Future<void> _rechazarInscripcion(int id) async {
-    final motivoController = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rechazar Inscripción'),
-        content: TextField(
-          controller: motivoController,
-          decoration: const InputDecoration(
-            labelText: 'Motivo del rechazo',
-            hintText: 'Ingresa el motivo...',
-          ),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Rechazar'),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [estadoColor, estadoColor.withOpacity(0.7)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: estadoColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      iniciales,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nombreUsuario,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF757575),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: estadoColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: estadoColor.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        estadoIcon,
+                        size: 14,
+                        color: estadoColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        estadoText,
+                        style: TextStyle(
+                          color: estadoColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
-
-    if (confirmed == true && motivoController.text.isNotEmpty) {
-      try {
-        final funcionarioRepo = Modular.get<FuncionarioRepository>();
-        await funcionarioRepo.rechazarInscripcion(id, motivoController.text);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Inscripción rechazada')),
-          );
-          setState(() {});
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-        }
-      }
-    }
   }
 
-  bool _showMapView = false;
+  Widget _buildParticipacionCardModern(
+    Participacion participacion,
+    ThemeData theme,
+  ) {
+    // Participacion model fields are: idParticipacion, inscripcionId, proyectoId, estado, etc.
+    final iniciales = 'V';
 
-  Widget _buildListView(ThemeData theme, ColorScheme colorScheme) {
+    Color estadoColor;
+    String estadoText;
+    IconData estadoIcon;
+
+    switch (participacion.estado.toLowerCase()) {
+      case 'aprobado':
+      case 'aceptada':
+        estadoColor = const Color(0xFF4CAF50);
+        estadoText = 'Aceptada';
+        estadoIcon = Icons.check_circle_rounded;
+        break;
+      case 'rechazado':
+      case 'rechazada':
+        estadoColor = const Color(0xFFFF6B6B);
+        estadoText = 'Rechazada';
+        estadoIcon = Icons.cancel_rounded;
+        break;
+      default:
+        estadoColor = const Color(0xFF9C27B0);
+        estadoText = 'Pendiente';
+        estadoIcon = Icons.hourglass_empty_rounded;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            estadoColor,
+                            estadoColor.withOpacity(0.7)
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: estadoColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          iniciales,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Participante #${participacion.inscripcionId}',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1A1A1A),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Para: Proyecto #${participacion.proyectoId}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF757575),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: estadoColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: estadoColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            estadoIcon,
+                            size: 14,
+                            color: estadoColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            estadoText,
+                            style: TextStyle(
+                              color: estadoColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ========== VISTA EXPLORAR PROYECTOS VOLUNTARIO ==========
+  Widget _buildExplorarProyectosView() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return FutureBuilder<List<Proyecto>>(
       future: _loadProyectosVoluntario(),
       builder: (context, snapshot) {
@@ -2673,11 +3002,11 @@ class _HomePageState extends State<HomePage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final PageController _pageController = PageController();
+    final PageController pageController = PageController();
 
     // Agregar listener para actualizar el índice actual
-    _pageController.addListener(() {
-      final page = _pageController.page?.round() ?? 0;
+    pageController.addListener(() {
+      final page = pageController.page?.round() ?? 0;
       if (page != _currentProyectoIndex) {
         setState(() {
           _currentProyectoIndex = page;
@@ -2689,7 +3018,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         // PageView para swipe entre proyectos
         PageView.builder(
-          controller: _pageController,
+          controller: pageController,
           itemCount: proyectos.length,
           itemBuilder: (context, index) {
             final proyecto = proyectos[index];
@@ -2754,7 +3083,7 @@ class _HomePageState extends State<HomePage> {
               FloatingActionButton(
                 onPressed: _currentProyectoIndex > 0
                     ? () {
-                        _pageController.previousPage(
+                        pageController.previousPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
@@ -2775,7 +3104,7 @@ class _HomePageState extends State<HomePage> {
               FloatingActionButton.extended(
                 onPressed: () {
                   if (_currentProyectoIndex < proyectos.length - 1) {
-                    _pageController.nextPage(
+                    pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     );
@@ -2808,7 +3137,7 @@ class _HomePageState extends State<HomePage> {
               FloatingActionButton(
                 onPressed: _currentProyectoIndex < proyectos.length - 1
                     ? () {
-                        _pageController.nextPage(
+                        pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
@@ -3270,7 +3599,8 @@ class _HomePageState extends State<HomePage> {
           right: 24,
           child: FloatingActionButton(
             onPressed: () {
-              setState(() => _showMapView = false);
+              // Navegar a la vista de lista de proyectos
+              Modular.to.pushNamed('/voluntario/proyectos');
             },
             child: const Icon(Icons.list),
           ),
@@ -5049,7 +5379,7 @@ class _HomePageState extends State<HomePage> {
                         // Ubicación y estado skeleton
                         Row(
                           children: [
-                            Container(
+                            SizedBox(
                               height: 20,
                               width: 140,
                               child: _buildShimmerEffect(
@@ -5062,7 +5392,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 16),
-                            Container(
+                            SizedBox(
                               height: 20,
                               width: 160,
                               child: _buildShimmerEffect(
@@ -5082,7 +5412,7 @@ class _HomePageState extends State<HomePage> {
                         // Conexiones skeleton
                         Row(
                           children: [
-                            Container(
+                            SizedBox(
                               height: 20,
                               width: 60,
                               child: _buildShimmerEffect(
@@ -5095,7 +5425,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Container(
+                            SizedBox(
                               height: 20,
                               width: 120,
                               child: _buildShimmerEffect(
@@ -5116,7 +5446,7 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           children: [
                             Expanded(
-                              child: Container(
+                              child: SizedBox(
                                 height: 40,
                                 child: _buildShimmerEffect(
                                   Container(
@@ -5130,7 +5460,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Container(
+                            SizedBox(
                               height: 40,
                               width: 120,
                               child: _buildShimmerEffect(
@@ -5224,7 +5554,7 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
+                        SizedBox(
                           height: 20,
                           width: 100,
                           child: _buildShimmerEffect(
@@ -5237,7 +5567,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Container(
+                        SizedBox(
                           height: 16,
                           width: double.infinity,
                           child: _buildShimmerEffect(
@@ -5250,7 +5580,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
+                        SizedBox(
                           height: 16,
                           width: MediaQuery.of(context).size.width * 0.8,
                           child: _buildShimmerEffect(
@@ -5263,7 +5593,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
+                        SizedBox(
                           height: 16,
                           width: MediaQuery.of(context).size.width * 0.6,
                           child: _buildShimmerEffect(
@@ -5286,7 +5616,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: [
-                        Container(
+                        SizedBox(
                           height: 24,
                           width: 120,
                           child: _buildShimmerEffect(
@@ -5321,7 +5651,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Row(
                           children: [
-                            Container(
+                            SizedBox(
                               height: 24,
                               width: 24,
                               child: _buildShimmerEffect(
@@ -5334,7 +5664,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Container(
+                            SizedBox(
                               height: 24,
                               width: 120,
                               child: _buildShimmerEffect(
@@ -5347,7 +5677,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const Spacer(),
-                            Container(
+                            SizedBox(
                               height: 16,
                               width: 80,
                               child: _buildShimmerEffect(
@@ -5381,7 +5711,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Row(
                           children: [
-                            Container(
+                            SizedBox(
                               height: 24,
                               width: 24,
                               child: _buildShimmerEffect(
@@ -5394,7 +5724,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Container(
+                            SizedBox(
                               height: 24,
                               width: 160,
                               child: _buildShimmerEffect(
@@ -5407,7 +5737,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const Spacer(),
-                            Container(
+                            SizedBox(
                               height: 20,
                               width: 100,
                               child: _buildShimmerEffect(
@@ -5457,7 +5787,7 @@ class _HomePageState extends State<HomePage> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Container(
+                                  SizedBox(
                                     height: 16,
                                     width: 120,
                                     child: _buildShimmerEffect(
@@ -5472,7 +5802,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                  Container(
+                                  SizedBox(
                                     height: 16,
                                     width: 40,
                                     child: _buildShimmerEffect(
@@ -5490,7 +5820,7 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Container(
+                              SizedBox(
                                 height: 8,
                                 width: double.infinity,
                                 child: _buildShimmerEffect(
@@ -5504,7 +5834,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Container(
+                              SizedBox(
                                 height: 12,
                                 width: 200,
                                 child: _buildShimmerEffect(
@@ -5532,7 +5862,7 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
+                        SizedBox(
                           height: 24,
                           width: 140,
                           child: _buildShimmerEffect(
@@ -5545,7 +5875,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Container(
+                        SizedBox(
                           height: 40,
                           width: double.infinity,
                           child: _buildShimmerEffect(
@@ -5558,7 +5888,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Container(
+                        SizedBox(
                           height: 120,
                           width: double.infinity,
                           child: _buildShimmerEffect(
@@ -5606,7 +5936,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildStatSkeleton() {
     return Column(
       children: [
-        Container(
+        SizedBox(
           width: 60,
           height: 60,
           child: _buildShimmerEffect(
@@ -5619,7 +5949,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
+        SizedBox(
           height: 20,
           width: 50,
           child: _buildShimmerEffect(
@@ -5632,7 +5962,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 4),
-        Container(
+        SizedBox(
           height: 12,
           width: 60,
           child: _buildShimmerEffect(
@@ -5659,7 +5989,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 40,
             height: 40,
             child: _buildShimmerEffect(
@@ -5676,7 +6006,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
+                SizedBox(
                   height: 16,
                   width: 150,
                   child: _buildShimmerEffect(
@@ -5691,7 +6021,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(
+                SizedBox(
                   height: 14,
                   width: 100,
                   child: _buildShimmerEffect(
@@ -5706,7 +6036,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Container(
+                SizedBox(
                   height: 12,
                   width: 80,
                   child: _buildShimmerEffect(
@@ -5723,7 +6053,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          Container(
+          SizedBox(
             width: 20,
             height: 20,
             child: _buildShimmerEffect(
@@ -5751,7 +6081,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          SizedBox(
             width: 50,
             height: 50,
             child: _buildShimmerEffect(
@@ -5766,7 +6096,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
+          SizedBox(
             height: 12,
             width: 80,
             child: _buildShimmerEffect(
@@ -5781,7 +6111,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 8),
-          Container(
+          SizedBox(
             height: 11,
             width: 100,
             child: _buildShimmerEffect(
@@ -5796,7 +6126,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          Container(
+          SizedBox(
             height: 9,
             width: 90,
             child: _buildShimmerEffect(
@@ -5827,7 +6157,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          SizedBox(
             width: 24,
             height: 24,
             child: _buildShimmerEffect(
@@ -5840,7 +6170,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          Container(
+          SizedBox(
             height: 12,
             width: 60,
             child: _buildShimmerEffect(
@@ -5879,12 +6209,12 @@ class _HomePageState extends State<HomePage> {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: colorScheme.surfaceVariant,
+                    color: colorScheme.surfaceContainerHighest,
                   ),
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -5892,26 +6222,26 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 8),
                 // Nombre de organización (2 líneas)
-                Container(
+                SizedBox(
                   height: 11,
                   width: nameWidth,
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(
+                SizedBox(
                   height: 11,
                   width: nameWidth * 0.7,
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -5978,7 +6308,7 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Título skeleton (2 líneas)
-                      Container(
+                      SizedBox(
                         height: 16,
                         width: double.infinity,
                         child: _buildShimmerEffect(
@@ -5991,7 +6321,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Container(
+                      SizedBox(
                         height: 16,
                         width: 220,
                         child: _buildShimmerEffect(
@@ -6025,7 +6355,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(
+                          SizedBox(
                             height: 13,
                             width: 140,
                             child: _buildShimmerEffect(
@@ -6043,7 +6373,7 @@ class _HomePageState extends State<HomePage> {
                       // Ubicación y fecha skeleton
                       Row(
                         children: [
-                          Container(
+                          SizedBox(
                             height: 12,
                             width: 90,
                             child: _buildShimmerEffect(
@@ -6066,7 +6396,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          Container(
+                          SizedBox(
                             height: 12,
                             width: 75,
                             child: _buildShimmerEffect(
@@ -6082,7 +6412,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 10),
                       // Chip skeleton
-                      Container(
+                      SizedBox(
                         height: 22,
                         width: 65,
                         child: _buildShimmerEffect(

@@ -98,9 +98,6 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             // Estadísticas rápidas
             SliverToBoxAdapter(child: _buildQuickStats(theme)),
 
-            // Botón de acción principal
-            SliverToBoxAdapter(child: _buildPrimaryAction(theme)),
-
             // Proyectos destacados
             _buildFeaturedProjects(theme),
 
@@ -679,71 +676,6 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             maxLines: 2,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPrimaryAction(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1976D2).withOpacity(0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => Modular.to.pushNamed('/proyectos/create'),
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    'Crear Nuevo Proyecto',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Colors.white.withOpacity(0.9),
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

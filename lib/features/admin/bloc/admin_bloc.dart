@@ -55,10 +55,18 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<UpdateRolRequested>(_onUpdateRolRequested);
 
     // Categorías Organizaciones
-    on<LoadCategoriasOrganizacionesRequested>(_onLoadCategoriasOrganizacionesRequested);
-    on<CreateCategoriaOrganizacionRequested>(_onCreateCategoriaOrganizacionRequested);
-    on<UpdateCategoriaOrganizacionRequested>(_onUpdateCategoriaOrganizacionRequested);
-    on<DeleteCategoriaOrganizacionRequested>(_onDeleteCategoriaOrganizacionRequested);
+    on<LoadCategoriasOrganizacionesRequested>(
+      _onLoadCategoriasOrganizacionesRequested,
+    );
+    on<CreateCategoriaOrganizacionRequested>(
+      _onCreateCategoriaOrganizacionRequested,
+    );
+    on<UpdateCategoriaOrganizacionRequested>(
+      _onUpdateCategoriaOrganizacionRequested,
+    );
+    on<DeleteCategoriaOrganizacionRequested>(
+      _onDeleteCategoriaOrganizacionRequested,
+    );
 
     // Categorías Proyectos
     on<LoadCategoriasProyectosRequested>(_onLoadCategoriasProyectosRequested);
@@ -69,7 +77,9 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     // Organizaciones
     on<LoadOrganizacionesRequested>(_onLoadOrganizacionesRequested);
     on<LoadOrganizacionByIdRequested>(_onLoadOrganizacionByIdRequested);
-    on<LoadOrganizacionesByUsuarioRequested>(_onLoadOrganizacionesByUsuarioRequested);
+    on<LoadOrganizacionesByUsuarioRequested>(
+      _onLoadOrganizacionesByUsuarioRequested,
+    );
     on<CreateOrganizacionRequested>(_onCreateOrganizacionRequested);
     on<UpdateOrganizacionRequested>(_onUpdateOrganizacionRequested);
     on<DeleteOrganizacionRequested>(_onDeleteOrganizacionRequested);
@@ -109,12 +119,14 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         limit: event.limit,
         email: event.email,
       );
-      emit(UsuariosLoaded(
-        usuarios: result['usuarios'],
-        total: result['total'],
-        page: result['page'],
-        limit: result['limit'],
-      ));
+      emit(
+        UsuariosLoaded(
+          usuarios: result['usuarios'],
+          total: result['total'],
+          page: result['page'],
+          limit: result['limit'],
+        ),
+      );
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -139,14 +151,16 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(AdminLoading());
     try {
-      final usuario = await adminRepository.createUsuario(CreateUsuarioRequest(
-        email: event.email,
-        nombres: event.nombres,
-        apellidos: event.apellidos,
-        ci: event.ci,
-        telefono: event.telefono,
-        sexo: event.sexo,
-      ));
+      final usuario = await adminRepository.createUsuario(
+        CreateUsuarioRequest(
+          email: event.email,
+          nombres: event.nombres,
+          apellidos: event.apellidos,
+          ci: event.ci,
+          telefono: event.telefono,
+          sexo: event.sexo,
+        ),
+      );
       emit(UsuarioCreated(usuario));
     } catch (e) {
       emit(AdminError(e.toString()));
@@ -254,10 +268,9 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final usuario = await adminRepository.asignarRol(
         AsignarRolRequest(idUsuario: event.idUsuario, idRol: event.idRol),
       );
-      emit(RolAsignado(
-        usuario: usuario,
-        message: 'Rol asignado correctamente',
-      ));
+      emit(
+        RolAsignado(usuario: usuario, message: 'Rol asignado correctamente'),
+      );
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -285,11 +298,13 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     emit(AdminLoading());
     try {
       final result = await adminRepository.getPermisosByRol(event.idRol);
-      emit(PermisosByRolLoaded(
-        rol: result['rol'],
-        permisos: result['permisos'],
-        total: result['total'],
-      ));
+      emit(
+        PermisosByRolLoaded(
+          rol: result['rol'],
+          permisos: result['permisos'],
+          total: result['total'],
+        ),
+      );
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -444,10 +459,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     emit(AdminLoading());
     try {
       final aplicacion = await adminRepository.createAplicacion(
-        CreateAplicacionRequest(
-          nombre: event.nombre,
-          idModulo: event.idModulo,
-        ),
+        CreateAplicacionRequest(nombre: event.nombre, idModulo: event.idModulo),
       );
       emit(AplicacionCreated(aplicacion));
     } catch (e) {
@@ -626,13 +638,11 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(AdminLoading());
     try {
-      final categoria = await adminRepository.updateCategoriaOrganizacion(
-        event.id,
-        {
-          if (event.nombre != null) 'nombre': event.nombre,
-          if (event.descripcion != null) 'descripcion': event.descripcion,
-        },
-      );
+      final categoria = await adminRepository
+          .updateCategoriaOrganizacion(event.id, {
+            if (event.nombre != null) 'nombre': event.nombre,
+            if (event.descripcion != null) 'descripcion': event.descripcion,
+          });
       emit(CategoriaOrganizacionUpdated(categoria));
     } catch (e) {
       emit(AdminError(e.toString()));
@@ -646,7 +656,9 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     emit(AdminLoading());
     try {
       await adminRepository.deleteCategoriaOrganizacion(event.id);
-      emit(const CategoriaOrganizacionDeleted('Categoría eliminada correctamente'));
+      emit(
+        const CategoriaOrganizacionDeleted('Categoría eliminada correctamente'),
+      );
     } catch (e) {
       emit(AdminError(e.toString()));
     }
@@ -689,13 +701,11 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(AdminLoading());
     try {
-      final categoria = await adminRepository.updateCategoriaProyecto(
-        event.id,
-        {
-          if (event.nombre != null) 'nombre': event.nombre,
-          if (event.descripcion != null) 'descripcion': event.descripcion,
-        },
-      );
+      final categoria = await adminRepository
+          .updateCategoriaProyecto(event.id, {
+            if (event.nombre != null) 'nombre': event.nombre,
+            if (event.descripcion != null) 'descripcion': event.descripcion,
+          });
       emit(CategoriaProyectoUpdated(categoria));
     } catch (e) {
       emit(AdminError(e.toString()));
@@ -736,7 +746,9 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(AdminLoading());
     try {
-      final organizaciones = await adminRepository.getOrganizacionesByUsuario(event.userId);
+      final organizaciones = await adminRepository.getOrganizacionesByUsuario(
+        event.userId,
+      );
       emit(OrganizacionesLoaded(organizaciones));
     } catch (e) {
       emit(AdminError(e.toString()));
@@ -769,7 +781,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         if (event.telefono != null) 'telefono': event.telefono,
         if (event.direccion != null) 'direccion': event.direccion,
         if (event.ciudad != null) 'ciudad': event.ciudad,
-        if (event.idCategoria != null) 'id_categoria_organizacion': event.idCategoria,
+        if (event.idCategoria != null)
+          'id_categoria_organizacion': event.idCategoria,
         if (event.estado != null) 'estado': event.estado ?? 'activo',
       });
       emit(OrganizacionCreated(organizacion));
@@ -791,10 +804,14 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       if (event.telefono != null) data['telefono'] = event.telefono;
       if (event.direccion != null) data['direccion'] = event.direccion;
       if (event.ciudad != null) data['ciudad'] = event.ciudad;
-      if (event.idCategoria != null) data['id_categoria_organizacion'] = event.idCategoria;
+      if (event.idCategoria != null)
+        data['id_categoria_organizacion'] = event.idCategoria;
       if (event.estado != null) data['estado'] = event.estado;
 
-      final organizacion = await adminRepository.updateOrganizacion(event.id, data);
+      final organizacion = await adminRepository.updateOrganizacion(
+        event.id,
+        data,
+      );
       emit(OrganizacionUpdated(organizacion));
     } catch (e) {
       emit(AdminError(e.toString()));
@@ -862,22 +879,34 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         'objetivo': event.objetivo,
         if (event.ubicacion != null) 'ubicacion': event.ubicacion,
         if (event.fechaInicio != null)
-          'fecha_inicio': event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+          'fecha_inicio': event.fechaInicio!
+              .toUtc()
+              .toIso8601String()
+              .replaceAll(RegExp(r'\.\d+'), ''),
         if (event.fechaFin != null)
-          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(
+            RegExp(r'\.\d+'),
+            '',
+          ),
         'estado': event.estado ?? 'activo',
-        if (event.imagen != null && event.imagen!.isNotEmpty) 'imagen': event.imagen,
+        'participacion_publica': event.participacionPublica,
+        if (event.imagen != null && event.imagen!.isNotEmpty)
+          'imagen': event.imagen,
       };
 
       print('🚀 [ADMIN] Enviando datos al backend para crear proyecto:');
       print('📦 [ADMIN] Data: $data');
       if (event.fechaInicio != null) {
         print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
-        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
       if (event.fechaFin != null) {
         print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
-        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
 
       final proyecto = await adminRepository.createProyecto(data);
@@ -896,25 +925,40 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final data = <String, dynamic>{};
       if (event.categoriaProyectoId != null)
         data['categorias_ids'] = [event.categoriaProyectoId];
-      if (event.organizacionId != null) data['organizacion_id'] = event.organizacionId;
+      if (event.organizacionId != null)
+        data['organizacion_id'] = event.organizacionId;
       if (event.nombre != null) data['nombre'] = event.nombre;
       if (event.objetivo != null) data['objetivo'] = event.objetivo;
       if (event.ubicacion != null) data['ubicacion'] = event.ubicacion;
       if (event.fechaInicio != null)
-        data['fecha_inicio'] = event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
+        data['fecha_inicio'] = event.fechaInicio!
+            .toUtc()
+            .toIso8601String()
+            .replaceAll(RegExp(r'\.\d+'), '');
       if (event.fechaFin != null)
-        data['fecha_fin'] = event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
+        data['fecha_fin'] = event.fechaFin!
+            .toUtc()
+            .toIso8601String()
+            .replaceAll(RegExp(r'\.\d+'), '');
       if (event.estado != null) data['estado'] = event.estado;
+      if (event.participacionPublica != null)
+        data['participacion_publica'] = event.participacionPublica;
 
-      print('🚀 [ADMIN] Enviando datos al backend para actualizar proyecto (ID: ${event.id}):');
+      print(
+        '🚀 [ADMIN] Enviando datos al backend para actualizar proyecto (ID: ${event.id}):',
+      );
       print('📦 [ADMIN] Data: $data');
       if (event.fechaInicio != null) {
         print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
-        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
       if (event.fechaFin != null) {
         print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
-        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
 
       final proyecto = await adminRepository.updateProyecto(event.id, data);
@@ -977,9 +1021,15 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         if (event.descripcion != null) 'descripcion': event.descripcion,
         if (event.prioridad != null) 'prioridad': event.prioridad,
         if (event.fechaInicio != null)
-          'fecha_inicio': event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+          'fecha_inicio': event.fechaInicio!
+              .toUtc()
+              .toIso8601String()
+              .replaceAll(RegExp(r'\.\d+'), ''),
         if (event.fechaFin != null)
-          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+          'fecha_fin': event.fechaFin!.toUtc().toIso8601String().replaceAll(
+            RegExp(r'\.\d+'),
+            '',
+          ),
         'estado': event.estado ?? 'activo',
       };
 
@@ -987,11 +1037,15 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       print('📦 [ADMIN] Data: $data');
       if (event.fechaInicio != null) {
         print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
-        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
       if (event.fechaFin != null) {
         print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
-        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
 
       final tarea = await adminRepository.createTarea(data);
@@ -1013,20 +1067,32 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       if (event.descripcion != null) data['descripcion'] = event.descripcion;
       if (event.prioridad != null) data['prioridad'] = event.prioridad;
       if (event.fechaInicio != null)
-        data['fecha_inicio'] = event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
+        data['fecha_inicio'] = event.fechaInicio!
+            .toUtc()
+            .toIso8601String()
+            .replaceAll(RegExp(r'\.\d+'), '');
       if (event.fechaFin != null)
-        data['fecha_fin'] = event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '');
+        data['fecha_fin'] = event.fechaFin!
+            .toUtc()
+            .toIso8601String()
+            .replaceAll(RegExp(r'\.\d+'), '');
       if (event.estado != null) data['estado'] = event.estado;
 
-      print('🚀 [ADMIN] Enviando datos al backend para actualizar tarea (ID: ${event.id}):');
+      print(
+        '🚀 [ADMIN] Enviando datos al backend para actualizar tarea (ID: ${event.id}):',
+      );
       print('📦 [ADMIN] Data: $data');
       if (event.fechaInicio != null) {
         print('📅 [ADMIN] Fecha inicio original: ${event.fechaInicio}');
-        print('📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha inicio formateada: ${event.fechaInicio!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
       if (event.fechaFin != null) {
         print('📅 [ADMIN] Fecha fin original: ${event.fechaFin}');
-        print('📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}');
+        print(
+          '📅 [ADMIN] Fecha fin formateada: ${event.fechaFin!.toUtc().toIso8601String().replaceAll(RegExp(r'\.\d+'), '')}',
+        );
       }
 
       final tarea = await adminRepository.updateTarea(event.id, data);
@@ -1110,9 +1176,13 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final data = <String, dynamic>{};
       if (event.estado != null) data['estado'] = event.estado;
-      if (event.motivoRechazo != null) data['motivo_rechazo'] = event.motivoRechazo;
+      if (event.motivoRechazo != null)
+        data['motivo_rechazo'] = event.motivoRechazo;
 
-      final inscripcion = await adminRepository.updateInscripcion(event.id, data);
+      final inscripcion = await adminRepository.updateInscripcion(
+        event.id,
+        data,
+      );
       emit(InscripcionUpdated(inscripcion));
     } catch (e) {
       emit(AdminError(e.toString()));

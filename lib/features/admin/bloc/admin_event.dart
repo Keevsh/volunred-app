@@ -76,7 +76,15 @@ class UpdateUsuarioRequested extends AdminEvent {
   });
 
   @override
-  List<Object?> get props => [id, email, nombres, apellidos, ci, telefono, sexo];
+  List<Object?> get props => [
+    id,
+    email,
+    nombres,
+    apellidos,
+    ci,
+    telefono,
+    sexo,
+  ];
 }
 
 class DeleteUsuarioRequested extends AdminEvent {
@@ -124,10 +132,7 @@ class AsignarRolRequested extends AdminEvent {
   final int idUsuario;
   final int idRol;
 
-  const AsignarRolRequested({
-    required this.idUsuario,
-    required this.idRol,
-  });
+  const AsignarRolRequested({required this.idUsuario, required this.idRol});
 
   @override
   List<Object?> get props => [idUsuario, idRol];
@@ -290,10 +295,7 @@ class CreateAptitudRequested extends AdminEvent {
   final String nombre;
   final String? descripcion;
 
-  const CreateAptitudRequested({
-    required this.nombre,
-    this.descripcion,
-  });
+  const CreateAptitudRequested({required this.nombre, this.descripcion});
 
   @override
   List<Object?> get props => [nombre, descripcion];
@@ -471,15 +473,15 @@ class CreateOrganizacionRequested extends AdminEvent {
 
   @override
   List<Object?> get props => [
-        nombreLegal,
-        nombreCorto,
-        correo,
-        telefono,
-        direccion,
-        ciudad,
-        idCategoria,
-        estado,
-      ];
+    nombreLegal,
+    nombreCorto,
+    correo,
+    telefono,
+    direccion,
+    ciudad,
+    idCategoria,
+    estado,
+  ];
 }
 
 class UpdateOrganizacionRequested extends AdminEvent {
@@ -507,16 +509,16 @@ class UpdateOrganizacionRequested extends AdminEvent {
 
   @override
   List<Object?> get props => [
-        id,
-        nombreLegal,
-        nombreCorto,
-        correo,
-        telefono,
-        direccion,
-        ciudad,
-        idCategoria,
-        estado,
-      ];
+    id,
+    nombreLegal,
+    nombreCorto,
+    correo,
+    telefono,
+    direccion,
+    ciudad,
+    idCategoria,
+    estado,
+  ];
 }
 
 class DeleteOrganizacionRequested extends AdminEvent {
@@ -551,6 +553,7 @@ class CreateProyectoRequested extends AdminEvent {
   final DateTime? fechaFin;
   final String? estado;
   final String? imagen;
+  final bool participacionPublica;
 
   const CreateProyectoRequested({
     required this.categoriaProyectoId,
@@ -562,20 +565,22 @@ class CreateProyectoRequested extends AdminEvent {
     this.fechaFin,
     this.estado,
     this.imagen,
+    this.participacionPublica = false,
   });
 
   @override
   List<Object?> get props => [
-        categoriaProyectoId,
-        organizacionId,
-        nombre,
-        objetivo,
-        ubicacion,
-        fechaInicio,
-        fechaFin,
-        estado,
-        imagen,
-      ];
+    categoriaProyectoId,
+    organizacionId,
+    nombre,
+    objetivo,
+    ubicacion,
+    fechaInicio,
+    fechaFin,
+    estado,
+    imagen,
+    participacionPublica,
+  ];
 }
 
 class UpdateProyectoRequested extends AdminEvent {
@@ -588,6 +593,7 @@ class UpdateProyectoRequested extends AdminEvent {
   final DateTime? fechaInicio;
   final DateTime? fechaFin;
   final String? estado;
+  final bool? participacionPublica;
 
   const UpdateProyectoRequested({
     required this.id,
@@ -599,20 +605,22 @@ class UpdateProyectoRequested extends AdminEvent {
     this.fechaInicio,
     this.fechaFin,
     this.estado,
+    this.participacionPublica,
   });
 
   @override
   List<Object?> get props => [
-        id,
-        categoriaProyectoId,
-        organizacionId,
-        nombre,
-        objetivo,
-        ubicacion,
-        fechaInicio,
-        fechaFin,
-        estado,
-      ];
+    id,
+    categoriaProyectoId,
+    organizacionId,
+    nombre,
+    objetivo,
+    ubicacion,
+    fechaInicio,
+    fechaFin,
+    estado,
+    participacionPublica,
+  ];
 }
 
 class DeleteProyectoRequested extends AdminEvent {
@@ -658,14 +666,14 @@ class CreateTareaRequested extends AdminEvent {
 
   @override
   List<Object?> get props => [
-        proyectoId,
-        nombre,
-        descripcion,
-        prioridad,
-        fechaInicio,
-        fechaFin,
-        estado,
-      ];
+    proyectoId,
+    nombre,
+    descripcion,
+    prioridad,
+    fechaInicio,
+    fechaFin,
+    estado,
+  ];
 }
 
 class UpdateTareaRequested extends AdminEvent {
@@ -691,15 +699,15 @@ class UpdateTareaRequested extends AdminEvent {
 
   @override
   List<Object?> get props => [
-        id,
-        proyectoId,
-        nombre,
-        descripcion,
-        prioridad,
-        fechaInicio,
-        fechaFin,
-        estado,
-      ];
+    id,
+    proyectoId,
+    nombre,
+    descripcion,
+    prioridad,
+    fechaInicio,
+    fechaFin,
+    estado,
+  ];
 }
 
 class DeleteTareaRequested extends AdminEvent {
@@ -738,7 +746,12 @@ class CreateInscripcionRequested extends AdminEvent {
   });
 
   @override
-  List<Object?> get props => [usuarioId, organizacionId, fechaRecepcion, estado];
+  List<Object?> get props => [
+    usuarioId,
+    organizacionId,
+    fechaRecepcion,
+    estado,
+  ];
 }
 
 class UpdateInscripcionRequested extends AdminEvent {

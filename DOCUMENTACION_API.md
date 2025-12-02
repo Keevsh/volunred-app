@@ -158,3 +158,121 @@ Administrar el registro de participaciones de voluntarios en proyectos específi
   - Estados válidos (enum): `programada`, `en_progreso`, `completado`, `ausente`, `eliminada`.
 - **Tarea** agrupa actividades dentro de un `Proyecto`; la lógica completa está pendiente de implementación.
   - Estados válidos (enum): `activo`, `inactivo` (en la entidad actual, aunque el DTO usa `EstadoTarea` con valores diferentes).
+ 
+---
+
+## 3.4. Crear proyecto — payload y ejemplo
+
+Al crear un proyecto, el backend acepta los campos documentados en `CreateProyectoDto`. Importante: existe el campo `organizacion_id` que relaciona el proyecto con una organización.
+
+- `organizacion_id?: number` (opcional): ID de la organización que gestiona el proyecto. Si se envía, el backend validará que la organización exista. Si no se envía, el proyecto puede crearse sin organización asociada (según la lógica actual).
+
+Ejemplo de `POST /informacion/proyectos` (body):
+
+```json
+{
+   "organizacion_id": 2,
+   "categorias_ids": [1, 3],
+   "nombre": "Reforestación Urbana 2025",
+   "objetivo": "Plantar 5000 árboles nativos en zonas urbanas",
+   "ubicacion": "Zona Sur, La Paz",
+   "fecha_inicio": "2025-11-01T00:00:00.000Z",
+   "fecha_fin": "2026-03-31T00:00:00.000Z",
+   "estado": "activo",
+   "imagen": "data:image/jpeg;base64,...",
+   "participacion_publica": false
+}
+```
+
+Notas:
+
+- Si `organizacion_id` se proporciona, el proyecto quedará ligado a esa organización y aparecerá en el listado de proyectos de la organización.
+- Actualmente `organizacion_id` es opcional en el DTO y en la entidad (`organizacion_id` puede ser `null`). Si desean exigir que todo proyecto pertenezca a una organización, hay dos pasos sugeridos:
+   1. Actualizar la entidad `Proyecto` para declarar `organizacion_id` como no nullable.
+   2. Generar y aplicar una migración que altere la columna y agregue la constraint adecuada.
+
+- El frontend debe exponer un selector de `organizacion` al crear un proyecto cuando la cuenta del usuario puede gestionar varias organizaciones o cuando se crea el proyecto desde el panel de una organización.
+
+---
+
+## 3.5. Asignar tarea a voluntario — validaciones críticas
+
+Al crear una asignación de tarea (`POST /informacion/asignaciones-tareas`), es fundamental enviar correctamente los campos relacionados con la participación del voluntario.
+
+### ⚠️ IMPORTANTE – Campos requeridos:
+
+- `perfil_vol_id` (number, **obligatorio**): ID del perfil de voluntario al que se asigna la tarea.
+- `participacion_id` (number, **obligatorio**): ID de la participación del voluntario en el proyecto de la tarea. La participación **debe estar en estado `APROBADA`**.
+- `titulo` (string, opcional): Título o rol específico para esta asignación.
+- `descripcion` (string, opcional): Descripción adicional de la asignación.
+- `fecha_asignacion` (string ISO 8601, opcional): Fecha en que se asigna la tarea.
+
+### ❌ Error común – "La participación no corresponde al perfil de voluntario indicado"
+
+Si recibes este error (HTTP 400), significa que:
+1. NO enviaste `perfil_vol_id` en el body, o
+2. El `perfil_vol_id` no coincide con el `perfil_vol_id` de la `participacion_id` proporcionada.
+
+### 📋 Pasos para resolver en el frontend:
+
+#### 1. **Obtén la participación aprobada del voluntario:**
+   - Endpoint: `GET /funcionarios/proyectos/{proyectoId}/participaciones`
+   - Filtra por participaciones con `estado === 'APROBADA'`
+   - Selecciona una que tenga el `perfil_vol_id` que necesitas
+   - Guarda tanto el `id_participacion` como el `perfil_vol_id` de esa participación
+
+#### 2. **Envía AMBOS valores en la asignación:**
+```json
+{
+  "perfil_vol_id": 9,
+  "participacion_id": 12,
+  "titulo": "Coordinador de Plantación",
+  "descripcion": "Responsable de coordinar con la comunidad local"
+}
+```
+
+#### 3. **Validación previa (recomendado):**
+Antes de asignar, verifica que:
+- La `participacion.estado === 'APROBADA'`
+- La `participacion.proyecto_id === tarea.proyecto_id` (la tarea pertenece al proyecto de la participación)
+- El `perfil_vol_id` está poblado en la participación (no es null)
+
+### Ejemplo de flujo completo:
+
+```typescript
+// 1. Obtener participaciones aprobadas del proyecto
+const participaciones = await getParticipacionesByProyecto(proyectoId);
+const participacionesAprobadas = participaciones.filter(p => p.estado === 'APROBADA');
+
+// 2. Seleccionar la participación del voluntario deseado
+const participacion = participacionesAprobadas.find(p => p.perfil_vol_id === perfilVolId);
+
+if (!participacion) {
+  throw new Error('El voluntario no tiene una participación aprobada en este proyecto');
+}
+
+// 3. Verificar que la tarea pertenece al proyecto
+if (tarea.proyecto_id !== participacion.proyecto_id) {
+  throw new Error('La tarea no pertenece al proyecto de la participación');
+}
+
+// 4. Crear la asignación con AMBOS campos
+const asignacion = await createAsignacion({
+  perfil_vol_id: participacion.perfil_vol_id,
+  participacion_id: participacion.id_participacion,
+  titulo: 'Coordinador de Plantación',
+  descripcion: 'Responsable de coordinar con la comunidad local'
+});
+```
+
+### Endpoints y respuestas esperadas
+
+| Método | Ruta | Respuesta exitosa | Errores comunes |
+|--------|------|-------------------|-----------------|
+| POST | `/informacion/asignaciones-tareas` | **201**: Asignación creada. | **400** "La participación no corresponde al perfil de voluntario indicado"; **404** participación o perfil no encontrado. |
+| GET | `/informacion/asignaciones-tareas` | **200**: Lista de asignaciones. | **401** no autorizado. |
+| GET | `/informacion/asignaciones-tareas/:id` | **200**: Asignación con relaciones. | **404** no encontrada. |
+| PATCH | `/informacion/asignaciones-tareas/:id` | **200**: Asignación actualizada. | **400** validaciones; **404** no encontrada. |
+| DELETE | `/informacion/asignaciones-tareas/:id` | **200**: Confirmación de eliminación. | **404** no encontrada. |
+
+

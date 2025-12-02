@@ -20,13 +20,19 @@ class AsignarVoluntariosPage extends StatefulWidget {
 }
 
 class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
-  final FuncionarioRepository _repository = Modular.get<FuncionarioRepository>();
+  final FuncionarioRepository _repository =
+      Modular.get<FuncionarioRepository>();
   late Future<List<PerfilVoluntario>> _futureVoluntarios;
   late Future<List<AsignacionTarea>> _futureAsignaciones;
   Set<int> _idsAsignados = {};
   bool _isAssigning = false;
   String _searchQuery = '';
   bool _tieneParticipantes = true;
+
+  // Mapas para almacenar los datos de participación necesarios
+  final Map<int, int> _usuarioToParticipacionMap =
+      {}; // usuarioId -> participacionId
+  final Map<int, int> _usuarioToPerfilVolMap = {}; // usuarioId -> perfilVolId
 
   @override
   void initState() {
@@ -36,18 +42,27 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
 
   void _loadData() {
     _futureVoluntarios = _fetchEligibleVoluntarios();
-    _futureAsignaciones = _repository.getAsignacionesByTarea(widget.tareaId).then((asignaciones) {
-      setState(() {
-        _idsAsignados = asignaciones.map((a) => a.perfilVolId).toSet();
-      });
-      return asignaciones;
-    });
+    _futureAsignaciones = _repository
+        .getAsignacionesByTarea(widget.tareaId)
+        .then((asignaciones) {
+          setState(() {
+            _idsAsignados = asignaciones.map((a) => a.perfilVolId).toSet();
+          });
+          return asignaciones;
+        });
   }
 
   Future<List<PerfilVoluntario>> _fetchEligibleVoluntarios() async {
+    print('🔍 Obteniendo tarea ${widget.tareaId}...');
     final tarea = await _repository.getTareaById(widget.tareaId);
-    final List<Participacion> participaciones =
-        await _repository.getParticipacionesByProyecto(tarea.proyectoId);
+    print(
+      '✅ Tarea obtenida: ${tarea.nombre}, proyecto_id: ${tarea.proyectoId}',
+    );
+
+    print('🔍 Obteniendo participaciones del proyecto ${tarea.proyectoId}...');
+    final List<Participacion> participaciones = await _repository
+        .getParticipacionesByProyecto(tarea.proyectoId);
+    print('✅ Participaciones obtenidas: ${participaciones.length}');
 
     final participanteUserIds = _extractParticipanteUserIds(participaciones);
 
@@ -58,30 +73,103 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
     }
 
     if (participanteUserIds.isEmpty) {
+      print('⚠️ No hay participantes en el proyecto');
       return [];
     }
 
+    print('🔍 Obteniendo voluntarios de la organización...');
     final voluntarios = await _repository.getVoluntariosDeMiOrganizacion();
-    return voluntarios
-        .where((voluntario) => participanteUserIds.contains(voluntario.usuarioId))
-        .toList();
+    print('✅ Voluntarios de la organización: ${voluntarios.length}');
+
+    final filtrados = voluntarios.where((voluntario) {
+      final participa = participanteUserIds.contains(voluntario.usuarioId);
+      if (participa) {
+        print('✅ Voluntario ${voluntario.usuarioId} participa en el proyecto');
+      }
+      return participa;
+    }).toList();
+
+    print('📊 Voluntarios elegibles para asignar: ${filtrados.length}');
+    return filtrados;
   }
 
   Set<int> _extractParticipanteUserIds(List<Participacion> participaciones) {
     final usuarioIds = <int>{};
+    _usuarioToParticipacionMap.clear(); // Limpiar mapas anteriores
+    _usuarioToPerfilVolMap.clear();
+
     for (final participacion in participaciones) {
+      // Filtrar solo participaciones APROBADAS
+      final estadoUpper = participacion.estado.toUpperCase();
+      if (estadoUpper != 'APROBADA') {
+        print(
+          '⏭️ Participación ${participacion.idParticipacion} no está aprobada (estado: ${participacion.estado})',
+        );
+        continue;
+      }
+
       final inscripcion = participacion.inscripcion;
-      if (inscripcion == null) continue;
+      if (inscripcion == null) {
+        print(
+          '⚠️ Participación ${participacion.idParticipacion} no tiene inscripción',
+        );
+        continue;
+      }
 
-      final rawUserId =
-          inscripcion['usuario_id'] ?? inscripcion['usuarioId'] ?? inscripcion['voluntarioId'];
-      if (rawUserId == null) continue;
+      // Intentar extraer el usuario_id y perfil_vol_id
+      int? usuarioId;
+      int? perfilVolId;
 
-      final parsedId = rawUserId is int ? rawUserId : int.tryParse(rawUserId.toString());
-      if (parsedId != null) {
-        usuarioIds.add(parsedId);
+      // 1. Intentar desde el campo directo
+      final rawUserId = inscripcion['usuario_id'] ?? inscripcion['usuarioId'];
+      if (rawUserId != null) {
+        usuarioId = rawUserId is int
+            ? rawUserId
+            : int.tryParse(rawUserId.toString());
+      }
+
+      // 2. Intentar obtener perfil_vol_id desde inscripcion
+      final rawPerfilVolId =
+          inscripcion['perfil_vol_id'] ?? inscripcion['perfilVolId'];
+      if (rawPerfilVolId != null) {
+        perfilVolId = rawPerfilVolId is int
+            ? rawPerfilVolId
+            : int.tryParse(rawPerfilVolId.toString());
+      }
+
+      // 3. Si no se encontró usuario, intentar desde el objeto usuario anidado
+      if (usuarioId == null && inscripcion['usuario'] is Map) {
+        final usuario = inscripcion['usuario'] as Map<String, dynamic>;
+        final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
+        if (rawUsuarioId != null) {
+          usuarioId = rawUsuarioId is int
+              ? rawUsuarioId
+              : int.tryParse(rawUsuarioId.toString());
+        }
+      }
+
+      if (usuarioId != null &&
+          usuarioId > 0 &&
+          perfilVolId != null &&
+          perfilVolId > 0) {
+        usuarioIds.add(usuarioId);
+        // Guardar los mapeos necesarios para la asignación
+        _usuarioToParticipacionMap[usuarioId] = participacion.idParticipacion;
+        _usuarioToPerfilVolMap[usuarioId] = perfilVolId;
+        print(
+          '✅ Usuario $usuarioId participa en el proyecto (participación ${participacion.idParticipacion}, perfil_vol ${perfilVolId})',
+        );
+      } else {
+        print(
+          '⚠️ No se pudo extraer datos completos de la participación ${participacion.idParticipacion}',
+        );
+        print('   usuarioId: $usuarioId, perfilVolId: $perfilVolId');
       }
     }
+
+    print(
+      '📋 Total de usuarios participantes encontrados: ${usuarioIds.length}',
+    );
     return usuarioIds;
   }
 
@@ -96,19 +184,33 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
     });
 
     try {
-      await _repository.asignarTareaVoluntario(
-        widget.tareaId,
-        {
-          'perfil_vol_id': voluntario.idPerfilVoluntario,
-          'titulo': widget.tareaNombre,
-          'descripcion': 'Asignación desde app móvil',
-        },
-      );
+      // Obtener participacion_id y perfil_vol_id del voluntario
+      final participacionId = _usuarioToParticipacionMap[voluntario.usuarioId];
+      final perfilVolId = _usuarioToPerfilVolMap[voluntario.usuarioId];
+
+      if (participacionId == null || perfilVolId == null) {
+        throw Exception(
+          'No se encontró la participación aprobada del voluntario en este proyecto',
+        );
+      }
+
+      print('📤 Asignando tarea ${widget.tareaId} al voluntario:');
+      print('   - perfil_vol_id: $perfilVolId');
+      print('   - participacion_id: $participacionId');
+
+      await _repository.asignarTareaVoluntario(widget.tareaId, {
+        'perfil_vol_id': perfilVolId,
+        'participacion_id': participacionId,
+        'titulo': widget.tareaNombre,
+        'descripcion': 'Asignación desde app móvil',
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${voluntario.usuario?['nombres'] ?? 'Voluntario'} asignado exitosamente'),
+            content: Text(
+              '${voluntario.usuario?['nombres'] ?? 'Voluntario'} asignado exitosamente',
+            ),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
@@ -188,7 +290,11 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                              Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: colorScheme.error,
+                              ),
                               const SizedBox(height: 8),
                               Text(
                                 'Error al cargar voluntarios',
@@ -210,9 +316,12 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                   final voluntarios = snapshot.data ?? [];
                   final filteredVoluntarios = voluntarios.where((v) {
                     if (_searchQuery.isEmpty) return true;
-                    final nombres = v.usuario?['nombres']?.toString().toLowerCase() ?? '';
-                    final apellidos = v.usuario?['apellidos']?.toString().toLowerCase() ?? '';
-                    final email = v.usuario?['email']?.toString().toLowerCase() ?? '';
+                    final nombres =
+                        v.usuario?['nombres']?.toString().toLowerCase() ?? '';
+                    final apellidos =
+                        v.usuario?['apellidos']?.toString().toLowerCase() ?? '';
+                    final email =
+                        v.usuario?['email']?.toString().toLowerCase() ?? '';
                     return nombres.contains(_searchQuery) ||
                         apellidos.contains(_searchQuery) ||
                         email.contains(_searchQuery);
@@ -225,17 +334,46 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                           padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
-                              Icon(Icons.people_outline, size: 64, color: colorScheme.primary),
-                              const SizedBox(height: 12),
+                              Icon(
+                                _tieneParticipantes
+                                    ? Icons.people_outline
+                                    : Icons.group_off,
+                                size: 64,
+                                color: _tieneParticipantes
+                                    ? colorScheme.primary
+                                    : colorScheme.error,
+                              ),
+                              const SizedBox(height: 16),
                               Text(
                                 _searchQuery.isEmpty
                                     ? (_tieneParticipantes
-                                        ? 'No hay voluntarios disponibles'
-                                        : 'No hay voluntarios participando en este proyecto')
+                                          ? 'No hay voluntarios disponibles'
+                                          : 'No hay voluntarios participando en este proyecto')
                                     : 'No se encontraron voluntarios',
-                                style: theme.textTheme.titleMedium,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
+                              if (!_tieneParticipantes &&
+                                  _searchQuery.isEmpty) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Solo puedes asignar tareas a voluntarios que participan en este proyecto.',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Primero agrega voluntarios al proyecto desde la página del proyecto.',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -253,7 +391,9 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                       final apellidos = usuario?['apellidos']?.toString() ?? '';
                       final email = usuario?['email']?.toString() ?? '';
                       final bio = voluntario.bio ?? '';
-                      final isAsignado = _idsAsignados.contains(voluntario.idPerfilVoluntario);
+                      final isAsignado = _idsAsignados.contains(
+                        voluntario.idPerfilVoluntario,
+                      );
 
                       return ListTile(
                         leading: CircleAvatar(

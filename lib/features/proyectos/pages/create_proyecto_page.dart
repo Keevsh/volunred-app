@@ -27,11 +27,13 @@ class _CategoriasSelector extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: categorias.map((categoria) {
-        final isSelected = categoriasSeleccionadas.contains(categoria.idCategoria);
+        final isSelected = categoriasSeleccionadas.contains(
+          categoria.idCategoria,
+        );
         return FilterChip(
           selected: isSelected,
           label: Text(categoria.nombre),
-          avatar: isSelected 
+          avatar: isSelected
               ? Icon(
                   Icons.check_circle,
                   size: 18,
@@ -42,7 +44,7 @@ class _CategoriasSelector extends StatelessWidget {
           selectedColor: colorScheme.primaryContainer,
           checkmarkColor: colorScheme.onPrimaryContainer,
           labelStyle: TextStyle(
-            color: isSelected 
+            color: isSelected
                 ? colorScheme.onPrimaryContainer
                 : colorScheme.onSurface,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -65,7 +67,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   final _nombreController = TextEditingController();
   final _objetivoController = TextEditingController();
   final _ubicacionController = TextEditingController();
-  
+
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
   List<int> _categoriasSeleccionadas = [];
@@ -73,7 +75,8 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
   bool _isLoading = false;
   bool _loadingCategorias = true;
   String? _errorCategorias;
-  
+  bool _participacionPublica = false;
+
   // Variables para la imagen
   final ImagePicker _imagePicker = ImagePicker();
   XFile? _selectedImage;
@@ -95,15 +98,15 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
 
   Future<void> _loadCategorias() async {
     if (!mounted) return;
-    
+
     _loadingCategorias = true;
     _errorCategorias = null;
     setState(() {});
-    
+
     try {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
       final categorias = await funcionarioRepo.getCategorias();
-      
+
       if (mounted) {
         _categorias = categorias;
         _loadingCategorias = false;
@@ -114,7 +117,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         _loadingCategorias = false;
         _errorCategorias = 'Error cargando categorías: $e';
         setState(() {});
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_errorCategorias!),
@@ -132,7 +135,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
-    
+
     if (picked != null && mounted) {
       if (isInicio) {
         _fechaInicio = picked;
@@ -170,17 +173,19 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         // Actualizar UI inmediatamente con la imagen seleccionada
         _selectedImage = pickedFile;
         setState(() {});
-        
+
         // Convertir imagen a base64 en background (no bloquea UI)
         final bytes = await pickedFile.readAsBytes();
         final base64String = base64Encode(bytes);
         final mimeType = _getMimeType(pickedFile.path);
-        
+
         _imageBase64 = 'data:$mimeType;base64,$base64String';
-        
+
         print('📸 Imagen seleccionada: ${pickedFile.name}');
         print('📊 Tamaño: ${bytes.length} bytes');
-        print('🔄 Base64 generado (primeros 50 chars): ${_imageBase64!.substring(0, 50)}...');
+        print(
+          '🔄 Base64 generado (primeros 50 chars): ${_imageBase64!.substring(0, 50)}...',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -249,10 +254,12 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
 
   Future<void> _handleCreate() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (_fechaInicio == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una fecha de inicio')),
+        const SnackBar(
+          content: Text('Por favor selecciona una fecha de inicio'),
+        ),
       );
       return;
     }
@@ -263,19 +270,21 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
 
     try {
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
-      
+
       final data = {
         'nombre': _nombreController.text.trim(),
-        'objetivo': _objetivoController.text.trim().isEmpty 
-            ? null 
+        'objetivo': _objetivoController.text.trim().isEmpty
+            ? null
             : _objetivoController.text.trim(),
-        'ubicacion': _ubicacionController.text.trim().isEmpty 
-            ? null 
+        'ubicacion': _ubicacionController.text.trim().isEmpty
+            ? null
             : _ubicacionController.text.trim(),
         'fecha_inicio': _fechaInicio!.toUtc().toIso8601String(),
-        if (_fechaFin != null) 'fecha_fin': _fechaFin!.toUtc().toIso8601String(),
+        if (_fechaFin != null)
+          'fecha_fin': _fechaFin!.toUtc().toIso8601String(),
         'estado': 'activo',
-        if (_categoriasSeleccionadas.isNotEmpty) 
+        'participacion_publica': _participacionPublica,
+        if (_categoriasSeleccionadas.isNotEmpty)
           'categorias_ids': _categoriasSeleccionadas,
         if (_imageBase64 != null) 'imagen': _imageBase64,
       };
@@ -286,9 +295,13 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
       data.forEach((key, value) {
         print('   $key: ${value.runtimeType} = $value');
       });
-      print('📅 Fecha inicio formateada: ${_fechaInicio!.toUtc().toIso8601String()}');
+      print(
+        '📅 Fecha inicio formateada: ${_fechaInicio!.toUtc().toIso8601String()}',
+      );
       if (_fechaFin != null) {
-        print('📅 Fecha fin formateada: ${_fechaFin!.toUtc().toIso8601String()}');
+        print(
+          '📅 Fecha fin formateada: ${_fechaFin!.toUtc().toIso8601String()}',
+        );
       }
       print('📋 Categorías seleccionadas: $_categoriasSeleccionadas');
       print('🌐 Endpoint: ${ApiConfig.proyectos}');
@@ -329,10 +342,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crear Proyecto'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Crear Proyecto'), elevation: 0),
       body: _loadingCategorias
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -406,7 +416,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     if (_selectedImage != null) ...[
                       Container(
                         height: 200,
@@ -444,10 +454,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                           const SizedBox(width: 8),
                           IconButton(
                             onPressed: _removeImage,
-                            icon: Icon(
-                              Icons.delete,
-                              color: colorScheme.error,
-                            ),
+                            icon: Icon(Icons.delete, color: colorScheme.error),
                             style: IconButton.styleFrom(
                               backgroundColor: colorScheme.errorContainer,
                             ),
@@ -466,7 +473,8 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                               color: colorScheme.outline.withOpacity(0.3),
                               width: 1,
                             ),
-                            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                            color: colorScheme.surfaceContainerHighest
+                                .withOpacity(0.3),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -556,7 +564,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     if (_errorCategorias != null)
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -566,12 +574,17 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
+                            Icon(
+                              Icons.error_outline,
+                              color: colorScheme.onErrorContainer,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorCategorias!,
-                                style: TextStyle(color: colorScheme.onErrorContainer),
+                                style: TextStyle(
+                                  color: colorScheme.onErrorContainer,
+                                ),
                               ),
                             ),
                             TextButton(
@@ -590,12 +603,17 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, color: colorScheme.onSurfaceVariant),
+                            Icon(
+                              Icons.info_outline,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'No hay categorías disponibles',
-                                style: TextStyle(color: colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
                           ],
@@ -608,7 +626,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         onToggle: _toggleCategoria,
                         colorScheme: colorScheme,
                       ),
-                    
+
                     if (_categoriasSeleccionadas.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -619,6 +637,39 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
                         ),
                       ),
                     ],
+                    const SizedBox(height: 24),
+
+                    // Participación Pública
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: SwitchListTile(
+                        title: Text(
+                          'Participación Pública',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Permitir que cualquier voluntario se una sin necesidad de estar inscrito en la organización',
+                        ),
+                        value: _participacionPublica,
+                        onChanged: (value) {
+                          setState(() {
+                            _participacionPublica = value;
+                          });
+                        },
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 32),
 
                     // Botón crear

@@ -15,7 +15,8 @@ class ProyectosManagementPage extends StatefulWidget {
   const ProyectosManagementPage({super.key});
 
   @override
-  State<ProyectosManagementPage> createState() => _ProyectosManagementPageState();
+  State<ProyectosManagementPage> createState() =>
+      _ProyectosManagementPageState();
 }
 
 class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
@@ -41,7 +42,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     } else {
       // Determinar si es admin
       final esAdmin = usuario.isAdmin;
-      
+
       // Cargar datos apropiados
       _loadData(esAdmin, usuario.idUsuario);
     }
@@ -50,19 +51,21 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   void _loadData([bool? esAdmin, int? userId]) {
     if (esAdmin != null) _esAdmin = esAdmin;
     if (userId != null) _userId = userId;
-    
+
     // Usar los valores guardados
     final admin = _esAdmin ?? true;
     final uid = _userId ?? 0;
-    
+
     BlocProvider.of<AdminBloc>(context).add(LoadProyectosRequested());
-    
+
     if (admin) {
       BlocProvider.of<AdminBloc>(context).add(LoadOrganizacionesRequested());
     } else {
-      BlocProvider.of<AdminBloc>(context).add(LoadOrganizacionesByUsuarioRequested(uid));
+      BlocProvider.of<AdminBloc>(
+        context,
+      ).add(LoadOrganizacionesByUsuarioRequested(uid));
     }
-    
+
     BlocProvider.of<AdminBloc>(context).add(LoadCategoriasProyectosRequested());
   }
 
@@ -77,7 +80,9 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listener: (context, state) {
-          if (state is ProyectoCreated || state is ProyectoUpdated || state is ProyectoDeleted) {
+          if (state is ProyectoCreated ||
+              state is ProyectoUpdated ||
+              state is ProyectoDeleted) {
             _loadData();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -85,8 +90,8 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                   state is ProyectoCreated
                       ? 'Proyecto creado'
                       : state is ProyectoUpdated
-                          ? 'Proyecto actualizado'
-                          : 'Proyecto eliminado',
+                      ? 'Proyecto actualizado'
+                      : 'Proyecto eliminado',
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -246,7 +251,8 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        if (proyecto.objetivo != null && proyecto.objetivo!.isNotEmpty)
+                        if (proyecto.objetivo != null &&
+                            proyecto.objetivo!.isNotEmpty)
                           Text(
                             proyecto.objetivo!,
                             style: const TextStyle(
@@ -260,7 +266,10 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                     ),
                   ),
                   PopupMenuButton(
-                    icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF86868B)),
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: Color(0xFF86868B),
+                    ),
                     itemBuilder: (context) => [
                       const PopupMenuItem(
                         value: 'edit',
@@ -276,9 +285,16 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_rounded, size: 20, color: Colors.red),
+                            Icon(
+                              Icons.delete_rounded,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             SizedBox(width: 12),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            Text(
+                              'Eliminar',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -298,9 +314,13 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                  if (proyecto.ubicacion != null &&
+                      proyecto.ubicacion!.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF5F5F7),
                         borderRadius: BorderRadius.circular(6),
@@ -308,7 +328,11 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF86868B)),
+                          const Icon(
+                            Icons.location_on_rounded,
+                            size: 14,
+                            color: Color(0xFF86868B),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             proyecto.ubicacion!,
@@ -321,7 +345,10 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                       ),
                     ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F7),
                       borderRadius: BorderRadius.circular(6),
@@ -329,7 +356,11 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF86868B)),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: Color(0xFF86868B),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '$fechaInicioStr - $fechaFinStr',
@@ -342,7 +373,10 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: proyecto.estado == 'activo'
                           ? const Color(0xFF34C759).withOpacity(0.1)
@@ -398,10 +432,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
           const SizedBox(height: 8),
           const Text(
             'Los proyectos aparecerán aquí',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xFF86868B),
-            ),
+            style: TextStyle(fontSize: 15, color: Color(0xFF86868B)),
           ),
         ],
       ),
@@ -417,6 +448,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     int? selectedCategoriaId;
     int? selectedOrganizacionId;
     String? selectedEstado = 'activo';
+    bool participacionPublica = false;
     String? imagenBase64;
     final ImagePicker _imagePicker = ImagePicker();
 
@@ -434,219 +466,280 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               if (state is OrganizacionesLoaded) {
                 organizaciones = state.organizaciones;
               } else {
-                BlocProvider.of<AdminBloc>(dialogContext).add(LoadOrganizacionesRequested());
+                BlocProvider.of<AdminBloc>(
+                  dialogContext,
+                ).add(LoadOrganizacionesRequested());
               }
 
               if (state is CategoriasProyectosLoaded) {
                 categorias = state.categorias;
               } else {
-                BlocProvider.of<AdminBloc>(dialogContext).add(LoadCategoriasProyectosRequested());
+                BlocProvider.of<AdminBloc>(
+                  dialogContext,
+                ).add(LoadCategoriasProyectosRequested());
               }
 
               return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
                     title: const Text('Nuevo Proyecto'),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: nombreController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre *',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: objetivoController,
-                          decoration: const InputDecoration(
-                            labelText: 'Objetivo *',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: ubicacionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Ubicación (opcional)',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Categoría *',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: categorias.map((cat) {
-                            final id = cat['id_categoria'] ?? cat['idCategoria'] ?? cat['id'];
-                            final nombre = cat['nombre'] ?? '';
-                            return DropdownMenuItem<int>(
-                              value: id as int?,
-                              child: Text(nombre),
-                            );
-                          }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedCategoriaId = value),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Organización *',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: organizaciones.map((org) {
-                            return DropdownMenuItem<int>(
-                              value: org.idOrganizacion,
-                              child: Text(org.nombre),
-                            );
-                          }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedOrganizacionId = value),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                                  );
-                                  if (date != null) {
-                                    setDialogState(() => fechaInicio = date);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        fechaInicio != null
-                                            ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
-                                            : 'Fecha Inicio',
-                                        style: TextStyle(
-                                          color: fechaInicio != null
-                                              ? const Color(0xFF1D1D1F)
-                                              : const Color(0xFF86868B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: nombreController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre *',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: fechaInicio ?? DateTime.now(),
-                                    firstDate: fechaInicio ?? DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                                  );
-                                  if (date != null) {
-                                    setDialogState(() => fechaFin = date);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        fechaFin != null
-                                            ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
-                                            : 'Fecha Fin',
-                                        style: TextStyle(
-                                          color: fechaFin != null
-                                              ? const Color(0xFF1D1D1F)
-                                              : const Color(0xFF86868B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Estado',
-                            border: OutlineInputBorder(),
                           ),
-                          value: selectedEstado,
-                          items: const [
-                            DropdownMenuItem(value: 'activo', child: Text('Activo')),
-                            DropdownMenuItem(value: 'inactivo', child: Text('Inactivo')),
-                            DropdownMenuItem(value: 'completado', child: Text('Completado')),
-                            DropdownMenuItem(value: 'cancelado', child: Text('Cancelado')),
-                          ],
-                          onChanged: (value) => setDialogState(() => selectedEstado = value),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildImageSelector(
-                          context,
-                          imagenBase64,
-                          (image) => setDialogState(() => imagenBase64 = image),
-                          _imagePicker,
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Cancelar'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        if (nombreController.text.isNotEmpty &&
-                            objetivoController.text.isNotEmpty &&
-                            selectedCategoriaId != null &&
-                            selectedOrganizacionId != null) {
-                          BlocProvider.of<AdminBloc>(dialogContext).add(
-                                CreateProyectoRequested(
-                                  categoriaProyectoId: selectedCategoriaId!,
-                                  organizacionId: selectedOrganizacionId!,
-                                  nombre: nombreController.text,
-                                  objetivo: objetivoController.text,
-                                  ubicacion: ubicacionController.text.isEmpty
-                                      ? null
-                                      : ubicacionController.text,
-                                  fechaInicio: fechaInicio,
-                                  fechaFin: fechaFin,
-                                  estado: selectedEstado,
-                                  imagen: imagenBase64,
-                                ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: objetivoController,
+                            decoration: const InputDecoration(
+                              labelText: 'Objetivo *',
+                              border: OutlineInputBorder(),
+                            ),
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: ubicacionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Ubicación (opcional)',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Categoría *',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: categorias.map((cat) {
+                              final id =
+                                  cat['id_categoria'] ??
+                                  cat['idCategoria'] ??
+                                  cat['id'];
+                              final nombre = cat['nombre'] ?? '';
+                              return DropdownMenuItem<int>(
+                                value: id as int?,
+                                child: Text(nombre),
                               );
-                          Navigator.pop(dialogContext);
-                        }
-                      },
-                      child: const Text('Crear'),
+                            }).toList(),
+                            onChanged: (value) => setDialogState(
+                              () => selectedCategoriaId = value,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Organización *',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: organizaciones.map((org) {
+                              return DropdownMenuItem<int>(
+                                value: org.idOrganizacion,
+                                child: Text(org.nombre),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setDialogState(
+                              () => selectedOrganizacionId = value,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365 * 5),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setDialogState(() => fechaInicio = date);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5EA),
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 20,
+                                          color: Color(0xFF86868B),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          fechaInicio != null
+                                              ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
+                                              : 'Fecha Inicio',
+                                          style: TextStyle(
+                                            color: fechaInicio != null
+                                                ? const Color(0xFF1D1D1F)
+                                                : const Color(0xFF86868B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          fechaInicio ?? DateTime.now(),
+                                      firstDate: fechaInicio ?? DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365 * 5),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setDialogState(() => fechaFin = date);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5EA),
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 20,
+                                          color: Color(0xFF86868B),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          fechaFin != null
+                                              ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
+                                              : 'Fecha Fin',
+                                          style: TextStyle(
+                                            color: fechaFin != null
+                                                ? const Color(0xFF1D1D1F)
+                                                : const Color(0xFF86868B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Estado',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: selectedEstado,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'activo',
+                                child: Text('Activo'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'inactivo',
+                                child: Text('Inactivo'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'completado',
+                                child: Text('Completado'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'cancelado',
+                                child: Text('Cancelado'),
+                              ),
+                            ],
+                            onChanged: (value) =>
+                                setDialogState(() => selectedEstado = value),
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Participación Pública'),
+                            subtitle: const Text(
+                              'Permitir que cualquier voluntario se una sin inscripción previa en la organización',
+                            ),
+                            value: participacionPublica,
+                            onChanged: (value) => setDialogState(
+                              () => participacionPublica = value,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(color: Color(0xFFE5E5EA)),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildImageSelector(
+                            context,
+                            imagenBase64,
+                            (image) =>
+                                setDialogState(() => imagenBase64 = image),
+                            _imagePicker,
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                );
-              },
-            );
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Cancelar'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          if (nombreController.text.isNotEmpty &&
+                              objetivoController.text.isNotEmpty &&
+                              selectedCategoriaId != null &&
+                              selectedOrganizacionId != null) {
+                            BlocProvider.of<AdminBloc>(dialogContext).add(
+                              CreateProyectoRequested(
+                                categoriaProyectoId: selectedCategoriaId!,
+                                organizacionId: selectedOrganizacionId!,
+                                nombre: nombreController.text,
+                                objetivo: objetivoController.text,
+                                ubicacion: ubicacionController.text.isEmpty
+                                    ? null
+                                    : ubicacionController.text,
+                                fechaInicio: fechaInicio,
+                                fechaFin: fechaFin,
+                                estado: selectedEstado,
+                                participacionPublica: participacionPublica,
+                                imagen: imagenBase64,
+                              ),
+                            );
+                            Navigator.pop(dialogContext);
+                          }
+                        },
+                        child: const Text('Crear'),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         );
@@ -657,12 +750,15 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   void _showEditDialog(Proyecto proyecto) {
     final nombreController = TextEditingController(text: proyecto.nombre);
     final objetivoController = TextEditingController(text: proyecto.objetivo);
-    final ubicacionController = TextEditingController(text: proyecto.ubicacion ?? '');
+    final ubicacionController = TextEditingController(
+      text: proyecto.ubicacion ?? '',
+    );
     DateTime? fechaInicio = proyecto.fechaInicio;
     DateTime? fechaFin = proyecto.fechaFin;
     int? selectedCategoriaId = proyecto.categoriaProyectoId;
     int? selectedOrganizacionId = proyecto.organizacionId;
     String? selectedEstado = proyecto.estado;
+    bool participacionPublica = proyecto.participacionPublica;
 
     final bloc = BlocProvider.of<AdminBloc>(context);
     showDialog(
@@ -678,214 +774,277 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               if (state is OrganizacionesLoaded) {
                 organizaciones = state.organizaciones;
               } else {
-                BlocProvider.of<AdminBloc>(dialogContext).add(LoadOrganizacionesRequested());
+                BlocProvider.of<AdminBloc>(
+                  dialogContext,
+                ).add(LoadOrganizacionesRequested());
               }
 
               if (state is CategoriasProyectosLoaded) {
                 categorias = state.categorias;
               } else {
-                BlocProvider.of<AdminBloc>(dialogContext).add(LoadCategoriasProyectosRequested());
+                BlocProvider.of<AdminBloc>(
+                  dialogContext,
+                ).add(LoadCategoriasProyectosRequested());
               }
 
               return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
                     title: const Text('Editar Proyecto'),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: nombreController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nombre *',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: objetivoController,
-                          decoration: const InputDecoration(
-                            labelText: 'Objetivo *',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: ubicacionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Ubicación',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Categoría',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: selectedCategoriaId,
-                          items: categorias.map((cat) {
-                            final id = cat['id_categoria'] ?? cat['idCategoria'] ?? cat['id'];
-                            final nombre = cat['nombre'] ?? '';
-                            return DropdownMenuItem<int>(
-                              value: id as int?,
-                              child: Text(nombre),
-                            );
-                          }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedCategoriaId = value),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Organización',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: selectedOrganizacionId,
-                          items: organizaciones.map((org) {
-                            return DropdownMenuItem<int>(
-                              value: org.idOrganizacion,
-                              child: Text(org.nombre),
-                            );
-                          }).toList(),
-                          onChanged: (value) => setDialogState(() => selectedOrganizacionId = value),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: fechaInicio ?? DateTime.now(),
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                                  );
-                                  if (date != null) {
-                                    setDialogState(() => fechaInicio = date);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        fechaInicio != null
-                                            ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
-                                            : 'Fecha Inicio',
-                                        style: TextStyle(
-                                          color: fechaInicio != null
-                                              ? const Color(0xFF1D1D1F)
-                                              : const Color(0xFF86868B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: nombreController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre *',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: fechaFin ?? fechaInicio ?? DateTime.now(),
-                                    firstDate: fechaInicio ?? DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                                  );
-                                  if (date != null) {
-                                    setDialogState(() => fechaFin = date);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFFE5E5EA)),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF86868B)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        fechaFin != null
-                                            ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
-                                            : 'Fecha Fin',
-                                        style: TextStyle(
-                                          color: fechaFin != null
-                                              ? const Color(0xFF1D1D1F)
-                                              : const Color(0xFF86868B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Estado',
-                            border: OutlineInputBorder(),
                           ),
-                          value: selectedEstado,
-                          items: const [
-                            DropdownMenuItem(value: 'activo', child: Text('Activo')),
-                            DropdownMenuItem(value: 'inactivo', child: Text('Inactivo')),
-                            DropdownMenuItem(value: 'completado', child: Text('Completado')),
-                            DropdownMenuItem(value: 'cancelado', child: Text('Cancelado')),
-                          ],
-                          onChanged: (value) => setDialogState(() => selectedEstado = value),
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Cancelar'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        if (nombreController.text.isNotEmpty &&
-                            objetivoController.text.isNotEmpty &&
-                            selectedCategoriaId != null &&
-                            selectedOrganizacionId != null) {
-                          BlocProvider.of<AdminBloc>(dialogContext).add(
-                                UpdateProyectoRequested(
-                                  id: proyecto.idProyecto,
-                                  categoriaProyectoId: selectedCategoriaId,
-                                  organizacionId: selectedOrganizacionId,
-                                  nombre: nombreController.text,
-                                  objetivo: objetivoController.text,
-                                  ubicacion: ubicacionController.text.isEmpty
-                                      ? null
-                                      : ubicacionController.text,
-                                  fechaInicio: fechaInicio,
-                                  fechaFin: fechaFin,
-                                  estado: selectedEstado,
-                                ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: objetivoController,
+                            decoration: const InputDecoration(
+                              labelText: 'Objetivo *',
+                              border: OutlineInputBorder(),
+                            ),
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: ubicacionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Ubicación',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Categoría',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: selectedCategoriaId,
+                            items: categorias.map((cat) {
+                              final id =
+                                  cat['id_categoria'] ??
+                                  cat['idCategoria'] ??
+                                  cat['id'];
+                              final nombre = cat['nombre'] ?? '';
+                              return DropdownMenuItem<int>(
+                                value: id as int?,
+                                child: Text(nombre),
                               );
-                          Navigator.pop(dialogContext);
-                        }
-                      },
-                      child: const Text('Guardar'),
+                            }).toList(),
+                            onChanged: (value) => setDialogState(
+                              () => selectedCategoriaId = value,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Organización',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: selectedOrganizacionId,
+                            items: organizaciones.map((org) {
+                              return DropdownMenuItem<int>(
+                                value: org.idOrganizacion,
+                                child: Text(org.nombre),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setDialogState(
+                              () => selectedOrganizacionId = value,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          fechaInicio ?? DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365 * 5),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setDialogState(() => fechaInicio = date);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5EA),
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 20,
+                                          color: Color(0xFF86868B),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          fechaInicio != null
+                                              ? '${fechaInicio!.day}/${fechaInicio!.month}/${fechaInicio!.year}'
+                                              : 'Fecha Inicio',
+                                          style: TextStyle(
+                                            color: fechaInicio != null
+                                                ? const Color(0xFF1D1D1F)
+                                                : const Color(0xFF86868B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          fechaFin ??
+                                          fechaInicio ??
+                                          DateTime.now(),
+                                      firstDate: fechaInicio ?? DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365 * 5),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setDialogState(() => fechaFin = date);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5EA),
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 20,
+                                          color: Color(0xFF86868B),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          fechaFin != null
+                                              ? '${fechaFin!.day}/${fechaFin!.month}/${fechaFin!.year}'
+                                              : 'Fecha Fin',
+                                          style: TextStyle(
+                                            color: fechaFin != null
+                                                ? const Color(0xFF1D1D1F)
+                                                : const Color(0xFF86868B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Estado',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: selectedEstado,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'activo',
+                                child: Text('Activo'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'inactivo',
+                                child: Text('Inactivo'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'completado',
+                                child: Text('Completado'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'cancelado',
+                                child: Text('Cancelado'),
+                              ),
+                            ],
+                            onChanged: (value) =>
+                                setDialogState(() => selectedEstado = value),
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Participación Pública'),
+                            subtitle: const Text(
+                              'Permitir que cualquier voluntario se una sin inscripción previa en la organización',
+                            ),
+                            value: participacionPublica,
+                            onChanged: (value) => setDialogState(
+                              () => participacionPublica = value,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(color: Color(0xFFE5E5EA)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                );
-              },
-            );
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Cancelar'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          if (nombreController.text.isNotEmpty &&
+                              objetivoController.text.isNotEmpty &&
+                              selectedCategoriaId != null &&
+                              selectedOrganizacionId != null) {
+                            BlocProvider.of<AdminBloc>(dialogContext).add(
+                              UpdateProyectoRequested(
+                                id: proyecto.idProyecto,
+                                categoriaProyectoId: selectedCategoriaId,
+                                organizacionId: selectedOrganizacionId,
+                                nombre: nombreController.text,
+                                objetivo: objetivoController.text,
+                                ubicacion: ubicacionController.text.isEmpty
+                                    ? null
+                                    : ubicacionController.text,
+                                fechaInicio: fechaInicio,
+                                fechaFin: fechaFin,
+                                estado: selectedEstado,
+                                participacionPublica: participacionPublica,
+                              ),
+                            );
+                            Navigator.pop(dialogContext);
+                          }
+                        },
+                        child: const Text('Guardar'),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         );
@@ -904,10 +1063,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
       children: [
         const Text(
           'Imagen del Proyecto (opcional)',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -927,7 +1083,9 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al procesar la imagen: $e')),
+                      SnackBar(
+                        content: Text('Error al procesar la imagen: $e'),
+                      ),
                     );
                   }
                 }
@@ -946,10 +1104,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
             decoration: BoxDecoration(
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: const Color(0xFFE5E5EA),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE5E5EA), width: 1),
             ),
             child: imagenBase64 != null && imagenBase64.isNotEmpty
                 ? ClipRRect(
@@ -972,10 +1127,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                       const SizedBox(height: 8),
                       Text(
                         'Agregar imagen',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -988,9 +1140,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               onPressed: () => onImageSelected(null),
               icon: const Icon(Icons.delete_outline, size: 18),
               label: const Text('Eliminar imagen'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ),
       ],
@@ -1002,7 +1152,9 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Proyecto'),
-        content: Text('¿Está seguro que desea eliminar el proyecto "${proyecto.nombre}"?'),
+        content: Text(
+          '¿Está seguro que desea eliminar el proyecto "${proyecto.nombre}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1011,7 +1163,9 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              BlocProvider.of<AdminBloc>(context).add(DeleteProyectoRequested(proyecto.idProyecto));
+              BlocProvider.of<AdminBloc>(
+                context,
+              ).add(DeleteProyectoRequested(proyecto.idProyecto));
               Navigator.pop(context);
             },
             child: const Text('Eliminar'),
@@ -1021,4 +1175,3 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     );
   }
 }
-

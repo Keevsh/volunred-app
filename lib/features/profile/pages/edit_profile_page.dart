@@ -236,30 +236,43 @@ class _EditProfilePageState extends State<EditProfilePage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: const Color(0xFFF5F7FA),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Editar Perfil'),
+        title: const Text(
+          'Mi Perfil',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: colorScheme.onSurface,
+        foregroundColor: Colors.white,
         actions: [
           if (!_isLoading)
-            TextButton(
-              onPressed: _isSaving ? null : _saveProfile,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      'Guardar',
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: FilledButton.icon(
+                onPressed: _isSaving ? null : _saveProfile,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check, size: 18),
+                label: Text(_isSaving ? 'Guardando...' : 'Guardar'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -269,25 +282,45 @@ class _EditProfilePageState extends State<EditProfilePage>
               opacity: _fadeAnimation,
               child: Form(
                 key: _formKey,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProgressIndicator(colorScheme),
-                      const SizedBox(height: 32),
-                      _buildProfilePhotoSection(colorScheme),
-                      const SizedBox(height: 32),
-                      _buildPersonalInfoSection(colorScheme),
-                      const SizedBox(height: 32),
-                      _buildAboutMeSection(colorScheme),
-                      const SizedBox(height: 32),
-                      _buildAvailabilitySection(colorScheme),
-                      const SizedBox(height: 40),
-                      _buildActionButtons(),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                child: Stack(
+                  children: [
+                    // Gradiente de fondo superior
+                    Container(
+                      height: 280,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colorScheme.primary,
+                            colorScheme.primary.withOpacity(0.8),
+                            colorScheme.primaryContainer,
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Contenido
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.only(top: 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProfilePhotoSection(colorScheme),
+                          const SizedBox(height: 24),
+                          _buildProgressIndicator(colorScheme),
+                          const SizedBox(height: 24),
+                          _buildPersonalInfoSection(colorScheme),
+                          const SizedBox(height: 16),
+                          _buildAboutMeSection(colorScheme),
+                          const SizedBox(height: 16),
+                          _buildAvailabilitySection(colorScheme),
+                          const SizedBox(height: 24),
+                          _buildActionButtons(),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -295,41 +328,94 @@ class _EditProfilePageState extends State<EditProfilePage>
   }
 
   Widget _buildProgressIndicator(ColorScheme colorScheme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Completitud del perfil',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            Text(
-              '$_completionPercentage%',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primary.withOpacity(0.1),
+            colorScheme.primaryContainer.withOpacity(0.2),
           ],
         ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: _completionPercentage / 100,
-            minHeight: 6,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-          ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.3),
+          width: 1.5,
         ),
-      ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.stars_rounded,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Completitud del perfil',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'Completa tu perfil para mejores oportunidades',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$_completionPercentage%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: _completionPercentage / 100,
+              minHeight: 10,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -340,65 +426,71 @@ class _EditProfilePageState extends State<EditProfilePage>
           Stack(
             children: [
               Container(
-                width: 120,
-                height: 120,
+                width: 140,
+                height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.3),
-                    width: 3,
-                  ),
+                  border: Border.all(color: Colors.white, width: 5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: ClipOval(
-                  child: _fotoPerfilBase64 != null &&
-                      _fotoPerfilBase64!.isNotEmpty
+                  child:
+                      _fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty
                       ? ImageBase64Widget(
                           base64String: _fotoPerfilBase64!,
-                          width: 120,
-                          height: 120,
+                          width: 140,
+                          height: 140,
                           fit: BoxFit.cover,
                         )
                       : Container(
-                          color: colorScheme.surfaceContainerHighest,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primary.withOpacity(0.3),
+                                colorScheme.primaryContainer.withOpacity(0.5),
+                              ],
+                            ),
+                          ),
                           child: Icon(
                             Icons.person,
-                            size: 60,
-                            color: colorScheme.onSurfaceVariant,
+                            size: 70,
+                            color: Colors.white.withOpacity(0.8),
                           ),
                         ),
                 ),
               ),
               Positioned(
-                bottom: 0,
-                right: 0,
+                bottom: 5,
+                right: 5,
                 child: GestureDetector(
                   onTap: _pickImage,
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.primary.withOpacity(0.8),
+                        ],
                       ),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: colorScheme.primary.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: const Icon(
-                      Icons.camera_alt,
+                      Icons.camera_alt_rounded,
                       color: Colors.white,
                       size: 20,
                     ),
@@ -407,12 +499,21 @@ class _EditProfilePageState extends State<EditProfilePage>
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: _pickImage,
-            child: Text(
-              'Cambiar foto',
-              style: TextStyle(color: colorScheme.primary),
+          const SizedBox(height: 16),
+          Text(
+            '${_nombreController.text} ${_apellidoController.text}',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _usuario?['email'] ?? '',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.9),
             ),
           ),
         ],
@@ -422,19 +523,37 @@ class _EditProfilePageState extends State<EditProfilePage>
 
   Widget _buildPersonalInfoSection(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.person_outline, size: 20, color: colorScheme.primary),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Información Personal',
                 style: TextStyle(
@@ -445,25 +564,25 @@ class _EditProfilePageState extends State<EditProfilePage>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           _buildReadOnlyField(
             label: 'Nombres',
             value: _nombreController.text,
             icon: Icons.badge_outlined,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildReadOnlyField(
             label: 'Apellidos',
             value: _apellidoController.text,
             icon: Icons.badge_outlined,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildReadOnlyField(
             label: 'Email',
             value: _usuario?['email'] ?? '',
             icon: Icons.email_outlined,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildReadOnlyField(
             label: 'Teléfono',
             value: _telefonoController.text.isEmpty
@@ -478,19 +597,37 @@ class _EditProfilePageState extends State<EditProfilePage>
 
   Widget _buildAboutMeSection(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.edit_note, size: 20, color: colorScheme.primary),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.edit_note_rounded,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Sobre mí',
                 style: TextStyle(
@@ -501,16 +638,31 @@ class _EditProfilePageState extends State<EditProfilePage>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           TextFormField(
             controller: _bioController,
             maxLines: 4,
             maxLength: 250,
             decoration: InputDecoration(
-              hintText:
-                  'Cuéntanos sobre ti, tus intereses y motivaciones...',
+              hintText: 'Cuéntanos sobre ti, tus intereses y motivaciones...',
+              hintStyle: TextStyle(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
               ),
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
@@ -523,19 +675,37 @@ class _EditProfilePageState extends State<EditProfilePage>
 
   Widget _buildAvailabilitySection(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.schedule, size: 20, color: colorScheme.primary),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.schedule_rounded,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Disponibilidad',
                 style: TextStyle(
@@ -553,10 +723,10 @@ class _EditProfilePageState extends State<EditProfilePage>
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: _disponibilidadOptions.map((option) {
               final isSelected = _selectedDisponibilidad.contains(option);
               return FilterChip(
@@ -572,8 +742,13 @@ class _EditProfilePageState extends State<EditProfilePage>
                     _updateCompletionPercentage();
                   });
                 },
-                selectedColor: colorScheme.primary.withOpacity(0.2),
-                checkmarkColor: colorScheme.primary,
+                selectedColor: colorScheme.primary,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                checkmarkColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: isSelected ? Colors.white : colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
@@ -591,63 +766,71 @@ class _EditProfilePageState extends State<EditProfilePage>
   }
 
   Widget _buildActionButtons() {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _isSaving ? null : _saveProfile,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _isSaving ? null : _saveProfile,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: colorScheme.primary.withOpacity(0.4),
               ),
-              elevation: 0,
-            ),
-            child: _isSaving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white,
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
-                    ),
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.save, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Guardar Cambios',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle_rounded, size: 22),
+                        SizedBox(width: 12),
+                        Text(
+                          'Guardar Cambios',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => Modular.to.pop(),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Modular.to.pop(),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                side: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
-            child: const Text('Cancelar'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -658,14 +841,15 @@ class _EditProfilePageState extends State<EditProfilePage>
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+          Icon(icon, size: 18, color: colorScheme.primary.withOpacity(0.7)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -674,16 +858,18 @@ class _EditProfilePageState extends State<EditProfilePage>
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.primary.withOpacity(0.7),
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
                   ),
                 ),

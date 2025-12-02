@@ -1972,7 +1972,8 @@ class _HomePageState extends State<HomePage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
+          onTap: () =>
+              Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
           child: Row(
             children: [
               // Image panel on the left
@@ -1991,7 +1992,8 @@ class _HomePageState extends State<HomePage> {
                         Image.memory(
                           imageBytes,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildGradientBackgroundForProject(isActivo),
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildGradientBackgroundForProject(isActivo),
                         )
                       else
                         _buildGradientBackgroundForProject(isActivo),
@@ -2035,9 +2037,14 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: isActivo ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+                              color: isActivo
+                                  ? const Color(0xFF4CAF50)
+                                  : const Color(0xFFFF9800),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -2053,7 +2060,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 8),
                       // Location
-                      if (proyecto.ubicacion != null && proyecto.ubicacion!.isNotEmpty)
+                      if (proyecto.ubicacion != null &&
+                          proyecto.ubicacion!.isNotEmpty)
                         Row(
                           children: [
                             Icon(
@@ -2080,11 +2088,18 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton.icon(
-                            onPressed: () => Modular.to.pushNamed('/proyectos/${proyecto.idProyecto}'),
-                            icon: const Icon(Icons.visibility_outlined, size: 16),
+                            onPressed: () => Modular.to.pushNamed(
+                              '/proyectos/${proyecto.idProyecto}',
+                            ),
+                            icon: const Icon(
+                              Icons.visibility_outlined,
+                              size: 16,
+                            ),
                             label: const Text('Ver detalles'),
                             style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               visualDensity: VisualDensity.compact,
                             ),
                           ),
@@ -2113,11 +2128,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       child: const Center(
-        child: Icon(
-          Icons.folder_rounded,
-          size: 48,
-          color: Colors.white,
-        ),
+        child: Icon(Icons.folder_rounded, size: 48, color: Colors.white),
       ),
     );
   }
@@ -2202,7 +2213,7 @@ class _HomePageState extends State<HomePage> {
     if (imageData == null || imageData.isEmpty) {
       return null;
     }
-    
+
     try {
       return base64Decode(imageData);
     } catch (e) {
@@ -2288,7 +2299,9 @@ class _HomePageState extends State<HomePage> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF1976D2).withOpacity(0.2),
+                                  color: const Color(
+                                    0xFF1976D2,
+                                  ).withOpacity(0.2),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -2499,7 +2512,7 @@ class _HomePageState extends State<HomePage> {
                                   gradient: const LinearGradient(
                                     colors: [
                                       Color(0xFFFFE5E5),
-                                      Color(0xFFFFBBBB)
+                                      Color(0xFFFFBBBB),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -2507,8 +2520,9 @@ class _HomePageState extends State<HomePage> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFFFF6B6B)
-                                          .withOpacity(0.2),
+                                      color: const Color(
+                                        0xFFFF6B6B,
+                                      ).withOpacity(0.2),
                                       blurRadius: 20,
                                       offset: const Offset(0, 8),
                                     ),
@@ -2523,8 +2537,7 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 32),
                               Text(
                                 'No hay solicitudes',
-                                style:
-                                    theme.textTheme.headlineMedium?.copyWith(
+                                style: theme.textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF1A1A1A),
                                 ),
@@ -2579,9 +2592,11 @@ class _HomePageState extends State<HomePage> {
                                   child: _buildModernStatCard(
                                     'Aprobadas',
                                     inscripciones
-                                        .where((i) =>
-                                            i.estado.toUpperCase() ==
-                                            'APROBADO')
+                                        .where(
+                                          (i) =>
+                                              i.estado.toUpperCase() ==
+                                              'APROBADO',
+                                        )
                                         .length
                                         .toString(),
                                     Icons.check_circle_rounded,
@@ -2598,25 +2613,34 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    0,
+                                    20,
+                                    12,
+                                  ),
                                   child: Text(
                                     'Solicitudes de Inscripción',
-                                    style:
-                                        theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF1A1A1A),
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF1A1A1A),
+                                        ),
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    0,
+                                    20,
+                                    20,
+                                  ),
                                   child: Column(
                                     children: inscripciones.map((inscripcion) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 12),
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
                                         child: _buildInscripcionCardModern(
                                           inscripcion,
                                           theme,
@@ -2632,28 +2656,37 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    0,
+                                    20,
+                                    12,
+                                  ),
                                   child: Text(
                                     'Solicitudes de Participación',
-                                    style:
-                                        theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF1A1A1A),
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF1A1A1A),
+                                        ),
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    0,
+                                    20,
+                                    20,
+                                  ),
                                   child: Column(
-                                    children: participacionesPendientes
-                                        .map((participacion) {
+                                    children: participacionesPendientes.map((
+                                      participacion,
+                                    ) {
                                       return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 12),
-                                        child:
-                                            _buildParticipacionCardModern(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: _buildParticipacionCardModern(
                                           participacion,
                                           theme,
                                         ),
@@ -2676,10 +2709,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildInscripcionCardModern(
-    Inscripcion inscripcion,
-    ThemeData theme,
-  ) {
+  Widget _buildInscripcionCardModern(Inscripcion inscripcion, ThemeData theme) {
     final usuario = inscripcion.usuario;
     final nombreUsuario = usuario != null
         ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
@@ -2787,8 +2817,10 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: estadoColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -2797,11 +2829,7 @@ class _HomePageState extends State<HomePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        estadoIcon,
-                        size: 14,
-                        color: estadoColor,
-                      ),
+                      Icon(estadoIcon, size: 14, color: estadoColor),
                       const SizedBox(width: 4),
                       Text(
                         estadoText,
@@ -2880,10 +2908,7 @@ class _HomePageState extends State<HomePage> {
                       height: 56,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            estadoColor,
-                            estadoColor.withOpacity(0.7)
-                          ],
+                          colors: [estadoColor, estadoColor.withOpacity(0.7)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -2936,7 +2961,9 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: estadoColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -2945,11 +2972,7 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            estadoIcon,
-                            size: 14,
-                            color: estadoColor,
-                          ),
+                          Icon(estadoIcon, size: 14, color: estadoColor),
                           const SizedBox(width: 4),
                           Text(
                             estadoText,
@@ -2976,7 +2999,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildExplorarProyectosView() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return FutureBuilder<List<Proyecto>>(
       future: _loadProyectosVoluntario(),
       builder: (context, snapshot) {
@@ -4018,66 +4041,89 @@ class _HomePageState extends State<HomePage> {
                           child: Stack(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(4),
+                                padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      colorScheme.primary,
-                                      colorScheme.secondary,
-                                    ],
-                                  ),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 25,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
                                 ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colorScheme.surface,
-                                  ),
-                                  child:
-                                      _perfilVoluntario?.fotoPerfil != null &&
-                                          _perfilVoluntario!
-                                              .fotoPerfil!
-                                              .isNotEmpty
-                                      ? CircularImageBase64Widget(
-                                          base64String:
-                                              _perfilVoluntario!.fotoPerfil!,
-                                          size: 96,
-                                          backgroundColor: colorScheme.surface,
-                                        )
-                                      : CircleAvatar(
-                                          radius: 48,
-                                          backgroundColor: colorScheme.surface,
+                                child:
+                                    _perfilVoluntario?.fotoPerfil != null &&
+                                        _perfilVoluntario!
+                                            .fotoPerfil!
+                                            .isNotEmpty
+                                    ? CircularImageBase64Widget(
+                                        base64String:
+                                            _perfilVoluntario!.fotoPerfil!,
+                                        size: 120,
+                                        backgroundColor: colorScheme.surface,
+                                      )
+                                    : Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              colorScheme.primary.withOpacity(
+                                                0.2,
+                                              ),
+                                              colorScheme.primaryContainer
+                                                  .withOpacity(0.4),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Center(
                                           child: Text(
                                             _userName.isNotEmpty
                                                 ? _userName[0].toUpperCase()
                                                 : 'U',
                                             style: TextStyle(
-                                              fontSize: 32,
+                                              fontSize: 52,
                                               fontWeight: FontWeight.bold,
                                               color: colorScheme.primary,
                                             ),
                                           ),
                                         ),
-                                ),
+                                      ),
                               ),
                               Positioned(
-                                bottom: 4,
-                                right: 4,
+                                bottom: 6,
+                                right: 6,
                                 child: Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        colorScheme.primary,
+                                        colorScheme.primary.withOpacity(0.8),
+                                      ],
+                                    ),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: colorScheme.surface,
-                                      width: 2,
+                                      color: Colors.white,
+                                      width: 3,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: colorScheme.primary.withOpacity(
+                                          0.5,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                  child: Icon(
-                                    Icons.camera_alt,
-                                    size: 16,
-                                    color: colorScheme.onPrimary,
+                                  child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 20,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -4085,24 +4131,60 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
 
                         // Nombre y "rol"
                         Text(
                           _userName,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
                             color: colorScheme.onSurface,
+                            letterSpacing: -0.5,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isFuncionario ? 'Funcionario' : 'Voluntario',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
                           ),
-                          textAlign: TextAlign.center,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primaryContainer,
+                                colorScheme.primaryContainer.withOpacity(0.6),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.primary.withOpacity(0.15),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isFuncionario
+                                    ? Icons.badge_rounded
+                                    : Icons.volunteer_activism_rounded,
+                                size: 20,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                _isFuncionario ? 'Funcionario' : 'Voluntario',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         if (_isFuncionario &&
                             _organizacionFuncionario != null) ...[
@@ -4147,14 +4229,32 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 16),
 
                         // Botón de editar perfil
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Modular.to.pushNamed('/profile/edit');
-                            },
-                            icon: const Icon(Icons.edit, size: 18),
-                            label: const Text('Editar perfil'),
+                        FilledButton.icon(
+                          onPressed: () {
+                            Modular.to.pushNamed('/profile/edit');
+                          },
+                          icon: const Icon(Icons.edit_rounded, size: 20),
+                          label: const Text(
+                            'Editar Perfil',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 32,
+                            ),
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 4,
+                            shadowColor: colorScheme.primary.withOpacity(0.4),
                           ),
                         ),
 
@@ -4277,140 +4377,250 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
 
-                        // INFORMACIÓN DE ORGANIZACIÓN - PARA FUNCIONARIOS
+                        // INFORMACIÓN DE ORGANIZACIÓN - PARA FUNCIONARIOS (Diseño horizontal compacto)
                         if (_isFuncionario && _organizacionFuncionario != null)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.business,
-                                      size: 24,
-                                      color: colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Mi Organización',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                          ),
-                                    ),
-                                  ],
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: colorScheme.outline.withOpacity(0.1),
                                 ),
-                                const SizedBox(height: 16),
-                                if (_organizacionFuncionario!.logo != null &&
-                                    _organizacionFuncionario!.logo!.isNotEmpty)
-                                  Center(
-                                    child: ImageBase64Widget(
-                                      base64String:
-                                          _organizacionFuncionario!.logo!,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.contain,
-                                    ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
-                                if (_organizacionFuncionario!.logo != null &&
-                                    _organizacionFuncionario!.logo!.isNotEmpty)
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Título de sección
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.business_rounded,
+                                        size: 20,
+                                        color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Mi Organización',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                   const SizedBox(height: 16),
-                                Text(
-                                  _organizacionFuncionario!.nombre,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                if (_organizacionFuncionario!.descripcion !=
-                                        null &&
-                                    _organizacionFuncionario!
-                                        .descripcion!
-                                        .isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _organizacionFuncionario!.descripcion!,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      color: colorScheme.onSurface,
-                                      height: 1.6,
-                                    ),
-                                  ),
-                                ],
-                                const SizedBox(height: 12),
-                                if (_organizacionFuncionario!.email.isNotEmpty)
+
+                                  // Contenido horizontal: Logo pequeño + Info
                                   Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
-                                        Icons.email_outlined,
-                                        size: 18,
-                                        color: colorScheme.onSurfaceVariant,
+                                      // Logo pequeño circular
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: colorScheme.primaryContainer
+                                              .withOpacity(0.3),
+                                          border: Border.all(
+                                            color: colorScheme.primary
+                                                .withOpacity(0.2),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child:
+                                              _organizacionFuncionario!.logo !=
+                                                      null &&
+                                                  _organizacionFuncionario!
+                                                      .logo!
+                                                      .isNotEmpty
+                                              ? ImageBase64Widget(
+                                                  base64String:
+                                                      _organizacionFuncionario!
+                                                          .logo!,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Icon(
+                                                  Icons.business,
+                                                  size: 30,
+                                                  color: colorScheme.primary,
+                                                ),
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _organizacionFuncionario!.email,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                if (_organizacionFuncionario!.telefono !=
-                                        null &&
-                                    _organizacionFuncionario!
-                                        .telefono!
-                                        .isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.phone_outlined,
-                                        size: 18,
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _organizacionFuncionario!.telefono!,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                                if (_organizacionFuncionario!.direccion !=
-                                        null &&
-                                    _organizacionFuncionario!
-                                        .direccion!
-                                        .isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.location_on_outlined,
-                                        size: 18,
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 16),
+
+                                      // Información de la organización
                                       Expanded(
-                                        child: Text(
-                                          _organizacionFuncionario!.direccion!,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Nombre
+                                            Text(
+                                              _organizacionFuncionario!.nombre,
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                  ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+
+                                            // Email
+                                            if (_organizacionFuncionario!
+                                                .email
+                                                .isNotEmpty)
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.email_outlined,
+                                                    size: 14,
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      _organizacionFuncionario!
+                                                          .email,
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
+
+                                            // Teléfono
+                                            if (_organizacionFuncionario!
+                                                        .telefono !=
+                                                    null &&
+                                                _organizacionFuncionario!
+                                                    .telefono!
+                                                    .isNotEmpty) ...[
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.phone_outlined,
+                                                    size: 14,
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    _organizacionFuncionario!
+                                                        .telefono!,
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: colorScheme
+                                                              .onSurfaceVariant,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+
+                                            // Dirección
+                                            if (_organizacionFuncionario!
+                                                        .direccion !=
+                                                    null &&
+                                                _organizacionFuncionario!
+                                                    .direccion!
+                                                    .isNotEmpty) ...[
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(
+                                                    Icons.location_on_outlined,
+                                                    size: 14,
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      _organizacionFuncionario!
+                                                          .direccion!,
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
+
+                                  // Descripción (si existe)
+                                  if (_organizacionFuncionario!.descripcion !=
+                                          null &&
+                                      _organizacionFuncionario!
+                                          .descripcion!
+                                          .isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme
+                                            .surfaceContainerHighest
+                                            .withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        _organizacionFuncionario!.descripcion!,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: colorScheme.onSurface,
+                                              height: 1.5,
+                                            ),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
 
@@ -4715,6 +4925,45 @@ class _HomePageState extends State<HomePage> {
           ),
           textAlign: TextAlign.center,
         ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String text,
+    required ColorScheme colorScheme,
+    required ThemeData theme,
+    bool? expanded,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: colorScheme.onPrimaryContainer),
+        ),
+        const SizedBox(width: 12),
+        if (expanded == true)
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
+          )
+        else
+          Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
       ],
     );
   }
@@ -6243,7 +6492,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                          0.9,
+                        ),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -6257,7 +6508,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                          0.9,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -6270,7 +6523,9 @@ class _HomePageState extends State<HomePage> {
                   child: _buildShimmerEffect(
                     Container(
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                          0.9,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),

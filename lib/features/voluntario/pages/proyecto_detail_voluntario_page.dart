@@ -55,23 +55,11 @@ class _ProyectoDetailVoluntarioPageState
           if (part.proyectoId != widget.proyectoId) {
             return false;
           }
-
-          // Si la participación viene con la relación de inscripción, usamos el voluntarioId de ahí
-          final inscripcionMap = part.inscripcion;
-          if (perfil != null && inscripcionMap != null) {
-            // Intentar con usuario_id o voluntarioId
-            final usuarioId =
-                inscripcionMap['perfil_vol_id'] ?? inscripcionMap['perfilVolId'];
-            if (usuarioId != null) {
-              final usuarioIdInscripcion = int.tryParse(usuarioId.toString());
-              if (usuarioIdInscripcion != null &&
-                  usuarioIdInscripcion == perfil.usuarioId) {
-                return true;
-              }
-            }
-          }
-
-          return false;
+          if (perfil == null) return false;
+          // Coincidir por usuario_id (normalizado) o por perfil_vol_id como respaldo
+          final byUsuario = part.usuarioId != null && part.usuarioId == perfil.usuarioId;
+          final byPerfilVol = part.perfilVolId != null && part.perfilVolId == perfil.idPerfilVoluntario;
+          return byUsuario || byPerfilVol;
         }, orElse: () => throw Exception('No encontrada'));
       } catch (e) {
         _participacion = null;

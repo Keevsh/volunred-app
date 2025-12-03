@@ -174,97 +174,106 @@ class _WelcomePageState extends State<WelcomePage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Imagen principal tipo tarjeta con esquinas redondeadas y círculos decorativos
-          SizedBox(
-            height: 420,
-            child: Stack(
-              children: [
-                // Foto principal con bordes redondeados (más grande)
-                Align(
-                  alignment: Alignment.center,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: AspectRatio(
-                      aspectRatio: 4 / 5, // un poco más alto que ancho
-                      child: Image.asset(slide['image']!, fit: BoxFit.cover),
-                    ),
-                  ),
-                ),
-
-                // Circulito bandera Bolivia arriba a la izquierda (simple)
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.transparent,
-                    ),
-                    child: ClipOval(
-                      child: Column(
-                        children: const [
-                          Expanded(
-                            child: ColoredBox(color: Color(0xFFE53935)),
-                          ), // rojo
-                          Expanded(
-                            child: ColoredBox(color: Color(0xFFFDD835)),
-                          ), // amarillo
-                          Expanded(
-                            child: ColoredBox(color: Color(0xFF43A047)),
-                          ), // verde
-                        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 8),
+            // Imagen principal tipo tarjeta con esquinas redondeadas y círculos decorativos
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: AspectRatio(
+                aspectRatio: 9 / 16,
+                child: Stack(
+                  children: [
+                    // Foto principal con bordes redondeados (más grande)
+                    Align(
+                      alignment: Alignment.center,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        child: Image.asset(
+                          slide['image']!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                // Circulito con ícono de mundo abajo a la derecha
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorScheme.primary,
+                    // Circulito bandera Bolivia arriba a la izquierda (simple)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                        ),
+                        child: ClipOval(
+                          child: Column(
+                            children: const [
+                              Expanded(
+                                child: ColoredBox(color: Color(0xFFE53935)),
+                              ), // rojo
+                              Expanded(
+                                child: ColoredBox(color: Color(0xFFFDD835)),
+                              ), // amarillo
+                              Expanded(
+                                child: ColoredBox(color: Color(0xFF43A047)),
+                              ), // verde
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.public, color: Colors.white, size: 20),
+
+                    // Circulito con ícono de mundo abajo a la derecha
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colorScheme.primary,
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.public, color: Colors.white, size: 20),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-          // Título
-          Text(
-            slide['title']!,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+            // Título
+            Text(
+              slide['title']!,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-          // Subtítulo
-          Text(
-            slide['subtitle']!,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+            // Subtítulo
+            Text(
+              slide['subtitle']!,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

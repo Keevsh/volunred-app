@@ -4,6 +4,7 @@ import '../../core/repositories/auth_repository.dart';
 import 'bloc/auth_bloc.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'pages/welcome_page.dart';
 
 class AuthModule extends Module {
   @override
@@ -17,6 +18,10 @@ class AuthModule extends Module {
         create: (_) => Modular.get<AuthBloc>(),
         child: const LoginPage(),
       ),
+    ),
+    ChildRoute(
+      '/welcome',
+      child: (_, __) => const WelcomePage(),
     ),
     ChildRoute(
       '/login',

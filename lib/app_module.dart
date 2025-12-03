@@ -6,7 +6,7 @@ import 'core/repositories/admin_repository.dart';
 import 'core/repositories/organizacion_repository.dart';
 import 'core/repositories/funcionario_repository.dart';
 import 'features/auth/auth_module.dart';
-import 'features/auth/pages/welcome_page.dart';
+import 'features/auth/pages/splash_page.dart';
 import 'features/profile/profile_module.dart';
 import 'features/home/home_module.dart';
 import 'features/experiencias/experiencias_module.dart';
@@ -30,7 +30,7 @@ class AppModule extends Module {
 
   @override
   List<ModularRoute> get routes => [
-    ChildRoute('/', child: (_, __) => const WelcomePage()),
+    ChildRoute('/', child: (_, __) => const SplashPage()),
     ModuleRoute('/auth', module: AuthModule()),
     ModuleRoute('/profile', module: ProfileModule()),
     ModuleRoute('/home', module: HomeModule()),

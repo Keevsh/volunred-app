@@ -44,3 +44,11 @@
 
 # Keep custom exceptions
 -keep public class * extends java.lang.Exception
+
+# Google Play Core (for deferred components/dynamic modules)
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+
+# Flutter embedding classes
+-keep class io.flutter.embedding.** { *; }
+-dontwarn io.flutter.embedding.**

@@ -1499,11 +1499,11 @@ class VoluntarioRepository {
       }
 
       if (esPublico) {
-        // Proyectos públicos: crear participación con perfil_vol_id solamente
+        // Proyectos públicos: enviar solo perfil_vol_id
         body['perfil_vol_id'] = perfil.idPerfilVoluntario;
         print('🟢 Proyecto público: usando perfil_vol_id=${perfil.idPerfilVoluntario}');
       } else {
-        // Proyectos privados: requieren una inscripción APROBADA en la organización del proyecto
+        // Proyectos privados: enviar perfil_vol_id y inscripcion_id aprobada
         print('🟠 Proyecto privado: buscando inscripción APROBADA...');
         final inscripciones = await getInscripciones();
         final inscripcionAprobada = inscripciones.firstWhere(
@@ -1515,8 +1515,9 @@ class VoluntarioRepository {
             'Necesitas una inscripción APROBADA en la organización para participar en este proyecto.',
           ),
         );
+        body['perfil_vol_id'] = perfil.idPerfilVoluntario;
         body['inscripcion_id'] = inscripcionAprobada.idInscripcion;
-        print('✅ Inscripción aprobada encontrada: id=${inscripcionAprobada.idInscripcion}');
+        print('✅ Enviando perfil_vol_id=${perfil.idPerfilVoluntario} e inscripcion_id=${inscripcionAprobada.idInscripcion}');
       }
 
       final response = await _dioClient.dio.post(

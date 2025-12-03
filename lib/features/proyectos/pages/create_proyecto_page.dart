@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
 import 'dart:io';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/categoria.dart';
 import '../../../core/config/api_config.dart';
+import '../../../core/utils/image_utils.dart';
 
 // Widget optimizado para categorías que solo se reconstruye cuando cambian las categorías
 class _CategoriasSelector extends StatelessWidget {
@@ -174,18 +174,43 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
         _selectedImage = pickedFile;
         setState(() {});
 
-        // Convertir imagen a base64 en background (no bloquea UI)
-        final bytes = await pickedFile.readAsBytes();
-        final base64String = base64Encode(bytes);
-        final mimeType = _getMimeType(pickedFile.path);
-
-        _imageBase64 = 'data:$mimeType;base64,$base64String';
+        // Convertir y comprimir imagen a base64 de forma segura
+        try {
+          final base64Compressed = await ImageUtils.convertXFileToBase64(pickedFile);
+          // Validar tamaño final
+          final isValidSize = ImageUtils.isValidBase64Size(base64Compressed);
+          if (!isValidSize) {
+            // Si aún es grande, mostrar advertencia y no adjuntar imagen
+            _imageBase64 = null;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'La imagen es demasiado grande incluso tras compresión (máx. 500KB).',
+                ),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          } else {
+            _imageBase64 = base64Compressed;
+          }
+        } catch (e) {
+          _imageBase64 = null;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error procesando la imagen: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
 
         print('📸 Imagen seleccionada: ${pickedFile.name}');
-        print('📊 Tamaño: ${bytes.length} bytes');
-        print(
-          '🔄 Base64 generado (primeros 50 chars): ${_imageBase64!.substring(0, 50)}...',
-        );
+        try {
+          if (_imageBase64 != null) {
+            print(
+              '🔄 Base64 (primeros 50 chars): ${_imageBase64!.substring(0, 50)}...',
+            );
+          }
+        } catch (_) {}
       }
     } catch (e) {
       if (mounted) {
@@ -199,22 +224,7 @@ class _CreateProyectoPageState extends State<CreateProyectoPage> {
     }
   }
 
-  String _getMimeType(String path) {
-    final extension = path.split('.').last.toLowerCase();
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'gif':
-        return 'image/gif';
-      case 'webp':
-        return 'image/webp';
-      default:
-        return 'image/jpeg'; // fallback
-    }
-  }
+  // mime type helper no longer needed (ImageUtils handles this)
 
   void _removeImage() {
     _selectedImage = null;

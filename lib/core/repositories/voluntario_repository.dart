@@ -1466,30 +1466,57 @@ class VoluntarioRepository {
       print('📤 Creando solicitud de participación...');
       print('📤 Proyecto ID: ${request.proyectoId}');
 
-      // Construir body y asegurar que incluimos perfil_vol_id
-      final body = Map<String, dynamic>.from(request.toJson());
+      // Obtener proyecto para decidir la lógica de creación
+      final proyecto = await getProyectoById(request.proyectoId);
+      final esPublico = proyecto.participacionPublica;
 
-      if (!body.containsKey('perfil_vol_id') || body['perfil_vol_id'] == null) {
-        try {
-          final perfilJson = await StorageService.getString(
-            ApiConfig.perfilVoluntarioKey,
+      // Construir body en función del tipo de proyecto
+      final body = <String, dynamic>{
+        'proyecto_id': request.proyectoId,
+        if (request.horasComprometidasSemana != null)
+          'horas_comprometidas_semana': request.horasComprometidasSemana,
+      };
+
+      // Obtener perfil_vol_id desde storage
+      PerfilVoluntario? perfil;
+      try {
+        final perfilJson = await StorageService.getString(
+          ApiConfig.perfilVoluntarioKey,
+        );
+        if (perfilJson != null) {
+          perfil = PerfilVoluntario.fromJson(
+            jsonDecode(perfilJson) as Map<String, dynamic>,
           );
-          if (perfilJson != null) {
-            final Map<String, dynamic> perfilMap =
-                jsonDecode(perfilJson) as Map<String, dynamic>;
-            final perfil = PerfilVoluntario.fromJson(perfilMap);
-            body['perfil_vol_id'] = perfil.idPerfilVoluntario;
-            print(
-              '👤 perfil_vol_id detectado desde storage: ${perfil.idPerfilVoluntario}',
-            );
-          } else {
-            print(
-              '⚠️ No se encontró perfil_voluntario en storage, se enviará sin perfil_vol_id',
-            );
-          }
-        } catch (e) {
-          print('⚠️ Error obteniendo perfil_voluntario desde storage: $e');
         }
+      } catch (e) {
+        print('⚠️ Error leyendo perfil_voluntario desde storage: $e');
+      }
+
+      if (perfil == null) {
+        throw Exception(
+          'No tienes un perfil de voluntario. Crea tu perfil para continuar.',
+        );
+      }
+
+      if (esPublico) {
+        // Proyectos públicos: crear participación con perfil_vol_id solamente
+        body['perfil_vol_id'] = perfil.idPerfilVoluntario;
+        print('🟢 Proyecto público: usando perfil_vol_id=${perfil.idPerfilVoluntario}');
+      } else {
+        // Proyectos privados: requieren una inscripción APROBADA en la organización del proyecto
+        print('🟠 Proyecto privado: buscando inscripción APROBADA...');
+        final inscripciones = await getInscripciones();
+        final inscripcionAprobada = inscripciones.firstWhere(
+          (ins) =>
+              ins.organizacionId == proyecto.organizacionId &&
+              ins.perfilVolId == perfil!.idPerfilVoluntario &&
+              ins.estado.toUpperCase() == 'APROBADO',
+          orElse: () => throw Exception(
+            'Necesitas una inscripción APROBADA en la organización para participar en este proyecto.',
+          ),
+        );
+        body['inscripcion_id'] = inscripcionAprobada.idInscripcion;
+        print('✅ Inscripción aprobada encontrada: id=${inscripcionAprobada.idInscripcion}');
       }
 
       final response = await _dioClient.dio.post(
@@ -1516,12 +1543,10 @@ class VoluntarioRepository {
         if (data is Map && data['message'] != null) {
           throw Exception(data['message'].toString());
         }
-        throw Exception(
-          'No tienes una inscripción aprobada en la organización de este proyecto.',
-        );
+        throw Exception('Solicitud inválida. Verifica los datos enviados.');
       }
       if (e.response?.statusCode == 404) {
-        throw Exception('El proyecto no existe.');
+        throw Exception('El proyecto no existe o no está disponible.');
       }
       if (e.response?.statusCode == 409) {
         final data = e.response?.data;

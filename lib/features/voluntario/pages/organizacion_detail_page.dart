@@ -60,7 +60,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
           _inscripcion = inscripciones.firstWhere(
             (ins) =>
                 ins.organizacionId == widget.organizacionId &&
-                ins.usuarioId == perfil.usuarioId,
+                ins.perfilVolId == perfil.idPerfilVoluntario,
             orElse: () => throw StateError('No encontrada'),
           );
         } else {
@@ -308,7 +308,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
         final inscripciones = await _repository.getInscripciones();
         final inscripcionExistente = inscripciones.firstWhere(
           (ins) =>
-              ins.usuarioId == perfil.usuarioId &&
+              ins.perfilVolId == perfil.idPerfilVoluntario &&
               ins.organizacionId == widget.organizacionId,
           orElse: () => throw StateError('No existe'),
         );
@@ -330,7 +330,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
       }
 
       final data = {
-        'usuario_id': perfil.usuarioId,
+        'perfil_vol_id': perfil.idPerfilVoluntario,
         'organizacion_id': widget.organizacionId,
         'estado': 'pendiente', // El backend espera minúsculas
       };
@@ -339,7 +339,7 @@ class _OrganizacionDetailPageState extends State<OrganizacionDetailPage> {
         '🚀 [VOLUNTARIO] Enviando datos al backend para crear inscripción:',
       );
       print('📦 [VOLUNTARIO] Data: $data');
-      print('👤 Usuario ID: ${perfil.usuarioId}');
+      print('👤 Perfil Vol ID: ${perfil.idPerfilVoluntario}');
       print('🏢 Organización ID: ${widget.organizacionId}');
       print('📅 Fecha recepción: será asignada automáticamente por el backend');
 

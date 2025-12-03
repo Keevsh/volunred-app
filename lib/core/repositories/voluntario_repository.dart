@@ -8,7 +8,6 @@ import '../models/perfil_voluntario.dart';
 import '../models/experiencia_voluntario.dart';
 import '../models/inscripcion.dart';
 import '../models/participacion.dart';
-import '../models/opinion.dart';
 import '../models/calificacion_proyecto.dart';
 import '../models/proyecto.dart';
 import '../models/organizacion.dart';
@@ -657,11 +656,11 @@ class VoluntarioRepository {
         try {
           // Obtener todas las inscripciones del usuario y buscar la más reciente
           final inscripciones = await getInscripciones();
-          final usuarioId = normalizedData['usuario_id'] as int?;
+            final perfilVolId = normalizedData['perfil_vol_id'] as int?;
           final organizacionId = normalizedData['organizacion_id'] as int?;
 
-          if (usuarioId == null || organizacionId == null) {
-            throw Exception('usuario_id o organizacion_id no pueden ser null');
+            if (perfilVolId == null || organizacionId == null) {
+              throw Exception('perfil_vol_id o organizacion_id no pueden ser null');
           }
 
           // Buscar la inscripción más reciente para este usuario y organización
@@ -669,7 +668,7 @@ class VoluntarioRepository {
               inscripciones
                   .where(
                     (ins) =>
-                        ins.usuarioId == usuarioId &&
+                          ins.perfilVolId == perfilVolId &&
                         ins.organizacionId == organizacionId,
                   )
                   .toList()
@@ -685,7 +684,7 @@ class VoluntarioRepository {
             );
             inscripcion = Inscripcion(
               idInscripcion: 0, // Temporal, se actualizará después
-              usuarioId: usuarioId,
+                perfilVolId: perfilVolId,
               organizacionId: organizacionId,
               fechaRecepcion: normalizedData['fecha_recepcion'] != null
                   ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
@@ -699,16 +698,16 @@ class VoluntarioRepository {
         } catch (e) {
           print('⚠️ No se pudo obtener la inscripción: $e');
           // Crear una inscripción temporal con los datos del request
-          final usuarioId = normalizedData['usuario_id'] as int?;
+          final perfilVolId = normalizedData['perfil_vol_id'] as int?;
           final organizacionId = normalizedData['organizacion_id'] as int?;
 
-          if (usuarioId == null || organizacionId == null) {
-            throw Exception('usuario_id o organizacion_id no pueden ser null');
+          if (perfilVolId == null || organizacionId == null) {
+            throw Exception('perfil_vol_id o organizacion_id no pueden ser null');
           }
 
           inscripcion = Inscripcion(
             idInscripcion: 0, // Temporal, se actualizará después
-            usuarioId: usuarioId,
+            perfilVolId: perfilVolId,
             organizacionId: organizacionId,
             fechaRecepcion: normalizedData['fecha_recepcion'] != null
                 ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
@@ -1200,100 +1199,6 @@ class VoluntarioRepository {
       return response.data is Map
           ? Map<String, dynamic>.from(response.data as Map)
           : <String, dynamic>{};
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  // ==================== OPINIONES ====================
-
-  /// Crear opinión sobre un proyecto
-  Future<Opinion> createOpinion(Map<String, dynamic> data) async {
-    try {
-      final response = await _dioClient.dio.post(
-        ApiConfig.opiniones,
-        data: data,
-      );
-      return Opinion.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Obtener todas las opiniones
-  Future<List<Opinion>> getOpiniones() async {
-    try {
-      final response = await _dioClient.dio.get(ApiConfig.opiniones);
-      final List<dynamic> data = response.data is List ? response.data : [];
-      return data
-          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Obtener opiniones por proyecto
-  Future<List<Opinion>> getOpinionesByProyecto(
-    int proyectoId, {
-    bool visibleOnly = false,
-  }) async {
-    try {
-      final response = await _dioClient.dio.get(
-        ApiConfig.opinionesByProyecto(proyectoId),
-        queryParameters: visibleOnly ? {'visibleOnly': 'true'} : null,
-      );
-      final List<dynamic> data = response.data is List ? response.data : [];
-      return data
-          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Obtener opiniones por voluntario
-  Future<List<Opinion>> getOpinionesByVoluntario(int perfilVolId) async {
-    try {
-      final response = await _dioClient.dio.get(
-        ApiConfig.opinionesByVoluntario(perfilVolId),
-      );
-      final List<dynamic> data = response.data is List ? response.data : [];
-      return data
-          .map((json) => Opinion.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Obtener opinión por ID
-  Future<Opinion> getOpinionById(int id) async {
-    try {
-      final response = await _dioClient.dio.get(ApiConfig.opinion(id));
-      return Opinion.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Actualizar opinión
-  Future<Opinion> updateOpinion(int id, Map<String, dynamic> data) async {
-    try {
-      final response = await _dioClient.dio.patch(
-        ApiConfig.opinion(id),
-        data: data,
-      );
-      return Opinion.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Eliminar opinión
-  Future<void> deleteOpinion(int id) async {
-    try {
-      await _dioClient.dio.delete(ApiConfig.opinion(id));
     } on DioException catch (e) {
       throw _handleError(e);
     }

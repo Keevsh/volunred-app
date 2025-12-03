@@ -61,7 +61,7 @@ class _ProyectoDetailVoluntarioPageState
           if (perfil != null && inscripcionMap != null) {
             // Intentar con usuario_id o voluntarioId
             final usuarioId =
-                inscripcionMap['usuario_id'] ?? inscripcionMap['voluntarioId'];
+                inscripcionMap['perfil_vol_id'] ?? inscripcionMap['perfilVolId'];
             if (usuarioId != null) {
               final usuarioIdInscripcion = int.tryParse(usuarioId.toString());
               if (usuarioIdInscripcion != null &&
@@ -84,7 +84,7 @@ class _ProyectoDetailVoluntarioPageState
           _inscripcionAprobada = inscripciones.firstWhere(
             (ins) =>
                 ins.organizacionId == proyecto.organizacionId &&
-                ins.usuarioId == perfil.usuarioId &&
+                ins.perfilVolId == perfil.idPerfilVoluntario &&
                 ins.estado.toUpperCase() == 'APROBADO',
             orElse: () => throw Exception('No encontrada'),
           );
@@ -549,7 +549,7 @@ class _ProyectoDetailVoluntarioPageState
       // 1. Crear inscripción a la organización
       print('📝 Creando inscripción a la organización...');
       final inscripcion = await _repository.createInscripcion({
-        'usuario_id': perfil.usuarioId,
+        'perfil_vol_id': perfil.idPerfilVoluntario,
         'organizacion_id': _proyecto!.organizacionId,
         'estado': 'pendiente',
       });

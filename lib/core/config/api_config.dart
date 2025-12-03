@@ -71,13 +71,7 @@ class ApiConfig {
   static const String asignacionesTareas = '/informacion/asignaciones-tareas';
   static String asignacionTarea(int id) => '$asignacionesTareas/$id';
   static const String evidencias = '/informacion/evidencias';
-  static const String archivosDigitales = '/informacion/archivos-digitales';
-  static const String opiniones = '/informacion/opiniones';
-  static String opinion(int id) => '$opiniones/$id';
-  static String opinionesByProyecto(int proyectoId) =>
-      '$opiniones/proyecto/$proyectoId';
-  static String opinionesByVoluntario(int perfilVolId) =>
-      '$opiniones/voluntario/$perfilVolId';
+  // Opiniones eliminadas del backend (02-12-2025)
 
   // Endpoints de voluntarios (voluntario autenticado)
   static const String voluntariosBase = '/voluntarios';
@@ -106,11 +100,6 @@ class ApiConfig {
       '$voluntariosBase/my/participaciones';
   static String voluntariosMyParticipacion(int id) =>
       '$voluntariosMyParticipaciones/$id';
-
-  // Endpoints de bitácoras
-  static const String bitacorasOperaciones =
-      '/administracion/bitacoras-operaciones';
-  static const String bitacorasAutores = '/administracion/bitacoras-autores';
 
   // ==================== ENDPOINTS ESPECÍFICOS DE FUNCIONARIOS ====================
   // Base path para endpoints de funcionarios (filtran automáticamente por organización)

@@ -213,12 +213,14 @@ class _InscripcionesManagementPageState
   }
 
   Widget _buildInscripcionCard(Inscripcion inscripcion) {
-    final usuarioNombre = inscripcion.usuario != null
-        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'
+    final perfilVol = inscripcion.perfilVoluntario;
+    final usuario = perfilVol?['usuario'];
+    final usuarioNombre = usuario != null
+        ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'
               .trim()
-        : 'Usuario #${inscripcion.usuarioId}';
-    final usuarioEmail = inscripcion.usuario != null
-        ? inscripcion.usuario!['email'] ?? ''
+        : 'Perfil #${inscripcion.perfilVolId}';
+    final usuarioEmail = usuario != null
+        ? usuario['email'] ?? ''
         : '';
     final organizacionNombre = inscripcion.organizacion != null
         ? inscripcion.organizacion!['nombre'] ??
@@ -554,12 +556,14 @@ class _InscripcionesManagementPageState
   }
 
   void _showDetailsDialog(Inscripcion inscripcion) {
-    final usuarioNombre = inscripcion.usuario != null
-        ? '${inscripcion.usuario!['nombres'] ?? ''} ${inscripcion.usuario!['apellidos'] ?? ''}'
+    final perfilVol = inscripcion.perfilVoluntario;
+    final usuario = perfilVol?['usuario'];
+    final usuarioNombre = usuario != null
+        ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'
               .trim()
-        : 'Usuario #${inscripcion.usuarioId}';
-    final usuarioEmail = inscripcion.usuario != null
-        ? inscripcion.usuario!['email'] ?? ''
+        : 'Perfil #${inscripcion.perfilVolId}';
+    final usuarioEmail = usuario != null
+        ? usuario['email'] ?? ''
         : '';
     final organizacionNombre = inscripcion.organizacion != null
         ? inscripcion.organizacion!['nombre'] ??

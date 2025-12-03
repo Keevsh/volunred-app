@@ -141,28 +141,35 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
 
       print('   - inscripcion keys: ${inscripcion.keys.toList()}');
 
-      // Extraer usuario_id: primero intentar del nivel directo de inscripcion,
-      // luego del objeto usuario anidado
+      // Extraer usuario_id: intentar desde perfil_voluntario.usuario
       int? usuarioId;
 
-      final rawUserId = inscripcion['usuario_id'] ?? inscripcion['usuarioId'];
-      if (rawUserId != null) {
-        usuarioId = rawUserId is int
-            ? rawUserId
-            : int.tryParse(rawUserId.toString());
-        print('   - usuario_id encontrado en nivel directo: $usuarioId');
+      // Primero intentar desde perfil_voluntario.usuario (nuevo esquema)
+      if (inscripcion['perfil_voluntario'] is Map) {
+        final perfilVol = inscripcion['perfil_voluntario'] as Map<String, dynamic>;
+        if (perfilVol['usuario'] is Map) {
+          final usuario = perfilVol['usuario'] as Map<String, dynamic>;
+          print('   - usuario object keys: ${usuario.keys.toList()}');
+          final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
+          if (rawUsuarioId != null) {
+            usuarioId = rawUsuarioId is int
+                ? rawUsuarioId
+                : int.tryParse(rawUsuarioId.toString());
+            print('   - usuario_id encontrado en perfil_voluntario.usuario: $usuarioId');
+          }
+        }
       }
 
-      // Si no se encontró, intentar desde el objeto usuario anidado
+      // Fallback: intentar desde objeto usuario anidado directo (legacy)
       if (usuarioId == null && inscripcion['usuario'] is Map) {
         final usuario = inscripcion['usuario'] as Map<String, dynamic>;
-        print('   - usuario object keys: ${usuario.keys.toList()}');
+        print('   - usuario object keys (legacy): ${usuario.keys.toList()}');
         final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
         if (rawUsuarioId != null) {
           usuarioId = rawUsuarioId is int
               ? rawUsuarioId
               : int.tryParse(rawUsuarioId.toString());
-          print('   - usuario_id encontrado en objeto anidado: $usuarioId');
+          print('   - usuario_id encontrado en objeto legacy: $usuarioId');
         }
       }
 

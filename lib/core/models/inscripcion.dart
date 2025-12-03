@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class Inscripcion extends Equatable {
   final int idInscripcion;
-  final int usuarioId;
+  final int perfilVolId;
   final int organizacionId;
   final DateTime fechaRecepcion;
   final String estado;
@@ -11,19 +11,19 @@ class Inscripcion extends Equatable {
   final DateTime? actualizadoEn;
 
   // Relaciones opcionales
-  final Map<String, dynamic>? usuario;
+  final Map<String, dynamic>? perfilVoluntario;
   final Map<String, dynamic>? organizacion;
 
   const Inscripcion({
     required this.idInscripcion,
-    required this.usuarioId,
+    required this.perfilVolId,
     required this.organizacionId,
     required this.fechaRecepcion,
     required this.estado,
     this.motivoRechazo,
     required this.creadoEn,
     this.actualizadoEn,
-    this.usuario,
+    this.perfilVoluntario,
     this.organizacion,
   });
 
@@ -85,15 +85,15 @@ class Inscripcion extends Equatable {
 
       return Inscripcion(
         idInscripcion: _getInt(json['id_inscripcion']),
-        usuarioId: _getInt(json['usuario_id']),
+        perfilVolId: _getInt(json['perfil_vol_id']),
         organizacionId: _getInt(json['organizacion_id']),
         fechaRecepcion: fechaRecepcion,
         estado: estadoValue,
         motivoRechazo: _getString(json['motivo_rechazo']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
-        usuario: json['usuario'] is Map
-            ? json['usuario'] as Map<String, dynamic>?
+        perfilVoluntario: json['perfil_voluntario'] is Map
+          ? json['perfil_voluntario'] as Map<String, dynamic>?
             : null,
         organizacion: json['organizacion'] is Map
             ? json['organizacion'] as Map<String, dynamic>?
@@ -109,7 +109,7 @@ class Inscripcion extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id_inscripcion': idInscripcion,
-      'usuario_id': usuarioId,
+      'perfil_vol_id': perfilVolId,
       'organizacion_id': organizacionId,
       'fecha_recepcion': fechaRecepcion.toUtc().toIso8601String(),
       'estado': estado,
@@ -117,7 +117,7 @@ class Inscripcion extends Equatable {
       'creado_en': creadoEn.toIso8601String(),
       if (actualizadoEn != null)
         'actualizado_en': actualizadoEn!.toIso8601String(),
-      if (usuario != null) 'usuario': usuario,
+      if (perfilVoluntario != null) 'perfil_voluntario': perfilVoluntario,
       if (organizacion != null) 'organizacion': organizacion,
     };
   }
@@ -125,7 +125,7 @@ class Inscripcion extends Equatable {
   @override
   List<Object?> get props => [
     idInscripcion,
-    usuarioId,
+    perfilVolId,
     organizacionId,
     fechaRecepcion,
     estado,

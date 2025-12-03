@@ -2710,7 +2710,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildInscripcionCardModern(Inscripcion inscripcion, ThemeData theme) {
-    final usuario = inscripcion.usuario;
+    final perfilVol = inscripcion.perfilVoluntario;
+    final usuario = perfilVol?['usuario'];
     final nombreUsuario = usuario != null
         ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
         : 'Usuario';

@@ -39,13 +39,16 @@ class _ParticipacionesPageState extends State<ParticipacionesPage> {
       final participaciones = await _repository.getParticipaciones();
 
       // Filtrar solo las participaciones del usuario actual
+      // Usar el campo usuario_id normalizado por el backend
       final participacionesUsuario = participaciones.where((part) {
-        if (part.inscripcion != null) {
-          final usuarioId = part.inscripcion!['usuario_id'];
-          return usuarioId == perfil.usuarioId;
-        }
-        return false;
+        // El backend ahora normaliza usuario_id para ambos tipos de participación
+        // - Participación pública: usuario_id viene de perfil_voluntario.usuario
+        // - Participación privada: usuario_id viene de inscripcion.perfilVoluntario.usuario
+        return part.usuarioId == perfil.usuarioId;
       }).toList();
+
+      print('🔍 Total participaciones: ${participaciones.length}');
+      print('✅ Participaciones del usuario: ${participacionesUsuario.length}');
 
       setState(() {
         _perfil = perfil;

@@ -393,6 +393,9 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                       final estadoParticipacion =
                           participacion?.estado.toUpperCase() ?? '';
                       final isAprobada = estadoParticipacion == 'APROBADA';
+                      
+                      // Verificar si tiene inscripción a la organización
+                      final tieneInscripcion = participacion?.inscripcionId != null;
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -408,11 +411,60 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
                             ),
                           ),
                         ),
-                        title: Text('$nombres $apellidos'),
+                        title: Row(
+                          children: [
+                            Expanded(child: Text('$nombres $apellidos')),
+                            if (!tieneInscripcion)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 14,
+                                      color: Colors.orange[800],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'No inscrito',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.orange[800],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (email.isNotEmpty) Text(email),
+                            if (!tieneInscripcion)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Participación pública (sin inscripción a la organización)',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.orange[700],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
                             if (bio.isNotEmpty)
                               Text(
                                 bio,

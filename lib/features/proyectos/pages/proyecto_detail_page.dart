@@ -264,6 +264,25 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
                       return;
                     }
 
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Confirmar creación'),
+                        content: const Text('¿Estás seguro de que quieres crear esta tarea?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: const Text('Cancelar'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: const Text('Confirmar'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm != true) return;
+
                     final data = <String, dynamic>{
                       'proyecto_id': widget.proyectoId,
                       'nombre': nombreController.text.trim(),

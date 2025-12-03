@@ -79,19 +79,15 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
       return [];
     }
 
-    print('🔍 Obteniendo voluntarios de la organización...');
-    final voluntarios = await _repository.getVoluntariosDeMiOrganizacion();
-    print('✅ Voluntarios de la organización: ${voluntarios.length}');
+    // Obtener todos los perfiles de voluntarios
+    final perfiles = await _repository.getPerfilesVoluntarios();
 
-    final filtrados = voluntarios.where((voluntario) {
-      final participa = participanteUserIds.contains(voluntario.usuarioId);
-      if (participa) {
-        print('✅ Voluntario ${voluntario.usuarioId} participa en el proyecto');
-      }
-      return participa;
+    // Mostrar todos los que están participando en el proyecto (no solo inscritos)
+    final filtrados = perfiles.where((perfil) {
+      return participanteUserIds.contains(perfil.usuarioId);
     }).toList();
 
-    print('📊 Voluntarios elegibles para asignar: ${filtrados.length}');
+    print('📊 Voluntarios participantes en el proyecto: ${filtrados.length}');
     return filtrados;
   }
 
@@ -141,35 +137,40 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
 
       print('   - inscripcion keys: ${inscripcion.keys.toList()}');
 
-      // Extraer usuario_id: intentar desde perfil_voluntario.usuario
+      // Extraer usuario_id desde inscripcion.perfil_voluntario.usuario
       int? usuarioId;
 
-      // Primero intentar desde perfil_voluntario.usuario (nuevo esquema)
-      if (inscripcion['perfil_voluntario'] is Map) {
-        final perfilVol = inscripcion['perfil_voluntario'] as Map<String, dynamic>;
-        if (perfilVol['usuario'] is Map) {
-          final usuario = perfilVol['usuario'] as Map<String, dynamic>;
-          print('   - usuario object keys: ${usuario.keys.toList()}');
+      // Intentar desde inscripcion.perfil_voluntario o perfilVoluntario (camelCase)
+      final perfilVoluntario = inscripcion['perfil_voluntario'] ?? inscripcion['perfilVoluntario'];
+      if (perfilVoluntario is Map) {
+        print('   - perfil_voluntario keys: ${perfilVoluntario.keys.toList()}');
+        final usuario = perfilVoluntario['usuario'];
+        if (usuario is Map) {
+          print('   - usuario keys: ${usuario.keys.toList()}');
           final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
           if (rawUsuarioId != null) {
             usuarioId = rawUsuarioId is int
                 ? rawUsuarioId
                 : int.tryParse(rawUsuarioId.toString());
-            print('   - usuario_id encontrado en perfil_voluntario.usuario: $usuarioId');
+            print('   ✅ usuario_id encontrado en perfil_voluntario.usuario: $usuarioId');
           }
+        } else {
+          print('   ⚠️ perfil_voluntario.usuario no es un Map');
         }
+      } else {
+        print('   ⚠️ inscripcion.perfil_voluntario/perfilVoluntario no es un Map');
       }
 
-      // Fallback: intentar desde objeto usuario anidado directo (legacy)
+      // Fallback: intentar desde inscripcion.usuario (legacy, si existe)
       if (usuarioId == null && inscripcion['usuario'] is Map) {
         final usuario = inscripcion['usuario'] as Map<String, dynamic>;
-        print('   - usuario object keys (legacy): ${usuario.keys.toList()}');
+        print('   - usuario keys (legacy): ${usuario.keys.toList()}');
         final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
         if (rawUsuarioId != null) {
           usuarioId = rawUsuarioId is int
               ? rawUsuarioId
               : int.tryParse(rawUsuarioId.toString());
-          print('   - usuario_id encontrado en objeto legacy: $usuarioId');
+          print('   ✅ usuario_id encontrado en legacy: $usuarioId');
         }
       }
 

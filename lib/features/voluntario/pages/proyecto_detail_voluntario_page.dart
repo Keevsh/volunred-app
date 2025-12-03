@@ -621,25 +621,9 @@ class _ProyectoDetailVoluntarioPageState
     });
 
     try {
-      // Determinar si necesitamos una inscripción aprobada según el tipo de proyecto
-      int? inscripcionId;
-
-      if (!_proyecto!.participacionPublica) {
-        // Proyecto privado: requiere inscripción aprobada
-        if (_inscripcionAprobada == null) {
-          throw Exception(
-            'Necesitas una inscripción aprobada en la organización para participar en este proyecto.',
-          );
-        }
-        inscripcionId = _inscripcionAprobada!.idInscripcion;
-      } else {
-        // Proyecto público: inscripción opcional (si existe una aprobada, se envía)
-        inscripcionId = _inscripcionAprobada?.idInscripcion;
-      }
-
       final request = CrearParticipacionRequest(
         proyectoId: widget.proyectoId,
-        inscripcionId: inscripcionId,
+        // NO enviar inscripcionId - el repositorio construye el payload correcto
       );
 
       await _repository.createMyParticipacion(request);
@@ -924,6 +908,41 @@ class _ProyectoDetailVoluntarioPageState
                                                 ],
                                               ),
                                             ),
+                                            // Badge de participación pública
+                                            if (_proyecto!.participacionPublica)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF4CAF50),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.public,
+                                                      color: Colors.white,
+                                                      size: 14,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    const Text(
+                                                      'PARTICIPACIÓN PÚBLICA',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        letterSpacing: 0.8,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             if (_proyecto!
                                                         .categoriasProyectos !=
                                                     null &&

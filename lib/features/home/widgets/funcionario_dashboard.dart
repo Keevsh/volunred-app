@@ -284,7 +284,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                     try {
                                       await _repository.updateParticipacion(
                                         participacion.idParticipacion,
-                                        {'estado': 'PROGRAMADA'},
+                                        {'estado': 'APROBADA'},
                                       );
                                       await _loadData();
                                       if (mounted) {
@@ -293,7 +293,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                         ).showSnackBar(
                                           const SnackBar(
                                             content: Text(
-                                              'Solicitud de participación aceptada',
+                                              'Participación aprobada exitosamente',
                                             ),
                                           ),
                                         );

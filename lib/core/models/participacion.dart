@@ -14,8 +14,9 @@ class Participacion extends Equatable {
 
   /// ID de la inscripción (voluntario aprobado) que participa
   ///
-  /// NOTA: La inscripción debe estar en estado APROBADO.
-  final int inscripcionId;
+  /// NOTA: Puede ser null para participaciones públicas (sin inscripción a la organización)
+  /// Para participaciones privadas, la inscripción debe estar en estado APROBADO.
+  final int? inscripcionId;
 
   /// ID del perfil de voluntario (viene del endpoint de participaciones)
   final int? perfilVolId;
@@ -53,7 +54,7 @@ class Participacion extends Equatable {
 
   const Participacion({
     required this.idParticipacion,
-    required this.inscripcionId,
+    this.inscripcionId,
     this.perfilVolId,
     required this.proyectoId,
     this.rolAsignado,
@@ -123,7 +124,7 @@ class Participacion extends Equatable {
 
     return Participacion(
       idParticipacion: _getInt(json['id_participacion']) ?? 0,
-      inscripcionId: _getInt(json['inscripcion_id']) ?? 0,
+      inscripcionId: _getInt(json['inscripcion_id']),
       perfilVolId: _getInt(json['perfil_vol_id']),
       proyectoId: _getInt(json['proyecto_id']) ?? 0,
       rolAsignado: _getString(json['rol_asignado']),
@@ -144,7 +145,7 @@ class Participacion extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id_participacion': idParticipacion,
-      'inscripcion_id': inscripcionId,
+      if (inscripcionId != null) 'inscripcion_id': inscripcionId,
       if (perfilVolId != null) 'perfil_vol_id': perfilVolId,
       'proyecto_id': proyectoId,
       if (rolAsignado != null) 'rol_asignado': rolAsignado,

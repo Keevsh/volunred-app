@@ -48,6 +48,9 @@ class Participacion extends Equatable {
   /// Datos del proyecto (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? proyecto;
 
+  /// ID del usuario (normalizado por el backend, viene directo en participaciones públicas)
+  final int? usuarioId;
+
   const Participacion({
     required this.idParticipacion,
     required this.inscripcionId,
@@ -60,6 +63,7 @@ class Participacion extends Equatable {
     this.actualizadoEn,
     this.inscripcion,
     this.proyecto,
+    this.usuarioId,
   });
 
   factory Participacion.fromJson(Map<String, dynamic> json) {
@@ -133,6 +137,7 @@ class Participacion extends Equatable {
       proyecto: json['proyecto'] is Map
           ? json['proyecto'] as Map<String, dynamic>?
           : null,
+      usuarioId: _getInt(json['usuario_id']),
     );
   }
 
@@ -151,6 +156,7 @@ class Participacion extends Equatable {
         'actualizado_en': actualizadoEn!.toIso8601String(),
       if (inscripcion != null) 'inscripcion': inscripcion,
       if (proyecto != null) 'proyecto': proyecto,
+      if (usuarioId != null) 'usuario_id': usuarioId,
     };
   }
 
@@ -165,5 +171,6 @@ class Participacion extends Equatable {
     estado,
     creadoEn,
     actualizadoEn,
+    usuarioId,
   ];
 }

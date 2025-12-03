@@ -93,7 +93,7 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
 
   Set<int> _extractParticipanteUserIds(List<Participacion> participaciones) {
     final usuarioIds = <int>{};
-    _usuarioToParticipacionMap.clear(); // Limpiar mapas anteriores
+    _usuarioToParticipacionMap.clear();
     _usuarioToPerfilVolMap.clear();
     _participaciones.clear();
 
@@ -102,96 +102,34 @@ class _AsignarVoluntariosPageState extends State<AsignarVoluntariosPage> {
     for (final participacion in participaciones) {
       print('📝 Participación ${participacion.idParticipacion}:');
       print('   - Estado: "${participacion.estado}"');
+      print('   - usuario_id: ${participacion.usuarioId}');
       print('   - perfil_vol_id: ${participacion.perfilVolId}');
       print('   - inscripcion_id: ${participacion.inscripcionId}');
 
-      // Guardar la participación completa
       _participaciones[participacion.idParticipacion] = participacion;
 
-      // Aceptar participaciones que no estén eliminadas o rechazadas
-      // El usuario podrá aprobar las que estén en otros estados
+      // Excluir eliminadas o rechazadas
       final estadoUpper = participacion.estado.toUpperCase();
       if (estadoUpper == 'ELIMINADA' || estadoUpper == 'RECHAZADA') {
-        print(
-          '⏭️ Participación ${participacion.idParticipacion} está ${participacion.estado}, se omite',
-        );
+        print('⏭️ Participación ${participacion.idParticipacion} omitida por estado');
         continue;
       }
 
-      // El perfil_vol_id viene directamente en el objeto Participacion
       final perfilVolId = participacion.perfilVolId;
-      if (perfilVolId == null) {
-        print(
-          '⚠️ Participación ${participacion.idParticipacion} no tiene perfil_vol_id',
-        );
+      final usuarioId = participacion.usuarioId;
+
+      if (perfilVolId == null || usuarioId == null) {
+        print('⚠️ Participación ${participacion.idParticipacion} sin perfil_vol_id o usuario_id');
         continue;
       }
 
-      final inscripcion = participacion.inscripcion;
-      if (inscripcion == null) {
-        print(
-          '⚠️ Participación ${participacion.idParticipacion} no tiene inscripción',
-        );
-        continue;
-      }
-
-      print('   - inscripcion keys: ${inscripcion.keys.toList()}');
-
-      // Extraer usuario_id desde inscripcion.perfil_voluntario.usuario
-      int? usuarioId;
-
-      // Intentar desde inscripcion.perfil_voluntario o perfilVoluntario (camelCase)
-      final perfilVoluntario = inscripcion['perfil_voluntario'] ?? inscripcion['perfilVoluntario'];
-      if (perfilVoluntario is Map) {
-        print('   - perfil_voluntario keys: ${perfilVoluntario.keys.toList()}');
-        final usuario = perfilVoluntario['usuario'];
-        if (usuario is Map) {
-          print('   - usuario keys: ${usuario.keys.toList()}');
-          final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
-          if (rawUsuarioId != null) {
-            usuarioId = rawUsuarioId is int
-                ? rawUsuarioId
-                : int.tryParse(rawUsuarioId.toString());
-            print('   ✅ usuario_id encontrado en perfil_voluntario.usuario: $usuarioId');
-          }
-        } else {
-          print('   ⚠️ perfil_voluntario.usuario no es un Map');
-        }
-      } else {
-        print('   ⚠️ inscripcion.perfil_voluntario/perfilVoluntario no es un Map');
-      }
-
-      // Fallback: intentar desde inscripcion.usuario (legacy, si existe)
-      if (usuarioId == null && inscripcion['usuario'] is Map) {
-        final usuario = inscripcion['usuario'] as Map<String, dynamic>;
-        print('   - usuario keys (legacy): ${usuario.keys.toList()}');
-        final rawUsuarioId = usuario['id_usuario'] ?? usuario['idUsuario'];
-        if (rawUsuarioId != null) {
-          usuarioId = rawUsuarioId is int
-              ? rawUsuarioId
-              : int.tryParse(rawUsuarioId.toString());
-          print('   ✅ usuario_id encontrado en legacy: $usuarioId');
-        }
-      }
-
-      if (usuarioId != null && usuarioId > 0) {
-        usuarioIds.add(usuarioId);
-        // Guardar los mapeos necesarios para la asignación
-        _usuarioToParticipacionMap[usuarioId] = participacion.idParticipacion;
-        _usuarioToPerfilVolMap[usuarioId] = perfilVolId;
-        print(
-          '✅ Usuario $usuarioId participa en el proyecto (participación ${participacion.idParticipacion}, perfil_vol $perfilVolId)',
-        );
-      } else {
-        print(
-          '⚠️ No se pudo extraer usuario_id de la participación ${participacion.idParticipacion}',
-        );
-      }
+      usuarioIds.add(usuarioId);
+      _usuarioToParticipacionMap[usuarioId] = participacion.idParticipacion;
+      _usuarioToPerfilVolMap[usuarioId] = perfilVolId;
+      print('✅ Usuario $usuarioId participa (participación ${participacion.idParticipacion})');
     }
 
-    print(
-      '📋 Total de usuarios participantes encontrados: ${usuarioIds.length}',
-    );
+    print('📋 Total participantes: ${usuarioIds.length}');
     return usuarioIds;
   }
 

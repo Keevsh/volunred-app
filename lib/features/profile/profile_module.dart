@@ -45,6 +45,7 @@ class ProfileModule extends Module {
       ),
     ),
     ChildRoute('/edit', child: (_, __) => const EditProfilePage()),
+    ChildRoute('/edit-funcionario', child: (_, __) => const CreateFuncionarioProfilePage()),
     ChildRoute('/view-funcionario', child: (_, __) => const ViewFuncionarioProfilePage()),
   ];
 }

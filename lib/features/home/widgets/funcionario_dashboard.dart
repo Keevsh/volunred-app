@@ -86,29 +86,31 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       );
     }
 
-    return Container(
-      color: const Color(0xFFF8F9FA),
-      child: RefreshIndicator(
-        onRefresh: _loadData,
-        child: CustomScrollView(
-          slivers: [
-            // Header con saludo y perfil
-            _buildWelcomeHeader(theme),
+    return SafeArea(
+      child: Container(
+        color: const Color(0xFFF8F9FA),
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          child: CustomScrollView(
+            slivers: [
+              // Header con saludo y perfil
+              _buildWelcomeHeader(theme),
 
-            // Estadísticas rápidas
-            SliverToBoxAdapter(child: _buildQuickStats(theme)),
+              // Estadísticas rápidas
+              SliverToBoxAdapter(child: _buildQuickStats(theme)),
 
-            // Proyectos destacados
-            _buildFeaturedProjects(theme),
+              // Proyectos destacados
+              _buildFeaturedProjects(theme),
 
-            if (_participaciones.isNotEmpty)
-              _buildParticipacionesResumen(theme),
+              if (_participaciones.isNotEmpty)
+                _buildParticipacionesResumen(theme),
 
-            // Solicitudes pendientes
-            if (_inscripciones.isNotEmpty) _buildPendingRequests(theme),
+              // Solicitudes pendientes
+              if (_inscripciones.isNotEmpty) _buildPendingRequests(theme),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ),
         ),
       ),
     );
@@ -233,7 +235,20 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
+                            // Nombre del postulante
+                            if (participacion.inscripcion != null)
+                              Text(
+                                _extractNombrePostulante(participacion),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (participacion.inscripcion != null)
+                              const SizedBox(height: 4),
                             Text(
                               'Estado: ${participacion.estado.toUpperCase()}',
                               style: theme.textTheme.bodySmall?.copyWith(
@@ -1168,19 +1183,25 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Nombre del voluntario
                 Text(
-                  'Nueva solicitud',
+                  _extractNombreVoluntario(inscripcion),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF1A1A1A),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
+                // Estado de la solicitud
                 Text(
-                  'Solicitud #${inscripcion.idInscripcion}',
+                  'Solicitud #${inscripcion.idInscripcion} • ${_formatFecha(inscripcion.fechaRecepcion)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: const Color(0xFF757575),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -1252,5 +1273,48 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
         ],
       ),
     );
+  }
+
+  /// Extrae el nombre completo del postulante desde una participación
+  String _extractNombrePostulante(Participacion participacion) {
+    try {
+      final inscripcion = participacion.inscripcion;
+      if (inscripcion == null) return 'Voluntario desconocido';
+      
+      final usuario = inscripcion['usuario'];
+      if (usuario == null) return 'Voluntario desconocido';
+      
+      final nombres = usuario['nombres']?.toString() ?? '';
+      final apellidos = usuario['apellidos']?.toString() ?? '';
+      final nombreCompleto = '$nombres $apellidos'.trim();
+      
+      return nombreCompleto.isNotEmpty ? nombreCompleto : 'Voluntario desconocido';
+    } catch (e) {
+      return 'Voluntario desconocido';
+    }
+  }
+
+  /// Extrae el nombre completo del voluntario desde una inscripción
+  String _extractNombreVoluntario(Inscripcion inscripcion) {
+    try {
+      final perfilVoluntario = inscripcion.perfilVoluntario;
+      if (perfilVoluntario == null) return 'Voluntario desconocido';
+      
+      final usuario = perfilVoluntario['usuario'];
+      if (usuario == null) return 'Voluntario desconocido';
+      
+      final nombres = usuario['nombres']?.toString() ?? '';
+      final apellidos = usuario['apellidos']?.toString() ?? '';
+      final nombreCompleto = '$nombres $apellidos'.trim();
+      
+      return nombreCompleto.isNotEmpty ? nombreCompleto : 'Voluntario desconocido';
+    } catch (e) {
+      return 'Voluntario desconocido';
+    }
+  }
+
+  /// Formatea una fecha al formato dd/MM/yyyy
+  String _formatFecha(DateTime fecha) {
+    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
   }
 }

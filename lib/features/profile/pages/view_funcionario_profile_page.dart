@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/theme/app_styles.dart';
+import '../../../core/models/perfil_funcionario.dart';
+import '../../../core/repositories/funcionario_repository.dart';
 
 class ViewFuncionarioProfilePage extends StatefulWidget {
   const ViewFuncionarioProfilePage({super.key});
@@ -14,21 +18,13 @@ class _ViewFuncionarioProfilePageState
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  
+  final FuncionarioRepository _repository =
+      Modular.get<FuncionarioRepository>();
 
-  // Datos de ejemplo (reemplazar con datos reales desde API)
-  final Map<String, dynamic> funcionario = {
-    'nombres': 'Juan',
-    'apellidos': 'García',
-    'email': 'juan@example.com',
-    'telefono': '+591 2 1234567',
-    'organizacion': 'Cruz Roja Boliviana',
-    'cargo': 'Coordinador de Voluntariado',
-    'departamento': 'Recursos Humanos',
-    'bio':
-        'Profesional apasionado por el voluntariado con 5 años de experiencia coordinando proyectos sociales. Especializado en gestión de voluntarios y desarrollo comunitario.',
-    'sitioWeb': 'www.cruzroja.org.bo',
-    'fotoPerfil': null,
-  };
+  PerfilFuncionario? _perfil;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -41,7 +37,24 @@ class _ViewFuncionarioProfilePageState
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    _animationController.forward();
+    _loadPerfil();
+  }
+
+  Future<void> _loadPerfil() async {
+    try {
+      final perfil = await _repository.getMiPerfil();
+      setState(() {
+        _perfil = perfil;
+        _isLoading = false;
+      });
+      _animationController.forward();
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+      _animationController.forward();
+    }
   }
 
   @override
@@ -53,6 +66,55 @@ class _ViewFuncionarioProfilePageState
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Perfil de Funcionario'),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: colorScheme.onSurface,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null || _perfil == null) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Perfil de Funcionario'),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: colorScheme.onSurface,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+              const SizedBox(height: 16),
+              Text('Error: ${_error ?? 'Perfil no encontrado'}'),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _error = null;
+                  });
+                  _loadPerfil();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -66,7 +128,7 @@ class _ViewFuncionarioProfilePageState
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
-              // TODO: Navegar a editar perfil
+              Modular.to.pushNamed('/profile/edit-funcionario');
             },
           ),
         ],
@@ -125,10 +187,20 @@ class _ViewFuncionarioProfilePageState
               ],
             ),
             child: ClipOval(
-              child: funcionario['fotoPerfil'] != null
-                  ? Image.network(
-                      funcionario['fotoPerfil'],
+              child: _perfil?.fotoPerfil != null && _perfil!.fotoPerfil!.isNotEmpty
+                  ? Image.memory(
+                      base64Decode(_perfil!.fotoPerfil!.split(',').last),
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.white.withOpacity(0.2),
+                          child: const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
                     )
                   : Container(
                       color: Colors.white.withOpacity(0.2),
@@ -144,7 +216,7 @@ class _ViewFuncionarioProfilePageState
 
           // Nombre completo
           Text(
-            '${funcionario['nombres']} ${funcionario['apellidos']}',
+            '${(_perfil?.usuario?['nombres'] ?? '')} ${(_perfil?.usuario?['apellidos'] ?? '')}',
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -156,7 +228,7 @@ class _ViewFuncionarioProfilePageState
 
           // Cargo
           Text(
-            funcionario['cargo'],
+            _perfil?.cargo ?? 'Funcionario',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white.withOpacity(0.9),
@@ -166,13 +238,14 @@ class _ViewFuncionarioProfilePageState
           const SizedBox(height: 4),
 
           // Organización
-          Text(
-            funcionario['organizacion'],
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
+          if (_perfil?.organizacion?['nombre'] != null)
+            Text(
+              _perfil!.organizacion!['nombre'],
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.8),
+              ),
             ),
-          ),
 
           const SizedBox(height: 16),
 
@@ -244,23 +317,23 @@ class _ViewFuncionarioProfilePageState
             colorScheme: colorScheme,
             icon: Icons.email_outlined,
             label: 'Email',
-            value: funcionario['email'],
+            value: _perfil?.usuario?['email'] ?? 'No disponible',
           ),
           const SizedBox(height: 12),
           _buildContactItem(
             colorScheme: colorScheme,
             icon: Icons.phone_outlined,
             label: 'Teléfono',
-            value: funcionario['telefono'],
+            value: _perfil?.usuario?['telefono'] ?? 'No disponible',
           ),
-          if (funcionario['sitioWeb'] != null && funcionario['sitioWeb']!.isNotEmpty)
+          if (_perfil?.usuario?['sitio_web'] != null && (_perfil?.usuario?['sitio_web'] as String?)?.isNotEmpty == true)
             ...[
               const SizedBox(height: 12),
               _buildContactItem(
                 colorScheme: colorScheme,
                 icon: Icons.language,
                 label: 'Sitio Web',
-                value: funcionario['sitioWeb'],
+                value: _perfil!.usuario!['sitio_web'],
               ),
             ],
         ],
@@ -338,21 +411,21 @@ class _ViewFuncionarioProfilePageState
             colorScheme: colorScheme,
             icon: Icons.business_center,
             label: 'Cargo',
-            value: funcionario['cargo'],
+            value: _perfil?.cargo ?? 'No especificado',
           ),
           const SizedBox(height: 12),
           _buildProfessionalItem(
             colorScheme: colorScheme,
             icon: Icons.corporate_fare,
-            label: 'Departamento',
-            value: funcionario['departamento'],
+            label: 'Departamento/Área',
+            value: _perfil?.area ?? _perfil?.departamento ?? 'No especificado',
           ),
           const SizedBox(height: 12),
           _buildProfessionalItem(
             colorScheme: colorScheme,
             icon: Icons.business,
             label: 'Organización',
-            value: funcionario['organizacion'],
+            value: _perfil?.organizacion?['nombre'] ?? 'No especificada',
           ),
         ],
       ),
@@ -426,7 +499,7 @@ class _ViewFuncionarioProfilePageState
           ),
           const SizedBox(height: 12),
           Text(
-            funcionario['bio'],
+            _perfil?.usuario?['bio'] ?? 'Sin información disponible',
             style: TextStyle(
               fontSize: 14,
               color: colorScheme.onSurface,

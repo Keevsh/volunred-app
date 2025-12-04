@@ -6,6 +6,7 @@ import '../../../core/models/organizacion.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/participacion.dart';
+import '../../../core/widgets/skeleton_widget.dart';
 
 class FuncionarioDashboard extends StatefulWidget {
   const FuncionarioDashboard({super.key});
@@ -64,7 +65,96 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     final colorScheme = theme.colorScheme;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SafeArea(
+        child: Container(
+          color: const Color(0xFFF8F9FA),
+          child: CustomScrollView(
+            slivers: [
+              // Header skeleton
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SkeletonWidget(
+                            width: 100,
+                            height: 20,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          const Spacer(),
+                          const SkeletonWidget(width: 40, height: 30),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SkeletonWidget(
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        height: 32,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      const SizedBox(height: 8),
+                      const SkeletonWidget(width: 120, height: 20),
+                    ],
+                  ),
+                ),
+              ),
+              // Stats skeleton
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SkeletonWidget(width: 80, height: 18),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Expanded(child: SkeletonCard(height: 100)),
+                          const SizedBox(width: 12),
+                          const Expanded(child: SkeletonCard(height: 100)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Expanded(child: SkeletonCard(height: 100)),
+                          const SizedBox(width: 12),
+                          const Expanded(child: SkeletonCard(height: 100)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Projects skeleton
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonWidget(width: 150, height: 24),
+                      SizedBox(height: 16),
+                      SkeletonList(itemCount: 2, itemHeight: 140),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_error != null) {

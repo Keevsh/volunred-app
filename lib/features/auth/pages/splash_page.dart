@@ -23,15 +23,18 @@ class _SplashPageState extends State<SplashPage> {
 
     try {
       // Verificar si hay token guardado
+      print('🔍 Verificando sesión...');
       final token = await StorageService.getString(ApiConfig.accessTokenKey);
+      
+      print('🔐 Token encontrado: ${token != null ? "SÍ (${token.substring(0, 20)}...)" : "NO"}');
       
       if (token != null && token.isNotEmpty) {
         // Hay sesión activa, ir al home
-        print('🔐 Token encontrado, redirigiendo a /home');
+        print('✅ Sesión activa, redirigiendo a /home');
         Modular.to.navigate('/home');
       } else {
         // No hay sesión, ir a welcome
-        print('⚠️ No hay token, redirigiendo a /auth/welcome');
+        print('⚠️ No hay sesión, redirigiendo a /auth/welcome');
         Modular.to.navigate('/auth/welcome');
       }
     } catch (e) {

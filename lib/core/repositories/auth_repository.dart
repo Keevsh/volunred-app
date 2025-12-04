@@ -63,14 +63,21 @@ class AuthRepository {
       final authResponse = AuthResponse.fromJson(response.data);
 
       // Guardar token y usuario en storage
+      print('💾 Guardando token: ${authResponse.accessToken.substring(0, 20)}...');
       await StorageService.saveString(
         ApiConfig.accessTokenKey,
         authResponse.accessToken,
       );
+      
+      print('💾 Guardando usuario: ${authResponse.usuario.nombres}');
       await StorageService.saveString(
         ApiConfig.usuarioKey,
         jsonEncode(authResponse.usuario.toJson()),
       );
+
+      // Verificar que se guardó correctamente
+      final tokenGuardado = await StorageService.getString(ApiConfig.accessTokenKey);
+      print('✅ Token guardado verificado: ${tokenGuardado != null ? "SÍ" : "NO"}');
 
       // Siempre limpiar cualquier perfil de voluntario previo
       await StorageService.remove(ApiConfig.perfilVoluntarioKey);
@@ -131,7 +138,9 @@ class AuthRepository {
 
   /// Cerrar sesión (limpiar storage)
   Future<void> logout() async {
+    print('🔓 Cerrando sesión y limpiando storage...');
     await StorageService.clear();
+    print('✅ Storage limpiado completamente');
   }
 
   /// Verificar si el usuario está autenticado

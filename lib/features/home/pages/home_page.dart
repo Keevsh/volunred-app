@@ -740,22 +740,44 @@ class _HomePageState extends State<HomePage> {
       final usuario = await authRepo.getStoredUser();
 
       if (usuario != null) {
-        // Cargar perfil de funcionario desde storage
-        final perfilJson = await StorageService.getString(
-          ApiConfig.perfilFuncionarioKey,
-        );
-        if (perfilJson != null) {
-          final perfil = jsonDecode(perfilJson);
+        print('👤 Cargando perfil de funcionario para usuario: ${usuario.nombres}');
+        
+        // Cargar perfil de funcionario desde la API para obtener datos frescos
+        try {
+          final perfilAPI = await funcionarioRepo.getMiPerfil();
+          print('✅ Perfil de funcionario obtenido de API: ID=${perfilAPI.idPerfilFuncionario}');
+          
+          // Actualizar el storage con el perfil fresco
+          await StorageService.saveString(
+            ApiConfig.perfilFuncionarioKey,
+            jsonEncode(perfilAPI.toJson()),
+          );
+          
           // Cargar organización
           try {
             final organizacion = await funcionarioRepo.getMiOrganizacion();
             if (!mounted) return;
             setState(() {
-              _perfilFuncionario = perfil;
+              _perfilFuncionario = perfilAPI.toJson();
               _organizacionFuncionario = organizacion;
             });
+            print('✅ Perfil y organización cargados correctamente');
           } catch (e) {
             print('❌ Error cargando organización: $e');
+            if (!mounted) return;
+            setState(() {
+              _perfilFuncionario = perfilAPI.toJson();
+            });
+          }
+        } catch (e) {
+          print('❌ Error cargando perfil de funcionario desde API: $e');
+          // Fallback: intentar cargar desde storage
+          final perfilJson = await StorageService.getString(
+            ApiConfig.perfilFuncionarioKey,
+          );
+          if (perfilJson != null) {
+            final perfil = jsonDecode(perfilJson);
+            print('⚠️ Usando perfil de funcionario desde storage (fallback)');
             if (!mounted) return;
             setState(() {
               _perfilFuncionario = perfil;
@@ -794,7 +816,17 @@ class _HomePageState extends State<HomePage> {
       final authRepo = Modular.get<AuthRepository>();
       await authRepo.logout();
       if (mounted) {
-        Modular.to.navigate('/auth/');
+        // Navegar a welcome y limpiar todo el stack de navegación
+        Modular.to.navigate('/auth/welcome');
+        // Limpiar el estado local
+        setState(() {
+          _userName = 'Usuario';
+          _isAdmin = false;
+          _isFuncionario = false;
+          _perfilVoluntario = null;
+          _perfilFuncionario = null;
+          _organizacionFuncionario = null;
+        });
       }
     }
   }

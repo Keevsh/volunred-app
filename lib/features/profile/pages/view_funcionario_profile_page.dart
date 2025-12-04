@@ -4,6 +4,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/models/perfil_funcionario.dart';
 import '../../../core/repositories/funcionario_repository.dart';
+import '../../../core/widgets/skeleton_widget.dart';
 
 class ViewFuncionarioProfilePage extends StatefulWidget {
   const ViewFuncionarioProfilePage({super.key});
@@ -77,7 +78,50 @@ class _ViewFuncionarioProfilePageState
           backgroundColor: Colors.transparent,
           foregroundColor: colorScheme.onSurface,
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header skeleton
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const SkeletonAvatar(size: 120),
+                    const SizedBox(height: 16),
+                    const SkeletonWidget(width: 200, height: 28),
+                    const SizedBox(height: 8),
+                    const SkeletonWidget(width: 150, height: 16),
+                    const SizedBox(height: 4),
+                    const SkeletonWidget(width: 180, height: 14),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Cards skeleton
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    SkeletonCard(height: 150),
+                    SizedBox(height: 16),
+                    SkeletonCard(height: 120),
+                    SizedBox(height: 16),
+                    SkeletonCard(height: 100),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       );
     }
 

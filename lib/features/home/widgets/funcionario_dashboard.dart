@@ -391,8 +391,13 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                         participacion.idParticipacion,
                                         {'estado': 'APROBADA'},
                                       );
-                                      await _loadData();
+                                      // Actualizar solo la lista de participaciones localmente
                                       if (mounted) {
+                                        setState(() {
+                                          _participaciones = _participaciones
+                                              .where((p) => p.idParticipacion != participacion.idParticipacion)
+                                              .toList();
+                                        });
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -400,6 +405,8 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                             content: Text(
                                               'Participación aprobada exitosamente',
                                             ),
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 2),
                                           ),
                                         );
                                       }
@@ -408,7 +415,10 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          SnackBar(content: Text('Error: $e')),
+                                          SnackBar(
+                                            content: Text('Error: $e'),
+                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                          ),
                                         );
                                       }
                                     }
@@ -432,8 +442,13 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                       await _repository.deleteParticipacion(
                                         participacion.idParticipacion,
                                       );
-                                      await _loadData();
+                                      // Actualizar solo la lista de participaciones localmente
                                       if (mounted) {
+                                        setState(() {
+                                          _participaciones = _participaciones
+                                              .where((p) => p.idParticipacion != participacion.idParticipacion)
+                                              .toList();
+                                        });
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -441,6 +456,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                             content: Text(
                                               'Solicitud de participación rechazada',
                                             ),
+                                            duration: Duration(seconds: 2),
                                           ),
                                         );
                                       }
@@ -1313,17 +1329,31 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   await _repository.aprobarInscripcion(
                     inscripcion.idInscripcion,
                   );
-                  _loadData();
+                  // Actualizar solo la lista de inscripciones localmente
                   if (mounted) {
+                    setState(() {
+                      _inscripciones = _inscripciones
+                          .where((i) => i.idInscripcion != inscripcion.idInscripcion)
+                          .toList();
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Solicitud aprobada')),
+                      const SnackBar(
+                        content: Text('Solicitud aprobada'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
                     );
                   }
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
                   }
                 }
               },
@@ -1344,17 +1374,30 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                     inscripcion.idInscripcion,
                     'Rechazado desde dashboard',
                   );
-                  _loadData();
+                  // Actualizar solo la lista de inscripciones localmente
                   if (mounted) {
+                    setState(() {
+                      _inscripciones = _inscripciones
+                          .where((i) => i.idInscripcion != inscripcion.idInscripcion)
+                          .toList();
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Solicitud rechazada')),
+                      const SnackBar(
+                        content: Text('Solicitud rechazada'),
+                        duration: Duration(seconds: 2),
+                      ),
                     );
                   }
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
                   }
                 }
               },

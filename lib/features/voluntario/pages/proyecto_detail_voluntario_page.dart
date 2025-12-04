@@ -614,18 +614,35 @@ class _ProyectoDetailVoluntarioPageState
         // NO enviar inscripcionId - el repositorio construye el payload correcto
       );
 
-      await _repository.createMyParticipacion(request);
+      final response = await _repository.createMyParticipacion(request);
 
       if (mounted) {
+        // Crear objeto Participacion básico desde la respuesta
+        // sin necesidad de recargar toda la página
+        final nuevaParticipacion = Participacion(
+          idParticipacion: response.idParticipacion,
+          proyectoId: response.proyectoId,
+          estado: response.estado,
+          usuarioId: response.perfilVolId,
+          perfilVolId: response.perfilVolId,
+          inscripcionId: response.inscripcionId,
+          creadoEn: response.creadoEn,
+        );
+        
+        setState(() {
+          _participacion = nuevaParticipacion;
+          _isParticipando = false;
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               '¡Solicitud enviada! La organización la revisará pronto.',
             ),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
         );
-        _loadData();
       }
     } catch (e) {
       if (mounted) {
@@ -633,11 +650,9 @@ class _ProyectoDetailVoluntarioPageState
           SnackBar(
             content: Text('Error al participar: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
           ),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() {
           _isParticipando = false;
         });

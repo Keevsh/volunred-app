@@ -17,28 +17,47 @@ class ProgramasManagementPage extends StatefulWidget {
 
 class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
   String _selectedView = 'programas'; // 'programas', 'aplicaciones', 'modulos'
+  List<Programa> _programas = [];
+  List<Aplicacion> _aplicaciones = [];
+  List<Modulo> _modulos = [];
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   void _loadData() {
     final bloc = BlocProvider.of<AdminBloc>(context);
-    if (_selectedView == 'programas') {
-      bloc.add(LoadProgramasRequested());
-    } else if (_selectedView == 'aplicaciones') {
-      bloc.add(LoadAplicacionesRequested());
-    } else {
-      bloc.add(LoadModulosRequested());
-    }
+    // Cargar todos los datos siempre
+    bloc.add(LoadProgramasRequested());
+    bloc.add(LoadAplicacionesRequested());
+    bloc.add(LoadModulosRequested());
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AdminBloc, AdminState>(
       listener: (context, state) {
+        // Guardar datos cuando lleguen
+        if (state is ProgramasLoaded) {
+          setState(() {
+            _programas = state.programas;
+          });
+        }
+        if (state is AplicacionesLoaded) {
+          setState(() {
+            _aplicaciones = state.aplicaciones;
+          });
+        }
+        if (state is ModulosLoaded) {
+          setState(() {
+            _modulos = state.modulos;
+          });
+        }
+
         if (state is ProgramaCreated ||
             state is ProgramaUpdated ||
             state is ProgramaDeleted) {
@@ -177,22 +196,29 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
               Expanded(
                 child: BlocBuilder<AdminBloc, AdminState>(
                   builder: (context, state) {
-                    if (state is AdminLoading) {
+                    if (state is AdminLoading && _programas.isEmpty && _aplicaciones.isEmpty && _modulos.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (_selectedView == 'programas' &&
-                        state is ProgramasLoaded) {
-                      return _buildProgramasList(state.programas);
+                    if (_selectedView == 'programas') {
+                      if (_programas.isEmpty) {
+                        return _buildEmptyState();
+                      }
+                      return _buildProgramasList(_programas);
                     }
 
-                    if (_selectedView == 'aplicaciones' &&
-                        state is AplicacionesLoaded) {
-                      return _buildAplicacionesList(state.aplicaciones);
+                    if (_selectedView == 'aplicaciones') {
+                      if (_aplicaciones.isEmpty) {
+                        return _buildEmptyState();
+                      }
+                      return _buildAplicacionesList(_aplicaciones);
                     }
 
-                    if (_selectedView == 'modulos' && state is ModulosLoaded) {
-                      return _buildModulosList(state.modulos);
+                    if (_selectedView == 'modulos') {
+                      if (_modulos.isEmpty) {
+                        return _buildEmptyState();
+                      }
+                      return _buildModulosList(_modulos);
                     }
 
                     return _buildEmptyState();

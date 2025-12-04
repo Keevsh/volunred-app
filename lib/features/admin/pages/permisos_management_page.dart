@@ -29,7 +29,9 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   void _loadData() {
@@ -155,150 +157,185 @@ class _PermisosManagementPageState extends State<PermisosManagementPage> {
             );
           }
         },
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.arrow_back_rounded,
-                            color: Color(0xFF1D1D1F),
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        'Permisos',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1D1D1F),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: _loadData,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.refresh_rounded,
-                            color: Color(0xFF1D1D1F),
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        child: BlocBuilder<AdminBloc, AdminState>(
+          builder: (context, state) {
+            // Actualizar datos cuando llegan del BLoC
+            if (state is RolesLoaded && _roles.isEmpty) {
+              _roles = state.roles;
+            }
+            if (state is ModulosLoaded && _modulos.isEmpty) {
+              _modulos = state.modulos;
+            }
+            if (state is AplicacionesLoaded && _aplicaciones.isEmpty) {
+              _aplicaciones = state.aplicaciones;
+            }
+            if (state is ProgramasLoaded && _programas.isEmpty) {
+              _programas = state.programas;
+            }
 
-              // Selector de Rol
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _roles.isEmpty
-                    ? const SizedBox.shrink()
-                    : _buildRolSelector(_roles),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Lista de Módulos > Aplicaciones > Programas
-              Expanded(
-                child: _selectedRol == null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFF9500).withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
+            return SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
                               child: const Icon(
-                                Icons.security_rounded,
-                                size: 64,
-                                color: Color(0xFFFF9500),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Selecciona un rol',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                                Icons.arrow_back_rounded,
                                 color: Color(0xFF1D1D1F),
+                                size: 20,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Elige un rol para asignar permisos',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Color(0xFF86868B),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      )
-                    : _buildPermisosTree(),
-              ),
-
-              // Botón de asignar
-              if (_selectedRol != null)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _isLoading ? null : _asignarPermisos,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF007AFF),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Asignar Permisos',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Text(
+                            'Permisos',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1D1D1F),
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                        Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            onTap: _loadData,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              child: const Icon(
+                                Icons.refresh_rounded,
+                                color: Color(0xFF1D1D1F),
+                                size: 20,
                               ),
                             ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-            ],
-          ),
+
+                  // Selector de Rol
+                  if (_roles.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      child: const SizedBox(
+                        height: 50,
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: _buildRolSelector(_roles),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // Lista de Módulos > Aplicaciones > Programas
+                  Expanded(
+                    child: _selectedRol == null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF9500)
+                                        .withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.security_rounded,
+                                    size: 64,
+                                    color: Color(0xFFFF9500),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const Text(
+                                  'Selecciona un rol',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1D1D1F),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Elige un rol para asignar permisos',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Color(0xFF86868B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : (_programas.isEmpty
+                            ? const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : _buildPermisosTree()),
+                  ),
+
+                  // Botón de asignar
+                  if (_selectedRol != null)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _isLoading ? null : _asignarPermisos,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF007AFF),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Asignar Permisos',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

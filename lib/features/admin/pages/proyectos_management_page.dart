@@ -169,7 +169,63 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                 child: BlocBuilder<AdminBloc, AdminState>(
                   builder: (context, state) {
                     if (state is AdminLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      // Mostrar grid de skeleton mientras carga
+                      return GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.9,
+                        ),
+                        itemCount: 6,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Skeleton header
+                                  Container(
+                                    height: 100,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Skeleton título
+                                  Container(
+                                    height: 16,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Skeleton texto
+                                  Container(
+                                    height: 12,
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
                     }
                     if (state is ProyectosLoaded) {
                       if (state.proyectos.isEmpty) {

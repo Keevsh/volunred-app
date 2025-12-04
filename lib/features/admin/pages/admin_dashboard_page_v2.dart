@@ -77,9 +77,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
-    final isTablet = screenWidth > 600;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
@@ -164,14 +162,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                 )
               else ...[
-                // Fila de KPIs principales - Grid responsivo
+                // Fila de KPIs principales
                 GridView.count(
-                  crossAxisCount: isDesktop ? 4 : (isTablet ? 2 : 2),
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisCount: isMobile ? 2 : 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: isDesktop ? 1.3 : 1.1,
+                  childAspectRatio: 1.2,
                   children: [
                     _buildStatCard(
                       title: 'Usuarios Totales',
@@ -203,7 +201,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
 
                 // Título de opciones
                 const Text(
@@ -214,139 +212,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     color: Color(0xFF1D1D1F),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Lista de opciones - Grid responsivo para desktop
-                if (isDesktop)
-                  GridView.count(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: 1.2,
-                    children: _buildAdminOptionsCards(),
-                  )
-                else
-                  Column(
-                    children: _buildOptionsList(),
-                  ),
+                // Lista de opciones
+                ..._buildOptionsList(),
               ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildAdminOptionsCards() {
-    final items = [
-      _AdminOption(
-        icon: Icons.people_rounded,
-        title: 'Usuarios',
-        subtitle: 'Gestionar usuarios',
-        color: const Color(0xFF007AFF),
-        route: '/admin/usuarios',
-      ),
-      _AdminOption(
-        icon: Icons.admin_panel_settings_rounded,
-        title: 'Roles',
-        subtitle: 'Configurar roles',
-        color: const Color(0xFF34C759),
-        route: '/admin/roles',
-      ),
-      _AdminOption(
-        icon: Icons.security_rounded,
-        title: 'Permisos',
-        subtitle: 'Asignar permisos',
-        color: const Color(0xFFFF9500),
-        route: '/admin/permisos',
-      ),
-      _AdminOption(
-        icon: Icons.apps_rounded,
-        title: 'Programas',
-        subtitle: 'Gestionar programas',
-        color: const Color(0xFF5856D6),
-        route: '/admin/programas',
-      ),
-      _AdminOption(
-        icon: Icons.emoji_events_rounded,
-        title: 'Aptitudes',
-        subtitle: 'Administrar habilidades',
-        color: const Color(0xFFFF2D55),
-        route: '/admin/aptitudes',
-      ),
-      _AdminOption(
-        icon: Icons.business_rounded,
-        title: 'Organizaciones',
-        subtitle: 'Gestionar organizaciones',
-        color: const Color(0xFF007AFF),
-        route: '/admin/organizaciones',
-      ),
-      _AdminOption(
-        icon: Icons.folder_special_rounded,
-        title: 'Proyectos',
-        subtitle: 'Gestionar proyectos',
-        color: const Color(0xFF5856D6),
-        route: '/admin/proyectos',
-      ),
-      _AdminOption(
-        icon: Icons.task_rounded,
-        title: 'Tareas',
-        subtitle: 'Gestionar tareas',
-        color: const Color(0xFF007AFF),
-        route: '/admin/tareas',
-      ),
-    ];
-
-    return items
-        .map((item) => _buildCardOption(item))
-        .toList();
-  }
-
-  Widget _buildCardOption(_AdminOption data) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () => Modular.to.pushNamed(data.route),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: data.color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(data.icon, color: data.color, size: 28),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                data.title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1D1D1F),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                data.subtitle,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF86868B),
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
             ],
           ),
         ),

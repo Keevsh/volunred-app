@@ -11,7 +11,6 @@ import 'pages/programas_management_page.dart';
 import 'pages/organizaciones_management_page.dart';
 import 'pages/proyectos_management_page.dart';
 import 'pages/tareas_management_page.dart';
-import 'pages/inscripciones_management_page.dart';
 
 class AdminModule extends Module {
   @override
@@ -82,13 +81,6 @@ class AdminModule extends Module {
       child: (_, __) => BlocProvider(
         create: (context) => AdminBloc(Modular.get<AdminRepository>()),
         child: const TareasManagementPage(),
-      ),
-    ),
-    ChildRoute(
-      '/inscripciones',
-      child: (_, __) => BlocProvider(
-        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
-        child: const InscripcionesManagementPage(),
       ),
     ),
   ];

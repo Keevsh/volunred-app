@@ -1091,4 +1091,55 @@ class AdminRepository {
       return 'Error de conexión. Verifica tu internet.';
     }
   }
+
+  // ==================== ESTADÍSTICAS GENERALES ====================
+
+  /// Obtener estadísticas del sistema para el admin dashboard
+  Future<Map<String, dynamic>> getSystemStats() async {
+    try {
+      // Obtener conteos de usuarios
+      final usuariosResult = await getUsuarios();
+      final usuarios = usuariosResult['usuarios'] as List<Usuario>;
+      
+      final totalUsuarios = usuarios.length;
+      final voluntarios = usuarios.where((u) => u.isVoluntario).length;
+      final funcionarios = usuarios.where((u) => u.isFuncionario).length;
+      final admins = usuarios.where((u) => u.isAdmin).length;
+
+      // Obtener proyectos
+      final proyectosResult = await getProyectos();
+      final proyectos = proyectosResult['proyectos'] as List<Proyecto>;
+      final proyectosActivos = proyectos.where((p) => p.estado.toLowerCase() == 'activo').length;
+
+      // Obtener organizaciones
+      final organizacionesResult = await getOrganizaciones();
+      final organizaciones = organizacionesResult['organizaciones'] as List<Organizacion>;
+
+      return {
+        'totalUsuarios': totalUsuarios,
+        'voluntarios': voluntarios,
+        'funcionarios': funcionarios,
+        'admins': admins,
+        'totalProyectos': proyectos.length,
+        'proyectosActivos': proyectosActivos,
+        'totalOrganizaciones': organizaciones.length,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      // Si hay error, devolver valores por defecto
+      return {
+        'totalUsuarios': 0,
+        'voluntarios': 0,
+        'funcionarios': 0,
+        'admins': 0,
+        'totalProyectos': 0,
+        'proyectosActivos': 0,
+        'totalOrganizaciones': 0,
+        'error': e.toString(),
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    }
+  }
 }
+
+```

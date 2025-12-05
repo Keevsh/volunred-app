@@ -15,6 +15,7 @@ import '../../../core/models/experiencia_voluntario.dart';
 import '../../../core/models/aptitud.dart';
 import '../../../core/models/participacion.dart';
 import '../../../core/widgets/image_base64_widget.dart';
+import '../../../core/widgets/responsive_layout.dart';
 import '../widgets/funcionario_dashboard.dart';
 import '../widgets/voluntario_dashboard.dart';
 import '../widgets/mi_actividad_widget.dart';
@@ -1271,6 +1272,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final shouldShowBottomNav = !(_isFuncionario && isDesktop);
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA), // Fondo gris claro
       body: IndexedStack(
@@ -1289,7 +1293,7 @@ class _HomePageState extends State<HomePage> {
                 _buildProfileView(),
               ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: shouldShowBottomNav ? NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) async {
           setState(() => _currentIndex = index);
@@ -1347,7 +1351,7 @@ class _HomePageState extends State<HomePage> {
                   label: 'Perfil',
                 ),
               ],
-      ),
+      ) : null,
     );
   }
 

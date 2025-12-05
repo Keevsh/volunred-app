@@ -7,6 +7,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/participacion.dart';
 import '../../../core/widgets/skeleton_widget.dart';
+import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/utils/participation_logger.dart';
 
 class FuncionarioDashboard extends StatefulWidget {
@@ -26,6 +27,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   List<Participacion> _participaciones = [];
   bool _isLoading = true;
   String? _error;
+  String _selectedMenuItem = 'Dashboard';
 
   @override
   void initState() {
@@ -67,8 +69,903 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
+    // En desktop, usar layout con sidebar
+    if (isDesktop) {
+      return _buildDesktopLayout(theme);
+    }
+
+    // En mobile, usar layout actual
+    return _buildMobileLayout(theme);
+  }
+
+  Widget _buildDesktopLayout(ThemeData theme) {
+    return Scaffold(
+      body: Row(
+        children: [
+          // Sidebar
+          _buildSidebar(theme),
+          // Contenido principal
+          Expanded(child: _buildMainContent(theme)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebar(ThemeData theme) {
     final colorScheme = theme.colorScheme;
 
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(2, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header con logo
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.primary.withOpacity(0.7),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.volunteer_activism_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'VolunRed',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Funcionario',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Menú de navegación
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              children: [
+                _buildMenuItem(
+                  icon: Icons.dashboard_rounded,
+                  label: 'Dashboard',
+                  selected: _selectedMenuItem == 'Dashboard',
+                  onTap: () => setState(() => _selectedMenuItem = 'Dashboard'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.folder_rounded,
+                  label: 'Proyectos',
+                  selected: _selectedMenuItem == 'Proyectos',
+                  onTap: () => setState(() => _selectedMenuItem = 'Proyectos'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.task_rounded,
+                  label: 'Tareas',
+                  selected: _selectedMenuItem == 'Tareas',
+                  onTap: () => setState(() => _selectedMenuItem = 'Tareas'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.people_rounded,
+                  label: 'Voluntarios',
+                  selected: _selectedMenuItem == 'Voluntarios',
+                  onTap: () =>
+                      setState(() => _selectedMenuItem = 'Voluntarios'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.assignment_rounded,
+                  label: 'Inscripciones',
+                  selected: _selectedMenuItem == 'Inscripciones',
+                  onTap: () =>
+                      setState(() => _selectedMenuItem = 'Inscripciones'),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Divider(),
+                ),
+                _buildMenuItem(
+                  icon: Icons.business_rounded,
+                  label: 'Mi Organización',
+                  selected: _selectedMenuItem == 'Organización',
+                  onTap: () =>
+                      setState(() => _selectedMenuItem = 'Organización'),
+                ),
+                _buildMenuItem(
+                  icon: Icons.analytics_rounded,
+                  label: 'Reportes',
+                  selected: _selectedMenuItem == 'Reportes',
+                  onTap: () => setState(() => _selectedMenuItem = 'Reportes'),
+                ),
+              ],
+            ),
+          ),
+
+          // Footer con info de usuario
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: colorScheme.primary.withOpacity(0.1),
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _organizacion?.nombre ?? 'Funcionario',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Administrador',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded),
+                  onPressed: () {
+                    // TODO: Implementar logout
+                  },
+                  tooltip: 'Cerrar sesión',
+                  iconSize: 20,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? colorScheme.primary.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: selected ? colorScheme.primary : Colors.grey.shade600,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: selected
+                          ? colorScheme.primary
+                          : Colors.grey.shade800,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (selected)
+                  Container(
+                    width: 4,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(ThemeData theme) {
+    if (_isLoading) {
+      return _buildLoadingSkeleton();
+    }
+
+    if (_error != null) {
+      return _buildErrorState(theme);
+    }
+
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: RefreshIndicator(
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          slivers: [
+            // Header con título y breadcrumbs
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade200),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Inicio',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedMenuItem,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _selectedMenuItem,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Contenido según sección seleccionada
+            SliverPadding(
+              padding: const EdgeInsets.all(32),
+              sliver: SliverToBoxAdapter(child: _buildDashboardContent(theme)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton() {
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
+          const SizedBox(height: 16),
+          Text('Error: $_error'),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardContent(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Tarjetas de estadísticas
+        _buildDesktopStatsGrid(theme),
+        const SizedBox(height: 32),
+
+        // Proyectos recientes
+        _buildDesktopProjectsSection(theme),
+        const SizedBox(height: 32),
+
+        // Otras secciones
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildDesktopParticipacionesSection(theme)),
+            const SizedBox(width: 24),
+            Expanded(child: _buildDesktopInscripcionesSection(theme)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopStatsGrid(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 24,
+      crossAxisSpacing: 24,
+      childAspectRatio: 1.5,
+      children: [
+        _buildStatCard(
+          icon: Icons.folder_rounded,
+          label: 'Proyectos Activos',
+          value: '${_proyectos.length}',
+          color: colorScheme.primary,
+          theme: theme,
+        ),
+        _buildStatCard(
+          icon: Icons.people_rounded,
+          label: 'Voluntarios',
+          value: '${_participaciones.length}',
+          color: Colors.green,
+          theme: theme,
+        ),
+        _buildStatCard(
+          icon: Icons.assignment_rounded,
+          label: 'Solicitudes',
+          value: '${_inscripciones.length}',
+          color: Colors.orange,
+          theme: theme,
+        ),
+        _buildStatCard(
+          icon: Icons.check_circle_rounded,
+          label: 'Completadas',
+          value: '0',
+          color: Colors.teal,
+          theme: theme,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required ThemeData theme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              Icon(Icons.trending_up, color: Colors.green, size: 20),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+    Color bgColor,
+    ThemeData theme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: iconColor.withOpacity(0.1), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: iconColor.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [iconColor, iconColor.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.trending_up_rounded,
+                  size: 14,
+                  color: iconColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF1A1A1A),
+              fontSize: 26,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF757575),
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+            ),
+            maxLines: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopProjectsSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Proyectos Recientes',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => setState(() => _selectedMenuItem = 'Proyectos'),
+              icon: const Icon(Icons.arrow_forward, size: 18),
+              label: const Text('Ver todos'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_proyectos.isEmpty)
+          _buildEmptyState(
+            icon: Icons.folder_open,
+            message: 'No hay proyectos registrados',
+            theme: theme,
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _proyectos.take(3).length,
+            itemBuilder: (context, index) {
+              final proyecto = _proyectos[index];
+              return _buildDesktopProjectCard(proyecto, theme);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopProjectCard(Proyecto proyecto, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withOpacity(0.7),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.folder_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  proyecto.nombre,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  proyecto.objetivo ?? 'Sin objetivo definido',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          FilledButton(
+            onPressed: () {
+              Modular.to.pushNamed('/home/proyecto/${proyecto.idProyecto}');
+            },
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Ver detalles'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopParticipacionesSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Actividad Reciente',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_participaciones.isEmpty)
+            _buildEmptyState(
+              icon: Icons.timeline,
+              message: 'No hay actividad reciente',
+              theme: theme,
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _participaciones.take(5).length,
+              itemBuilder: (context, index) {
+                final participacion = _participaciones[index];
+                return _buildActivityItem(participacion, theme);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopInscripcionesSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Solicitudes Pendientes',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_inscripciones.isEmpty)
+            _buildEmptyState(
+              icon: Icons.inbox,
+              message: 'No hay solicitudes pendientes',
+              theme: theme,
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _inscripciones.take(5).length,
+              itemBuilder: (context, index) {
+                final inscripcion = _inscripciones[index];
+                return _buildInscripcionItem(inscripcion, theme);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(Participacion participacion, ThemeData theme) {
+    final inscripcionData = participacion.inscripcion;
+    String nombre = 'Voluntario desconocido';
+
+    if (inscripcionData != null) {
+      try {
+        // Extraer nombre del mapa de inscripción
+        var usuario = inscripcionData['usuario'];
+        if (usuario == null && inscripcionData['perfil_voluntario'] != null) {
+          final perfilVol = inscripcionData['perfil_voluntario'];
+          if (perfilVol is Map) {
+            usuario = perfilVol['usuario'];
+          }
+        }
+
+        if (usuario != null && usuario is Map) {
+          final nombres = usuario['nombres']?.toString() ?? '';
+          final apellidos = usuario['apellidos']?.toString() ?? '';
+          nombre = '$nombres $apellidos'.trim();
+          if (nombre.isEmpty) nombre = 'Voluntario desconocido';
+        }
+      } catch (e) {
+        // Keep default name
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          _buildUserAvatar(participacion),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  nombre,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Se unió al proyecto',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInscripcionItem(Inscripcion inscripcion, ThemeData theme) {
+    final nombre = _extractNombreVoluntario(inscripcion);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+            child: Icon(
+              Icons.person,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              nombre,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.check, size: 20),
+            onPressed: () {},
+            tooltip: 'Aprobar',
+            color: Colors.green,
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: () {},
+            tooltip: 'Rechazar',
+            color: Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String message,
+    required ThemeData theme,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(ThemeData theme) {
     if (_isLoading) {
       return SafeArea(
         child: Container(
@@ -173,7 +1070,8 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       SkeletonWidget(
                                         width: 150,
@@ -262,6 +1160,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     }
 
     if (_error != null) {
+      final colorScheme = theme.colorScheme;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -897,7 +1796,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           Row(
             children: [
               Expanded(
-                child: _buildStatCard(
+                child: _buildMobileStatCard(
                   'Proyectos\nActivos',
                   proyectosActivos.toString(),
                   Icons.rocket_launch_rounded,
@@ -908,7 +1807,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildStatCard(
+                child: _buildMobileStatCard(
                   'Solicitudes\nNuevas',
                   _inscripciones.length.toString(),
                   Icons.notification_important_rounded,
@@ -927,7 +1826,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           Row(
             children: [
               Expanded(
-                child: _buildStatCard(
+                child: _buildMobileStatCard(
                   'Participantes\nActivos',
                   participacionesActivas.toString(),
                   Icons.groups_rounded,
@@ -938,7 +1837,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildStatCard(
+                child: _buildMobileStatCard(
                   'Total\nProyectos',
                   _proyectos.length.toString(),
                   Icons.folder_special_rounded,
@@ -948,92 +1847,6 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color iconColor,
-    Color bgColor,
-    ThemeData theme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: iconColor.withOpacity(0.1), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: iconColor.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [iconColor, iconColor.withOpacity(0.8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: iconColor.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.trending_up_rounded,
-                  size: 14,
-                  color: iconColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF1A1A1A),
-              fontSize: 26,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF757575),
-              fontWeight: FontWeight.w600,
-              height: 1.2,
-            ),
-            maxLines: 2,
           ),
         ],
       ),

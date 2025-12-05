@@ -64,46 +64,62 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       final authRepo = Modular.get<AuthRepository>();
       final usuario = await authRepo.getStoredUser();
 
+      // Solo intentar cargar si el usuario es funcionario Y tiene una organización
       if (usuario != null && usuario.isFuncionario) {
         final funcionarioRepo = Modular.get<FuncionarioRepository>();
         try {
-          final organizacion = await funcionarioRepo.getMiOrganizacion();
           final perfil = await funcionarioRepo.getMiPerfil();
+          print('✅ [LOAD ORG] Perfil del usuario actual encontrado: ID=${perfil.idPerfilFuncionario}, Usuario=${perfil.idUsuario}');
+          
+          final organizacion = await funcionarioRepo.getMiOrganizacion();
+          print('✅ [LOAD ORG] Organización cargada: ID=${organizacion.idOrganizacion}, Nombre=${organizacion.nombre}');
 
-          setState(() {
-            _organizacionExistente = organizacion;
-            _perfilFuncionarioExistente = perfil;
-            _isEditing = true;
+          // Validaciones estrictas: debe tener ID válido (> 0)
+          if (organizacion.idOrganizacion > 0 &&
+              organizacion.nombre.isNotEmpty) {
+            
+            setState(() {
+              _organizacionExistente = organizacion;
+              _perfilFuncionarioExistente = perfil;
+              _isEditing = true;
 
-            // Cargar datos existentes en los campos
-            _nombreOrgController.text = organizacion.nombre;
-            _descripcionController.text = organizacion.descripcion ?? '';
-            _direccionController.text = organizacion.direccion ?? '';
-            _telefonoOrgController.text = organizacion.telefono ?? '';
-            _emailOrgController.text = organizacion.email;
-            _sitioWebController.text = organizacion.sitioWeb ?? '';
-            _rucController.text = organizacion.ruc ?? '';
-            _razonSocialController.text =
-                organizacion.razonSocial ?? organizacion.nombre;
-            _categoriaSeleccionada = organizacion.idCategoriaOrganizacion;
-            _logoBase64 = organizacion.logo;
+              // Cargar datos existentes en los campos
+              _nombreOrgController.text = organizacion.nombre;
+              _descripcionController.text = organizacion.descripcion ?? '';
+              _direccionController.text = organizacion.direccion ?? '';
+              _telefonoOrgController.text = organizacion.telefono ?? '';
+              _emailOrgController.text = organizacion.email;
+              _sitioWebController.text = organizacion.sitioWeb ?? '';
+              _rucController.text = organizacion.ruc ?? '';
+              _razonSocialController.text =
+                  organizacion.razonSocial ?? organizacion.nombre;
+              // Solo establecer categoria si es válida (no 0)
+              _categoriaSeleccionada = (organizacion.idCategoriaOrganizacion != 0) 
+                  ? organizacion.idCategoriaOrganizacion 
+                  : null;
+              _logoBase64 = organizacion.logo;
 
-            // Cargar datos del perfil de funcionario
-            if (perfil.cargo != null) {
-              _cargoController.text = perfil.cargo!;
-            }
-            if (perfil.departamento != null) {
-              _departamentoController.text = perfil.departamento!;
-            }
-            _fotoPerfilBase64 = perfil.fotoPerfil;
-          });
+              // Cargar datos del perfil de funcionario
+              if (perfil.cargo != null) {
+                _cargoController.text = perfil.cargo!;
+              }
+              if (perfil.departamento != null) {
+                _departamentoController.text = perfil.departamento!;
+              }
+              _fotoPerfilBase64 = perfil.fotoPerfil;
+            });
+            print('✅ [LOAD ORG] Organización existente cargada para EDICIÓN: ${organizacion.nombre}');
+          } else {
+            print('ℹ️ [LOAD ORG] Organización inválida (ID: ${organizacion.idOrganizacion}), iniciando en modo CREACIÓN');
+          }
         } catch (e) {
-          print('⚠️ No se pudo cargar la organización existente: $e');
-          // Si no hay organización, continuar en modo creación
+          // Es NORMAL que falle para usuarios NUEVOS
+          print('ℹ️ [LOAD ORG] Usuario NUEVO - No existe organización: ${e.toString()}');
+          print('✨ [LOAD ORG] Iniciando en modo CREACIÓN (empty form)');
         }
       }
     } catch (e) {
-      print('⚠️ Error verificando organización existente: $e');
+      print('⚠️ Error verificando organización existente: ${e.toString()}');
     }
   }
 
@@ -344,11 +360,16 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
       PerfilFuncionario? perfil;
 
       try {
-        // Si estamos editando y ya existe el perfil, actualizarlo
-        if (_isEditing && _perfilFuncionarioExistente != null) {
-          final perfilData = <String, dynamic>{};
+        // Si ya existe un perfil previo (incluso en modo creación), actualizarlo
+        // para que apunte a la nueva organización
+        if (_perfilFuncionarioExistente != null) {
+          print('🔄 IMPORTANTE: Perfil previo detectado. Actualizando para nueva organización...');
+          final perfilData = <String, dynamic>{
+            // CRUCIAL: Actualizar la organización del perfil a la nueva
+            'organizacion_id': organizacion.idOrganizacion,
+          };
 
-          // Solo actualizar campos que cambiaron
+          // Actualizar campos personales si existen
           if (_cargoController.text.trim().isNotEmpty) {
             perfilData['cargo'] = _cargoController.text.trim();
           }
@@ -361,20 +382,17 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             perfilData['foto_perfil'] = _fotoPerfilBase64;
           }
 
-          if (perfilData.isNotEmpty) {
-            print('📤 Actualizando perfil de funcionario: $perfilData');
-            perfil = await funcionarioRepo.updatePerfilFuncionario(
-              _perfilFuncionarioExistente!.idPerfilFuncionario,
-              perfilData,
-            );
-            print(
-              '✅ Perfil de funcionario actualizado: ${perfil.idPerfilFuncionario}',
-            );
-          } else {
-            perfil = _perfilFuncionarioExistente;
-          }
+          print('📤 Actualizando perfil existente con nueva organización: $perfilData');
+          perfil = await funcionarioRepo.updatePerfilFuncionario(
+            _perfilFuncionarioExistente!.idPerfilFuncionario,
+            perfilData,
+          );
+          print(
+            '✅ Perfil de funcionario ACTUALIZADO a nueva organización: ${perfil.idPerfilFuncionario} -> Org ID: ${perfil.idOrganizacion}',
+          );
         } else {
-          // Crear nuevo perfil de funcionario
+          // SOLO crear nuevo perfil si NO existe uno previo
+          print('✨ Ningún perfil previo. Creando nuevo perfil de funcionario...');
           final perfilData = <String, dynamic>{
             'usuario_id': usuario.idUsuario,
             'organizacion_id': organizacion.idOrganizacion,
@@ -397,10 +415,10 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
             perfilData['foto_perfil'] = _fotoPerfilBase64;
           }
 
-          print('📤 Creando perfil de funcionario: $perfilData');
+          print('📤 Creando nuevo perfil de funcionario: $perfilData');
           perfil = await orgRepo.createPerfilFuncionario(perfilData);
           print(
-            '✅ Perfil de funcionario creado: ${perfil.idPerfilFuncionario}',
+            '✅ Nuevo perfil de funcionario creado: ${perfil.idPerfilFuncionario}',
           );
         }
       } catch (e) {
@@ -744,48 +762,56 @@ class _CreateOrganizacionPageState extends State<CreateOrganizacionPage> {
                         ),
                       ),
                       hint: const Text('Selecciona una categoría'),
-                      isExpanded: true, // Make dropdown take full width
-                      items: _categorias.map((cat) {
-                        print('📋 Mapeando categoría: $cat');
-                        return DropdownMenuItem<int>(
-                          value: cat['id_categoria'] != null
-                              ? (cat['id_categoria'] is int
-                                    ? cat['id_categoria'] as int
-                                    : int.tryParse(
-                                            cat['id_categoria'].toString(),
-                                          ) ??
-                                          0)
-                              : null,
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              maxWidth: 300,
-                            ), // Limit width
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  cat['nombre'] as String? ?? 'Sin nombre',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                      isExpanded: true,
+                      items: _categorias
+                          .where((cat) {
+                            // Filtrar: solo categorías con ID válido
+                            final id = cat['id_categoria'];
+                            return id != null && 
+                                   id != 0 && 
+                                   id is int || int.tryParse(id.toString()) != null;
+                          })
+                          .toList()
+                          .asMap()
+                          .entries
+                          .map((entry) {
+                            final cat = entry.value;
+                            final categoryId = cat['id_categoria'] is int
+                                ? cat['id_categoria'] as int
+                                : int.tryParse(cat['id_categoria'].toString()) ?? 0;
+                            
+                            return DropdownMenuItem<int>(
+                              value: categoryId,
+                              child: Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 300,
                                 ),
-                                if (cat['descripcion'] != null)
-                                  Text(
-                                    cat['descripcion'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF86868B),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      cat['nombre'] as String? ?? 'Sin nombre',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                                    if (cat['descripcion'] != null)
+                                      Text(
+                                        cat['descripcion'] as String,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF86868B),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
                       onChanged: (value) {
                         print('🎯 Categoría seleccionada: $value');
                         setState(() => _categoriaSeleccionada = value);

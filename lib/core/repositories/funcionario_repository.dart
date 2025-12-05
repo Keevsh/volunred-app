@@ -162,15 +162,14 @@ class FuncionarioRepository {
               }
             }
 
-            // Si no encontramos, retornar el primero como fallback (temporal)
-            if (data.isNotEmpty) {
-              print('⚠️ Retornando primer perfil como fallback');
-              return PerfilFuncionario.fromJson(
-                data.first as Map<String, dynamic>,
-              );
-            }
-
-            throw Exception('No se encontró perfil de funcionario');
+            // Si no encontramos, significa que es un usuario NUEVO sin perfil de funcionario
+            print('❌ ¡USUARIO NUEVO! No se encontró perfil de funcionario para usuario_id: ${usuario?.idUsuario}');
+            print('    Total de perfiles en sistema: ${data.length}');
+            print('    Esto es CORRECTO para nuevo usuario. Debe crear su perfil.');
+            
+            throw Exception(
+              'Usuario nuevo sin perfil de funcionario. Debes crear tu perfil primero.',
+            );
           } catch (e2) {
             print('❌ Error obteniendo perfil desde endpoint general: $e2');
             throw Exception('No se pudo obtener el perfil de funcionario: $e2');

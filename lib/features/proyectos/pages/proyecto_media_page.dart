@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/archivo_digital.dart';
 import '../../../core/models/proyecto.dart';
@@ -67,18 +68,69 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1280, // Reducir resolución para menor tamaño
-      maxHeight: 1280,
-      imageQuality: 70, // Reducir calidad para menor tamaño
     );
 
     if (image == null) return;
 
+    // Comprimir imagen manualmente
+    final compressedFile = await _comprimirImagen(File(image.path));
+    
+    if (compressedFile == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al procesar la imagen'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     await _procesarArchivo(
-      File(image.path),
+      compressedFile,
       tipoMedia: 'imagen',
       mimeType: 'image/jpeg',
     );
+  }
+
+  /// Comprime una imagen a un tamaño manejable
+  Future<File?> _comprimirImagen(File imageFile) async {
+    try {
+      // Leer imagen
+      final bytes = await imageFile.readAsBytes();
+      img.Image? image = img.decodeImage(bytes);
+      
+      if (image == null) return null;
+
+      // Redimensionar si es muy grande
+      const maxDimension = 1024; // Máximo 1024px
+      if (image.width > maxDimension || image.height > maxDimension) {
+        if (image.width > image.height) {
+          image = img.copyResize(image, width: maxDimension);
+        } else {
+          image = img.copyResize(image, height: maxDimension);
+        }
+      }
+
+      // Comprimir a JPEG con calidad 60%
+      final compressedBytes = img.encodeJpg(image, quality: 60);
+      
+      // Guardar en archivo temporal
+      final tempDir = Directory.systemTemp;
+      final tempFile = File('${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(compressedBytes);
+      
+      final originalSize = bytes.length / 1024; // KB
+      final compressedSize = compressedBytes.length / 1024; // KB
+      print('📸 Original: ${originalSize.toStringAsFixed(1)} KB');
+      print('📸 Comprimido: ${compressedSize.toStringAsFixed(1)} KB');
+      print('📸 Reducción: ${((1 - compressedSize / originalSize) * 100).toStringAsFixed(1)}%');
+      
+      return tempFile;
+    } catch (e) {
+      print('❌ Error comprimiendo imagen: $e');
+      return null;
+    }
   }
 
   Future<void> _subirVideo() async {
@@ -88,8 +140,13 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       builder: (context) => AlertDialog(
         title: const Text('Subir Video'),
         content: const Text(
-          'Los videos deben ser menores a 10 MB. Videos muy largos pueden fallar.\n\n'
-          'Recomendación: Videos de máximo 30 segundos.',
+          '⚠️ Los videos deben ser menores a 5 MB.\n\n'
+          '📱 Videos muy largos o de alta resolución pueden fallar.\n\n'
+          '✅ Recomendación:\n'
+          '• Máximo 15-20 segundos\n'
+          '• Resolución 720p o menor\n'
+          '• Comprime el video antes de subirlo',
+          style: TextStyle(height: 1.5),
         ),
         actions: [
           TextButton(
@@ -109,7 +166,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     final picker = ImagePicker();
     final XFile? video = await picker.pickVideo(
       source: ImageSource.gallery,
-      maxDuration: const Duration(seconds: 30), // Limitar duración
+      maxDuration: const Duration(seconds: 20), // Reducir a 20 segundos
     );
 
     if (video == null) return;
@@ -134,7 +191,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     
     // Verificar tamaño antes de procesar
     final fileSize = await file.length();
-    const maxSize = 10 * 1024 * 1024; // 10 MB
+    const maxSize = 5 * 1024 * 1024; // 5 MB (mismo límite que fotos)
     
     if (fileSize > maxSize) {
       if (!mounted) return;
@@ -143,7 +200,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         SnackBar(
           content: Text(
             'Documento demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
-            'Máximo: 10 MB',
+            'Máximo: 5 MB',
           ),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 4),
@@ -186,7 +243,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     try {
       // Verificar tamaño del archivo
       final fileSize = await file.length();
-      const maxSize = 10 * 1024 * 1024; // 10 MB en bytes
+      const maxSize = 5 * 1024 * 1024; // Reducir a 5 MB para más margen
 
       if (fileSize > maxSize) {
         if (!mounted) return;
@@ -195,7 +252,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
           SnackBar(
             content: Text(
               'Archivo demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
-              'Máximo: 10 MB',
+              'Máximo: 5 MB',
             ),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 4),
@@ -214,6 +271,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       final base64Size = base64String.length;
       print('📊 Tamaño archivo: ${(fileSize / 1024).toStringAsFixed(1)} KB');
       print('📊 Tamaño base64: ${(base64Size / 1024).toStringAsFixed(1)} KB');
+      print('📊 Tamaño estimado request: ${((base64Size + 500) / 1024).toStringAsFixed(1)} KB');
 
       // Obtener nombre del archivo
       final fileName = file.path.split('/').last;
@@ -279,8 +337,9 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       
       String errorMessage = 'Error al subir archivo';
       if (e.toString().contains('413') || e.toString().contains('too large')) {
-        errorMessage = 'Archivo demasiado grande para el servidor.\n'
-            'Intenta con un archivo más pequeño o de menor calidad.';
+        errorMessage = '⚠️ Archivo demasiado grande para el servidor\n\n'
+            'El límite del servidor es menor al esperado.\n'
+            'Intenta con una foto más pequeña o de menor resolución.';
       } else if (e.toString().contains('timeout')) {
         errorMessage = 'La subida tardó demasiado.\n'
             'Verifica tu conexión e intenta con un archivo más pequeño.';
@@ -292,7 +351,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         SnackBar(
           content: Text(errorMessage),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 6),
         ),
       );
     } finally {

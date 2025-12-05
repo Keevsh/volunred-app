@@ -55,6 +55,8 @@ class ApiConfig {
 
   // Endpoints de perfiles
   static const String perfilesFuncionarios = '/perfiles/perfiles-funcionarios';
+    static String perfilFuncionarioByUsuario(int usuarioId) =>
+            '$perfilesFuncionarios/usuario/$usuarioId';
 
   // Endpoints de información (proyectos, tareas, inscripciones, etc.)
   static const String proyectos = '/informacion/proyectos';

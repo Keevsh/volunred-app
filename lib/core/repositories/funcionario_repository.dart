@@ -119,7 +119,7 @@ class FuncionarioRepository {
             '⚠️ Endpoint específico /api/funcionarios/mi-perfil no disponible (404), obteniendo desde endpoint general...',
           );
 
-          // Obtener el usuario actual desde storage
+          // Obtener el usuario actual desde storage y buscar SOLO por usuario_id
           try {
             final authRepo = AuthRepository(_dioClient);
             final usuario = await authRepo.getStoredUser();
@@ -136,42 +136,13 @@ class FuncionarioRepository {
               }
             }
 
-            // Si no encontramos por usuario_id, obtener todos y buscar
-            print(
-              '⚠️ No se encontró perfil por usuario_id, buscando en todos los perfiles...',
-            );
-            final response = await _dioClient.dio.get(
-              ApiConfig.perfilesFuncionarios,
-            );
-            final List<dynamic> data = response.data is List
-                ? response.data
-                : [];
-
-            // Buscar el perfil del usuario actual
-            if (usuario != null) {
-              for (var item in data) {
-                final perfil = PerfilFuncionario.fromJson(
-                  item as Map<String, dynamic>,
-                );
-                if (perfil.idUsuario == usuario.idUsuario) {
-                  print(
-                    '✅ Perfil encontrado en lista: ID=${perfil.idPerfilFuncionario}',
-                  );
-                  return perfil;
-                }
-              }
-            }
-
-            // Si no encontramos, significa que es un usuario NUEVO sin perfil de funcionario
-            print('❌ ¡USUARIO NUEVO! No se encontró perfil de funcionario para usuario_id: ${usuario?.idUsuario}');
-            print('    Total de perfiles en sistema: ${data.length}');
-            print('    Esto es CORRECTO para nuevo usuario. Debe crear su perfil.');
-            
+            // Si no encontramos por usuario_id, terminamos aquí: usuario nuevo sin perfil
+            print('❌ No existe perfil de funcionario para usuario_id: ${usuario?.idUsuario} (usuario nuevo)');
             throw Exception(
               'Usuario nuevo sin perfil de funcionario. Debes crear tu perfil primero.',
             );
           } catch (e2) {
-            print('❌ Error obteniendo perfil desde endpoint general: $e2');
+            print('❌ Error obteniendo perfil por usuario_id: $e2');
             throw Exception('No se pudo obtener el perfil de funcionario: $e2');
           }
         }
@@ -894,7 +865,7 @@ class FuncionarioRepository {
   ) async {
     try {
       final response = await _dioClient.dio.get(
-        '${ApiConfig.perfilesFuncionarios}/$idUsuario',
+        ApiConfig.perfilFuncionarioByUsuario(idUsuario),
       );
       return PerfilFuncionario.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

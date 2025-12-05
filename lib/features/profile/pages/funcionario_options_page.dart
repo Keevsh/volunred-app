@@ -12,6 +12,7 @@ class FuncionarioOptionsPage extends StatefulWidget {
 
 class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
   bool _isLoading = false;
+  bool _hasOrganizacion = false;
 
   Future<void> _checkExistingOrganization() async {
     setState(() => _isLoading = true);
@@ -20,13 +21,19 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
       final organizacion = await funcionarioRepo.getMiOrganizacion();
 
       if (mounted) {
-        // Ya tiene organización, ir a crear perfil
-        Modular.to.navigate('/profile/create-organizacion');
+        // Marcar que ya tiene organización, pero no forzar navegación.
+        setState(() {
+          _hasOrganizacion = organizacion.idOrganizacion > 0;
+          _isLoading = false;
+        });
       }
     } catch (e) {
       // No tiene organización, mostrar opciones
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _hasOrganizacion = false;
+          _isLoading = false;
+        });
       }
     }
   }
@@ -39,8 +46,6 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F5F7),
@@ -73,6 +78,21 @@ class _FuncionarioOptionsPageState extends State<FuncionarioOptionsPage> {
                       'Selecciona la opción que mejor se adapte a tu situación',
                       style: TextStyle(fontSize: 16, color: Color(0xFF86868B)),
                     ),
+                    if (_hasOrganizacion) ...[
+                      const SizedBox(height: 16),
+                      _buildOptionCard(
+                        context,
+                        title: 'Ya tienes una organización registrada',
+                        description:
+                            'Puedes revisar o actualizar los datos de tu organización existente',
+                        icon: Icons.manage_accounts,
+                        color: const Color(0xFF007AFF),
+                        onTap: () => Modular.to.navigate('/profile/create-organizacion'),
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                    ],
                     const SizedBox(height: 40),
                     _buildOptionCard(
                       context,

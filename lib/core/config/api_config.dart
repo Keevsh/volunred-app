@@ -75,6 +75,12 @@ class ApiConfig {
   static const String evidencias = '/informacion/evidencias';
   // Opiniones eliminadas del backend (02-12-2025)
 
+  // Archivos digitales (media: videos, fotos, documentos)
+  static const String archivosDigitales = '/informacion/archivos-digitales';
+  static String archivoDigital(int id) => '$archivosDigitales/$id';
+  static String archivosDigitalesProyecto(int proyectoId) =>
+      '$archivosDigitales/proyecto/$proyectoId';
+
   // Endpoints de voluntarios (voluntario autenticado)
   static const String voluntariosBase = '/voluntarios';
 

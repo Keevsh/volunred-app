@@ -5,6 +5,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/tarea.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/image_base64_widget.dart';
+import 'proyecto_media_page.dart';
 
 class ProyectoDetailPage extends StatefulWidget {
   final int proyectoId;
@@ -352,6 +353,24 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1A1A1A),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.perm_media_rounded),
+            onPressed: () {
+              if (_proyecto != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProyectoMediaPage(
+                      proyecto: _proyecto!,
+                    ),
+                  ),
+                );
+              }
+            },
+            tooltip: 'Multimedia del proyecto',
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateTareaDialog,

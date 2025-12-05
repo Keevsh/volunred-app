@@ -49,6 +49,9 @@ dependencies:
   # Image Picker
   image_picker: ^1.0.4
   
+  # File Picker (for documents)
+  file_picker: ^8.0.0+1
+  
   # Image Processing
   image: ^4.1.3
   

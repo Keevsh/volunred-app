@@ -12,6 +12,7 @@ import '../models/perfil_funcionario.dart';
 import '../models/perfil_voluntario.dart';
 import '../models/dashboard.dart';
 import '../models/categoria.dart';
+import '../models/archivo_digital.dart';
 import 'auth_repository.dart';
 import 'organizacion_repository.dart';
 
@@ -953,6 +954,93 @@ class FuncionarioRepository {
             },
           )
           .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== ARCHIVOS DIGITALES (MEDIA) ====================
+
+  /// Subir archivo digital (video, foto, documento, audio) a un proyecto
+  Future<ArchivoDigital> subirArchivoDigital({
+    required int proyectoId,
+    required String nombreArchivo,
+    required String contenidoBase64,
+    required String mimeType,
+    required String tipoMedia, // "imagen", "video", "audio", "documento"
+  }) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.archivosDigitales,
+        data: {
+          'proyecto_id': proyectoId,
+          'nombre_archivo': nombreArchivo,
+          'contenido_base64': contenidoBase64,
+          'mime_type': mimeType,
+          'tipo_media': tipoMedia,
+        },
+      );
+      return ArchivoDigital.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener archivos digitales de un proyecto
+  Future<List<ArchivoDigital>> getArchivosDigitalesProyecto(
+    int proyectoId,
+  ) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.archivosDigitalesProyecto(proyectoId),
+      );
+
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['archivos'] ?? []);
+
+      return data
+          .map((json) => ArchivoDigital.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener un archivo digital específico
+  Future<ArchivoDigital> getArchivoDigital(int id) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.archivoDigital(id),
+      );
+      return ArchivoDigital.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar archivo digital
+  Future<void> deleteArchivoDigital(int id) async {
+    try {
+      await _dioClient.dio.delete(
+        ApiConfig.archivoDigital(id),
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar archivo digital
+  Future<ArchivoDigital> updateArchivoDigital(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        ApiConfig.archivoDigital(id),
+        data: data,
+      );
+      return ArchivoDigital.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _handleError(e);
     }

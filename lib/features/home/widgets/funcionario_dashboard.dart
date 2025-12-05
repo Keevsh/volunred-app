@@ -7,6 +7,7 @@ import '../../../core/models/proyecto.dart';
 import '../../../core/models/inscripcion.dart';
 import '../../../core/models/participacion.dart';
 import '../../../core/widgets/skeleton_widget.dart';
+import '../../../core/utils/participation_logger.dart';
 
 class FuncionarioDashboard extends StatefulWidget {
   const FuncionarioDashboard({super.key});
@@ -43,6 +44,10 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       final proyectos = await _repository.getProyectos();
       final inscripciones = await _repository.getInscripcionesPendientes();
       final participaciones = await _repository.getParticipaciones();
+
+      // Imprimir datos de participaciones para debugging
+      ParticipationLogger.printParticipacionesResumen(participaciones);
+      ParticipationLogger.printParticipaciones(participaciones);
 
       setState(() {
         _organizacion = org;
@@ -312,37 +317,135 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   ),
                   child: Row(
                     children: [
+                      // Avatar del usuario
+                      _buildUserAvatar(participacion),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Nombre del voluntario
                             Text(
-                              proyectoNombre,
+                              _extractNombrePostulante(participacion),
                               style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 color: const Color(0xFF1A1A1A),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 6),
-                            // Nombre del postulante
+                            const SizedBox(height: 4),
+                            // Email del usuario
                             if (participacion.inscripcion != null)
-                              Text(
-                                _extractNombrePostulante(participacion),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              Builder(
+                                builder: (context) {
+                                  var usuario = participacion.inscripcion!['usuario'];
+                                  // Si no está directamente, buscar en perfil_voluntario
+                                  if (usuario == null && participacion.inscripcion!['perfil_voluntario'] != null) {
+                                    final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+                                    if (perfilVol is Map) {
+                                      usuario = perfilVol['usuario'];
+                                    }
+                                  }
+                                  
+                                  if (usuario == null) return const SizedBox.shrink();
+                                  
+                                  final email = usuario['email']?.toString();
+                                  if (email == null || email.isEmpty) return const SizedBox.shrink();
+                                  
+                                  return Row(
+                                    children: [
+                                      Icon(
+                                        Icons.email_outlined,
+                                        size: 14,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          email,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
+                            const SizedBox(height: 4),
+                            // Teléfono del usuario
                             if (participacion.inscripcion != null)
-                              const SizedBox(height: 4),
-                            Text(
-                              'Estado: ${participacion.estado.toUpperCase()}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                              Builder(
+                                builder: (context) {
+                                  var usuario = participacion.inscripcion!['usuario'];
+                                  // Si no está directamente, buscar en perfil_voluntario
+                                  if (usuario == null && participacion.inscripcion!['perfil_voluntario'] != null) {
+                                    final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+                                    if (perfilVol is Map) {
+                                      usuario = perfilVol['usuario'];
+                                    }
+                                  }
+                                  
+                                  if (usuario == null) return const SizedBox.shrink();
+                                  
+                                  final telefono = usuario['telefono'];
+                                  if (telefono == null) return const SizedBox.shrink();
+                                  
+                                  return Row(
+                                    children: [
+                                      Icon(
+                                        Icons.phone_outlined,
+                                        size: 14,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        telefono.toString(),
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            const SizedBox(height: 8),
+                            // Proyecto
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer
+                                    .withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.folder_outlined,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      proyectoNombre,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -385,6 +488,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                     color: Color(0xFF4CAF50),
                                   ),
                                   iconSize: 24,
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(),
+                                  tooltip: 'Aprobar',
                                   onPressed: () async {
                                     try {
                                       await _repository.updateParticipacion(
@@ -437,6 +543,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                     color: Color(0xFFFF5252),
                                   ),
                                   iconSize: 24,
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(),
+                                  tooltip: 'Rechazar',
                                   onPressed: () async {
                                     try {
                                       await _repository.deleteParticipacion(
@@ -1411,20 +1520,177 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   /// Extrae el nombre completo del postulante desde una participación
   String _extractNombrePostulante(Participacion participacion) {
     try {
+      print('🔍 DEBUG _extractNombrePostulante:');
       final inscripcion = participacion.inscripcion;
-      if (inscripcion == null) return 'Voluntario desconocido';
+      print('   inscripcion existe: ${inscripcion != null}');
       
-      final usuario = inscripcion['usuario'];
-      if (usuario == null) return 'Voluntario desconocido';
+      if (inscripcion == null) {
+        print('   ❌ inscripcion es null');
+        return 'Voluntario desconocido';
+      }
       
-      final nombres = usuario['nombres']?.toString() ?? '';
-      final apellidos = usuario['apellidos']?.toString() ?? '';
-      final nombreCompleto = '$nombres $apellidos'.trim();
+      print('   Keys en inscripcion: ${inscripcion.keys.toList()}');
       
-      return nombreCompleto.isNotEmpty ? nombreCompleto : 'Voluntario desconocido';
+      // Opción 1: Buscar usuario_completo directamente en inscripcion
+      if (inscripcion['usuario_completo'] != null) {
+        final nombreCompleto = inscripcion['usuario_completo'].toString().trim();
+        if (nombreCompleto.isNotEmpty) {
+          print('   ✅ Encontrado en usuario_completo: "$nombreCompleto"');
+          return nombreCompleto;
+        }
+      }
+      
+      // Opción 2: Buscar usuario directamente en inscripcion
+      var usuario = inscripcion['usuario'];
+      print('   usuario directo existe: ${usuario != null}');
+      
+      if (usuario != null && usuario is Map) {
+        final nombres = usuario['nombres']?.toString() ?? '';
+        final apellidos = usuario['apellidos']?.toString() ?? '';
+        final nombreCompleto = '$nombres $apellidos'.trim();
+        if (nombreCompleto.isNotEmpty) {
+          print('   ✅ Encontrado en usuario directo: "$nombreCompleto"');
+          return nombreCompleto;
+        }
+      }
+      
+      // Opción 3: Buscar en perfil_voluntario
+      if (inscripcion['perfil_voluntario'] != null) {
+        final perfilVol = inscripcion['perfil_voluntario'];
+        print('   perfil_voluntario existe: ${perfilVol != null}');
+        if (perfilVol is Map) {
+          usuario = perfilVol['usuario'];
+          if (usuario != null && usuario is Map) {
+            final nombres = usuario['nombres']?.toString() ?? '';
+            final apellidos = usuario['apellidos']?.toString() ?? '';
+            final nombreCompleto = '$nombres $apellidos'.trim();
+            if (nombreCompleto.isNotEmpty) {
+              print('   ✅ Encontrado en perfil_voluntario/usuario: "$nombreCompleto"');
+              return nombreCompleto;
+            }
+          }
+        }
+      }
+      
+      print('   ❌ No se encontró nombre en ningún lugar');
+      return 'Voluntario desconocido';
     } catch (e) {
+      print('   ❌ ERROR en _extractNombrePostulante: $e');
       return 'Voluntario desconocido';
     }
+  }
+
+  /// Construye el avatar del usuario desde una participación
+  Widget _buildUserAvatar(Participacion participacion) {
+    try {
+      final inscripcion = participacion.inscripcion;
+      if (inscripcion == null) {
+        return _buildDefaultAvatar();
+      }
+      
+      // Obtener usuario de cualquier ubicación
+      var usuario = inscripcion['usuario'];
+      if (usuario == null && inscripcion['perfil_voluntario'] != null) {
+        final perfilVol = inscripcion['perfil_voluntario'];
+        if (perfilVol is Map) {
+          usuario = perfilVol['usuario'];
+        }
+      }
+      
+      if (usuario == null) {
+        return _buildDefaultAvatar();
+      }
+      
+      // Obtener iniciales
+      final nombres = usuario['nombres']?.toString() ?? '';
+      final apellidos = usuario['apellidos']?.toString() ?? '';
+      final iniciales = _getIniciales(nombres, apellidos);
+      
+      // Obtener foto de perfil (buscar en múltiples ubicaciones)
+      var fotoPerfil = inscripcion['foto_perfil'];
+      if (fotoPerfil == null && usuario is Map) {
+        fotoPerfil = usuario['foto_perfil'];
+      }
+      if (fotoPerfil == null && inscripcion['perfil_voluntario'] is Map) {
+        final perfilVol = inscripcion['perfil_voluntario'];
+        fotoPerfil = perfilVol['foto_perfil'];
+      }
+      
+      if (fotoPerfil != null && fotoPerfil is String && fotoPerfil.isNotEmpty) {
+        // Si hay foto base64
+        try {
+          // Manejar base64 con o sin prefijo data:
+          String base64String = fotoPerfil;
+          if (fotoPerfil.contains('base64,')) {
+            base64String = fotoPerfil.split('base64,').last;
+          }
+          
+          final bytes = base64Decode(base64String);
+          return CircleAvatar(
+            radius: 24,
+            backgroundImage: MemoryImage(bytes),
+            backgroundColor: Colors.transparent,
+          );
+        } catch (e) {
+          print('Error al decodificar foto: $e');
+          // Si falla decodificar, usar iniciales
+          return CircleAvatar(
+            radius: 24,
+            backgroundColor: const Color(0xFF1976D2),
+            child: Text(
+              iniciales,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          );
+        }
+      }
+      
+      // Si no hay foto, usar iniciales
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: const Color(0xFF1976D2),
+        child: Text(
+          iniciales,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error en _buildUserAvatar: $e');
+      return _buildDefaultAvatar();
+    }
+  }
+
+  /// Construye un avatar por defecto
+  Widget _buildDefaultAvatar() {
+    return const CircleAvatar(
+      radius: 24,
+      backgroundColor: Color(0xFF1976D2),
+      child: Icon(
+        Icons.person,
+        color: Colors.white,
+        size: 24,
+      ),
+    );
+  }
+
+  /// Obtiene las iniciales de nombres y apellidos
+  String _getIniciales(String nombres, String apellidos) {
+    String inicialNombre = nombres.isNotEmpty ? nombres[0].toUpperCase() : '';
+    String inicialApellido = apellidos.isNotEmpty ? apellidos[0].toUpperCase() : '';
+    
+    if (inicialNombre.isEmpty && inicialApellido.isEmpty) {
+      return 'V';
+    }
+    
+    return '$inicialNombre$inicialApellido';
   }
 
   /// Extrae el nombre completo del voluntario desde una inscripción

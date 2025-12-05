@@ -66,21 +66,37 @@ class SmartLogInterceptor extends Interceptor {
       final dataStr = response.data.toString();
       if (dataStr.length > maxBodyLength) {
         // Verificar si contiene base64 (imágenes grandes)
-        if (dataStr.contains('base64,')) {
+        if (dataStr.contains('base64,') || dataStr.contains('base64')) {
           print(
-            '│ Body: [RESPONSE WITH BASE64 IMAGE - ${dataStr.length} chars]',
+            '│ Body: [RESPONSE WITH BASE64 - ${dataStr.length} chars total]',
           );
-          // Mostrar solo metadata sin el base64
-          if (response.data is Map) {
-            final Map<String, dynamic> data = Map.from(response.data);
-            if (data.containsKey('logo') && data['logo'] is String) {
-              final logoLength = (data['logo'] as String).length;
-              data['logo'] = '[BASE64 IMAGE - $logoLength chars]';
+          
+          // Intentar mostrar estructura sin base64
+          if (response.data is List) {
+            print('│ Response Type: List with ${(response.data as List).length} items');
+            final firstItem = (response.data as List).isNotEmpty ? (response.data as List)[0] : null;
+            if (firstItem is Map) {
+              final keys = firstItem.keys.toList();
+              print('│ Keys in items: $keys');
+              
+              // Mostrar un item de ejemplo sin base64
+              final cleanItem = Map<String, dynamic>.from(firstItem as Map<String, dynamic>);
+              cleanItem.forEach((key, value) {
+                if (value is String && value.contains('base64')) {
+                  cleanItem[key] = '[BASE64 - ${value.length} chars]';
+                } else if (value is String && value.length > 100) {
+                  cleanItem[key] = '${value.substring(0, 97)}...';
+                }
+              });
+              print('│ First item (sample): $cleanItem');
             }
-            if (data.containsKey('imagen') && data['imagen'] is String) {
-              final imagenLength = (data['imagen'] as String).length;
-              data['imagen'] = '[BASE64 IMAGE - $imagenLength chars]';
-            }
+          } else if (response.data is Map) {
+            final data = Map<String, dynamic>.from(response.data as Map<String, dynamic>);
+            data.forEach((key, value) {
+              if (value is String && value.contains('base64')) {
+                data[key] = '[BASE64 - ${value.length} chars]';
+              }
+            });
             print('│ Data (without base64): $data');
           }
         } else {

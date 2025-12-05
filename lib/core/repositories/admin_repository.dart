@@ -1107,13 +1107,11 @@ class AdminRepository {
       final admins = usuarios.where((u) => u.isAdmin).length;
 
       // Obtener proyectos
-      final proyectosResult = await getProyectos();
-      final proyectos = proyectosResult['proyectos'] as List<Proyecto>;
+      final proyectos = await getProyectos();
       final proyectosActivos = proyectos.where((p) => p.estado.toLowerCase() == 'activo').length;
 
       // Obtener organizaciones
-      final organizacionesResult = await getOrganizaciones();
-      final organizaciones = organizacionesResult['organizaciones'] as List<Organizacion>;
+      final organizaciones = await getOrganizaciones();
 
       return {
         'totalUsuarios': totalUsuarios,
@@ -1142,4 +1140,3 @@ class AdminRepository {
   }
 }
 
-```

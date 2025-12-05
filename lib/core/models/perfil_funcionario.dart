@@ -88,36 +88,23 @@ class PerfilFuncionario extends Equatable {
       final idPerfilValue =
           json['id_perfil_funcionario'] ?? json['id_funcionario'];
       if (idPerfilValue == null) {
-        throw Exception(
-          'id_perfil_funcionario or id_funcionario is required but was null',
-        );
+        print('⚠️ WARNING: id_perfil_funcionario or id_funcionario is null, usando 0');
       }
-      final idPerfil = _getInt(idPerfilValue);
-      if (idPerfil == 0) {
-        throw Exception('id_perfil_funcionario cannot be 0');
-      }
+      final idPerfil = _getInt(idPerfilValue, defaultValue: 0);
 
       // Safely parse id_usuario (puede venir como id_usuario o usuario_id)
       final idUsuarioValue = json['id_usuario'] ?? json['usuario_id'];
       if (idUsuarioValue == null) {
-        throw Exception('id_usuario or usuario_id is required but was null');
+        print('⚠️ WARNING: id_usuario or usuario_id is null, usando 0');
       }
-      final idUsuario = _getInt(idUsuarioValue);
-      if (idUsuario == 0) {
-        throw Exception('id_usuario cannot be 0');
-      }
+      final idUsuario = _getInt(idUsuarioValue, defaultValue: 0);
 
       // Safely parse id_organizacion (puede venir como id_organizacion o organizacion_id)
       final idOrgValue = json['id_organizacion'] ?? json['organizacion_id'];
       if (idOrgValue == null) {
-        throw Exception(
-          'id_organizacion or organizacion_id is required but was null',
-        );
+        print('⚠️ WARNING: id_organizacion or organizacion_id is null, usando 0');
       }
-      final idOrg = _getInt(idOrgValue);
-      if (idOrg == 0) {
-        throw Exception('id_organizacion cannot be 0');
-      }
+      final idOrg = _getInt(idOrgValue, defaultValue: 0);
 
       // Obtener 'area' o 'departamento' (la API usa 'area')
       final areaValue =

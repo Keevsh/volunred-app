@@ -77,12 +77,37 @@ class _HomePageState extends State<HomePage> {
       if (!usuario.isAdmin) {
         try {
           if (usuario.isFuncionario) {
+            // Verificar si tiene perfil O inscripción aprobada
             final tienePerfil = await authRepo.tienePerfilFuncionario();
-            if (!tienePerfil && mounted) {
-              Future.microtask(() {
-                Modular.to.navigate('/profile/funcionario-options');
-              });
-              return;
+            
+            if (!tienePerfil) {
+              // Si no tiene perfil guardado, verificar inscripciones aprobadas
+              try {
+                final voluntarioRepo = Modular.get<VoluntarioRepository>();
+                final inscripciones = await voluntarioRepo.getInscripciones();
+                final tieneInscripcionAprobada = inscripciones.any(
+                  (ins) => ins.estado.toUpperCase() == 'APROBADO',
+                );
+                
+                if (!tieneInscripcionAprobada && mounted) {
+                  // Solo redirigir a crear perfil si NO tiene inscripciones aprobadas
+                  Future.microtask(() {
+                    Modular.to.navigate('/profile/funcionario-options');
+                  });
+                  return;
+                } else if (tieneInscripcionAprobada) {
+                  print('✅ Usuario tiene inscripción aprobada, permitiendo acceso al dashboard');
+                }
+              } catch (e) {
+                print('❌ Error verificando inscripciones: $e');
+                // Si hay error verificando inscripciones, redirigir a opciones
+                if (mounted) {
+                  Future.microtask(() {
+                    Modular.to.navigate('/profile/funcionario-options');
+                  });
+                  return;
+                }
+              }
             }
           } else if (usuario.isVoluntario) {
             final perfilVolJson = await StorageService.getString(
@@ -734,6 +759,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadPerfilFuncionario() async {
+    if (!mounted) return;
+    
     try {
       final authRepo = Modular.get<AuthRepository>();
       final funcionarioRepo = Modular.get<FuncionarioRepository>();
@@ -746,6 +773,8 @@ class _HomePageState extends State<HomePage> {
         try {
           final perfilAPI = await funcionarioRepo.getMiPerfil();
           print('✅ Perfil de funcionario obtenido de API: ID=${perfilAPI.idPerfilFuncionario}');
+          
+          if (!mounted) return;
           
           // Actualizar el storage con el perfil fresco
           await StorageService.saveString(

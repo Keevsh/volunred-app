@@ -43,6 +43,8 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _error = null;
@@ -53,6 +55,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
       final inscripciones = await _repository.getInscripciones();
       final participaciones = await _repository.getParticipaciones();
 
+      if (!mounted) return;
       setState(() {
         _proyectos = proyectos;
         _misInscripciones = inscripciones;
@@ -60,6 +63,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;

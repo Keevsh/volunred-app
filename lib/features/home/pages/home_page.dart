@@ -228,9 +228,18 @@ class _HomePageState extends State<HomePage> {
 
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
       final participaciones = await voluntarioRepo.getParticipaciones();
+      
+      // Incluir participaciones activas, pendientes y aprobadas
       final activas = participaciones
-          .where((p) => p.estado == 'activo' || p.estado == 'ACTIVO')
+          .where((p) {
+            final estado = p.estado.toLowerCase();
+            return estado == 'activo' || 
+                   estado == 'pendiente' || 
+                   estado == 'aprobado';
+          })
           .toList();
+
+      print('✅ Participaciones cargadas: ${participaciones.length} total, ${activas.length} activas/pendientes/aprobadas');
 
       if (!mounted) return;
       setState(() {

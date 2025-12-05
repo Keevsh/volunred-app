@@ -142,16 +142,115 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   ),
                 ),
               ),
-              // Projects skeleton
-              const SliverToBoxAdapter(
+              // Projects skeleton con header mejorado
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SkeletonWidget(width: 150, height: 24),
-                      SizedBox(height: 16),
-                      SkeletonList(itemCount: 2, itemHeight: 140),
+                      // Header skeleton tipo card gradiente
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      SkeletonWidget(
+                                        width: 150,
+                                        height: 24,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      SkeletonWidget(
+                                        width: 100,
+                                        height: 20,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            SkeletonWidget(
+                              width: double.infinity,
+                              height: 44,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Project cards skeleton
+                      const SkeletonList(itemCount: 3, itemHeight: 140),
+                    ],
+                  ),
+                ),
+              ),
+              // Participaciones skeleton
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const SkeletonWidget(width: 250, height: 24),
+                          const SizedBox(width: 8),
+                          SkeletonWidget(
+                            width: 40,
+                            height: 24,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const SkeletonList(itemCount: 3, itemHeight: 80),
+                    ],
+                  ),
+                ),
+              ),
+              // Solicitudes pendientes skeleton
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const SkeletonWidget(width: 200, height: 24),
+                          const SizedBox(width: 8),
+                          SkeletonWidget(
+                            width: 40,
+                            height: 24,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const SkeletonList(itemCount: 3, itemHeight: 80),
                     ],
                   ),
                 ),
@@ -339,20 +438,27 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                             if (participacion.inscripcion != null)
                               Builder(
                                 builder: (context) {
-                                  var usuario = participacion.inscripcion!['usuario'];
+                                  var usuario =
+                                      participacion.inscripcion!['usuario'];
                                   // Si no está directamente, buscar en perfil_voluntario
-                                  if (usuario == null && participacion.inscripcion!['perfil_voluntario'] != null) {
-                                    final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+                                  if (usuario == null &&
+                                      participacion
+                                              .inscripcion!['perfil_voluntario'] !=
+                                          null) {
+                                    final perfilVol = participacion
+                                        .inscripcion!['perfil_voluntario'];
                                     if (perfilVol is Map) {
                                       usuario = perfilVol['usuario'];
                                     }
                                   }
-                                  
-                                  if (usuario == null) return const SizedBox.shrink();
-                                  
+
+                                  if (usuario == null)
+                                    return const SizedBox.shrink();
+
                                   final email = usuario['email']?.toString();
-                                  if (email == null || email.isEmpty) return const SizedBox.shrink();
-                                  
+                                  if (email == null || email.isEmpty)
+                                    return const SizedBox.shrink();
+
                                   return Row(
                                     children: [
                                       Icon(
@@ -364,9 +470,11 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                       Expanded(
                                         child: Text(
                                           email,
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -380,20 +488,27 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                             if (participacion.inscripcion != null)
                               Builder(
                                 builder: (context) {
-                                  var usuario = participacion.inscripcion!['usuario'];
+                                  var usuario =
+                                      participacion.inscripcion!['usuario'];
                                   // Si no está directamente, buscar en perfil_voluntario
-                                  if (usuario == null && participacion.inscripcion!['perfil_voluntario'] != null) {
-                                    final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+                                  if (usuario == null &&
+                                      participacion
+                                              .inscripcion!['perfil_voluntario'] !=
+                                          null) {
+                                    final perfilVol = participacion
+                                        .inscripcion!['perfil_voluntario'];
                                     if (perfilVol is Map) {
                                       usuario = perfilVol['usuario'];
                                     }
                                   }
-                                  
-                                  if (usuario == null) return const SizedBox.shrink();
-                                  
+
+                                  if (usuario == null)
+                                    return const SizedBox.shrink();
+
                                   final telefono = usuario['telefono'];
-                                  if (telefono == null) return const SizedBox.shrink();
-                                  
+                                  if (telefono == null)
+                                    return const SizedBox.shrink();
+
                                   return Row(
                                     children: [
                                       Icon(
@@ -404,9 +519,11 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                       const SizedBox(width: 4),
                                       Text(
                                         telefono.toString(),
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
                                       ),
                                     ],
                                   );
@@ -420,8 +537,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer
-                                    .withOpacity(0.3),
+                                color: colorScheme.primaryContainer.withOpacity(
+                                  0.3,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -436,11 +554,11 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                   Flexible(
                                     child: Text(
                                       proyectoNombre,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -501,7 +619,12 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                       if (mounted) {
                                         setState(() {
                                           _participaciones = _participaciones
-                                              .where((p) => p.idParticipacion != participacion.idParticipacion)
+                                              .where(
+                                                (p) =>
+                                                    p.idParticipacion !=
+                                                    participacion
+                                                        .idParticipacion,
+                                              )
                                               .toList();
                                         });
                                         ScaffoldMessenger.of(
@@ -523,7 +646,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text('Error: $e'),
-                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                            backgroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
                                           ),
                                         );
                                       }
@@ -555,7 +680,12 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                                       if (mounted) {
                                         setState(() {
                                           _participaciones = _participaciones
-                                              .where((p) => p.idParticipacion != participacion.idParticipacion)
+                                              .where(
+                                                (p) =>
+                                                    p.idParticipacion !=
+                                                    participacion
+                                                        .idParticipacion,
+                                              )
                                               .toList();
                                         });
                                         ScaffoldMessenger.of(
@@ -973,53 +1103,168 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Header mejorado con gradiente y diseño moderno
+          Container(
+            margin: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [const Color(0xFF1976D2), const Color(0xFF1565C0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1976D2).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      'Mis Proyectos',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    // Icono decorativo
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE3F2FD),
+                        color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        '${_proyectos.length} total',
-                        style: const TextStyle(
-                          color: Color(0xFF1976D2),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
+                      child: const Icon(
+                        Icons.folder_special,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Título y contador
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Mis Proyectos',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              fontSize: 24,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${_proyectos.length}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _proyectos.length == 1
+                                          ? 'proyecto'
+                                          : 'proyectos',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Badge de proyectos activos
+                              if (_proyectos
+                                  .where(
+                                    (p) => p.estado.toLowerCase() == 'activo',
+                                  )
+                                  .isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4CAF50),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${_proyectos.where((p) => p.estado.toLowerCase() == 'activo').length} activos',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                FloatingActionButton.extended(
-                  onPressed: () {
-                    Modular.to.pushNamed('/proyectos/create');
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Crear'),
-                  backgroundColor: const Color(0xFF2196F3),
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                  extendedPadding: const EdgeInsets.symmetric(horizontal: 16),
-                )
+                const SizedBox(height: 16),
+                // Botón de crear proyecto mejorado
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Modular.to.pushNamed('/proyectos/create');
+                    },
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    label: const Text(
+                      'Crear Nuevo Proyecto',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF1976D2),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1031,9 +1276,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFE0E0E0),
-                  ),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -1084,7 +1327,8 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _proyectos.length > 6 ? 6 : _proyectos.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   return _buildProyectoListCard(_proyectos[index], theme);
                 },
@@ -1442,7 +1686,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   if (mounted) {
                     setState(() {
                       _inscripciones = _inscripciones
-                          .where((i) => i.idInscripcion != inscripcion.idInscripcion)
+                          .where(
+                            (i) => i.idInscripcion != inscripcion.idInscripcion,
+                          )
                           .toList();
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1455,9 +1701,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Error: $e'),
                         backgroundColor: Theme.of(context).colorScheme.error,
@@ -1487,7 +1731,9 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   if (mounted) {
                     setState(() {
                       _inscripciones = _inscripciones
-                          .where((i) => i.idInscripcion != inscripcion.idInscripcion)
+                          .where(
+                            (i) => i.idInscripcion != inscripcion.idInscripcion,
+                          )
                           .toList();
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1499,9 +1745,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Error: $e'),
                         backgroundColor: Theme.of(context).colorScheme.error,
@@ -1523,27 +1767,29 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       print('🔍 DEBUG _extractNombrePostulante:');
       final inscripcion = participacion.inscripcion;
       print('   inscripcion existe: ${inscripcion != null}');
-      
+
       if (inscripcion == null) {
         print('   ❌ inscripcion es null');
         return 'Voluntario desconocido';
       }
-      
+
       print('   Keys en inscripcion: ${inscripcion.keys.toList()}');
-      
+
       // Opción 1: Buscar usuario_completo directamente en inscripcion
       if (inscripcion['usuario_completo'] != null) {
-        final nombreCompleto = inscripcion['usuario_completo'].toString().trim();
+        final nombreCompleto = inscripcion['usuario_completo']
+            .toString()
+            .trim();
         if (nombreCompleto.isNotEmpty) {
           print('   ✅ Encontrado en usuario_completo: "$nombreCompleto"');
           return nombreCompleto;
         }
       }
-      
+
       // Opción 2: Buscar usuario directamente en inscripcion
       var usuario = inscripcion['usuario'];
       print('   usuario directo existe: ${usuario != null}');
-      
+
       if (usuario != null && usuario is Map) {
         final nombres = usuario['nombres']?.toString() ?? '';
         final apellidos = usuario['apellidos']?.toString() ?? '';
@@ -1553,7 +1799,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           return nombreCompleto;
         }
       }
-      
+
       // Opción 3: Buscar en perfil_voluntario
       if (inscripcion['perfil_voluntario'] != null) {
         final perfilVol = inscripcion['perfil_voluntario'];
@@ -1565,13 +1811,15 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
             final apellidos = usuario['apellidos']?.toString() ?? '';
             final nombreCompleto = '$nombres $apellidos'.trim();
             if (nombreCompleto.isNotEmpty) {
-              print('   ✅ Encontrado en perfil_voluntario/usuario: "$nombreCompleto"');
+              print(
+                '   ✅ Encontrado en perfil_voluntario/usuario: "$nombreCompleto"',
+              );
               return nombreCompleto;
             }
           }
         }
       }
-      
+
       print('   ❌ No se encontró nombre en ningún lugar');
       return 'Voluntario desconocido';
     } catch (e) {
@@ -1587,7 +1835,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       if (inscripcion == null) {
         return _buildDefaultAvatar();
       }
-      
+
       // Obtener usuario de cualquier ubicación
       var usuario = inscripcion['usuario'];
       if (usuario == null && inscripcion['perfil_voluntario'] != null) {
@@ -1596,16 +1844,16 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           usuario = perfilVol['usuario'];
         }
       }
-      
+
       if (usuario == null) {
         return _buildDefaultAvatar();
       }
-      
+
       // Obtener iniciales
       final nombres = usuario['nombres']?.toString() ?? '';
       final apellidos = usuario['apellidos']?.toString() ?? '';
       final iniciales = _getIniciales(nombres, apellidos);
-      
+
       // Obtener foto de perfil (buscar en múltiples ubicaciones)
       var fotoPerfil = inscripcion['foto_perfil'];
       if (fotoPerfil == null && usuario is Map) {
@@ -1615,7 +1863,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
         final perfilVol = inscripcion['perfil_voluntario'];
         fotoPerfil = perfilVol['foto_perfil'];
       }
-      
+
       if (fotoPerfil != null && fotoPerfil is String && fotoPerfil.isNotEmpty) {
         // Si hay foto base64
         try {
@@ -1624,7 +1872,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           if (fotoPerfil.contains('base64,')) {
             base64String = fotoPerfil.split('base64,').last;
           }
-          
+
           final bytes = base64Decode(base64String);
           return CircleAvatar(
             radius: 24,
@@ -1648,7 +1896,7 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
           );
         }
       }
-      
+
       // Si no hay foto, usar iniciales
       return CircleAvatar(
         radius: 24,
@@ -1673,23 +1921,21 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     return const CircleAvatar(
       radius: 24,
       backgroundColor: Color(0xFF1976D2),
-      child: Icon(
-        Icons.person,
-        color: Colors.white,
-        size: 24,
-      ),
+      child: Icon(Icons.person, color: Colors.white, size: 24),
     );
   }
 
   /// Obtiene las iniciales de nombres y apellidos
   String _getIniciales(String nombres, String apellidos) {
     String inicialNombre = nombres.isNotEmpty ? nombres[0].toUpperCase() : '';
-    String inicialApellido = apellidos.isNotEmpty ? apellidos[0].toUpperCase() : '';
-    
+    String inicialApellido = apellidos.isNotEmpty
+        ? apellidos[0].toUpperCase()
+        : '';
+
     if (inicialNombre.isEmpty && inicialApellido.isEmpty) {
       return 'V';
     }
-    
+
     return '$inicialNombre$inicialApellido';
   }
 
@@ -1698,15 +1944,17 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     try {
       final perfilVoluntario = inscripcion.perfilVoluntario;
       if (perfilVoluntario == null) return 'Voluntario desconocido';
-      
+
       final usuario = perfilVoluntario['usuario'];
       if (usuario == null) return 'Voluntario desconocido';
-      
+
       final nombres = usuario['nombres']?.toString() ?? '';
       final apellidos = usuario['apellidos']?.toString() ?? '';
       final nombreCompleto = '$nombres $apellidos'.trim();
-      
-      return nombreCompleto.isNotEmpty ? nombreCompleto : 'Voluntario desconocido';
+
+      return nombreCompleto.isNotEmpty
+          ? nombreCompleto
+          : 'Voluntario desconocido';
     } catch (e) {
       return 'Voluntario desconocido';
     }

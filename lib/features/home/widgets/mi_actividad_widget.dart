@@ -27,6 +27,8 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _error = null;
@@ -37,6 +39,9 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
       final participaciones = await _repository.getParticipaciones();
       final tareas = await _repository.getMyTasks();
 
+      print('✅ Mi Actividad cargada: ${inscripciones.length} inscripciones, ${participaciones.length} participaciones, ${tareas.length} tareas');
+
+      if (!mounted) return;
       setState(() {
         _misInscripciones = inscripciones;
         _misParticipaciones = participaciones;
@@ -44,6 +49,8 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
         _isLoading = false;
       });
     } catch (e) {
+      print('❌ Error cargando Mi Actividad: $e');
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -153,15 +160,24 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
   }
 
   Widget _buildQuickStats(ThemeData theme) {
+    // Contar participaciones activas, pendientes y aprobadas
     final participacionesActivas = _misParticipaciones
-        .where((p) => p.estado == 'activo')
+        .where((p) {
+          final estado = p.estado.toLowerCase();
+          return estado == 'activo' || 
+                 estado == 'pendiente' || 
+                 estado == 'aprobado';
+        })
         .length;
+        
     final tareasPendientes = _misTareas.where((t) {
       final estado = t['estado']?.toString().toLowerCase();
       return estado == 'pendiente' ||
           estado == 'en_progreso' ||
           estado == 'en progreso';
     }).length;
+
+    print('📊 Estadísticas Mi Actividad: ${_misParticipaciones.length} participaciones totales, $participacionesActivas activas/pendientes/aprobadas');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -554,8 +570,14 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
   }
 
   Widget _buildMyParticipations(ThemeData theme) {
+    // Mostrar participaciones activas, pendientes y aprobadas
     final participacionesActivas = _misParticipaciones
-        .where((p) => p.estado == 'activo')
+        .where((p) {
+          final estado = p.estado.toLowerCase();
+          return estado == 'activo' || 
+                 estado == 'pendiente' || 
+                 estado == 'aprobado';
+        })
         .toList();
 
     return SliverToBoxAdapter(

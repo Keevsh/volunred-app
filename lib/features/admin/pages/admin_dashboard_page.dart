@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/admin_repository.dart';
+import '../../../core/widgets/skeleton_widget.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -157,10 +158,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
               // Tarjetas de estadísticas
               if (_isLoading)
-                const Center(
-                  child: SizedBox(
-                    height: 200,
-                    child: CircularProgressIndicator(),
+                // Skeleton para KPIs
+                GridView.count(
+                  crossAxisCount: isDesktop ? 4 : (isTablet ? 2 : 2),
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  childAspectRatio: isDesktop ? 1.3 : 1.1,
+                  children: List.generate(
+                    4,
+                    (index) => _buildStatCardSkeleton(),
                   ),
                 )
               else ...[
@@ -550,6 +558,67 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Skeleton para tarjetas de estadísticas
+  Widget _buildStatCardSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SkeletonWidget(
+                width: 48,
+                height: 48,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              const Spacer(),
+              SkeletonWidget(
+                width: 24,
+                height: 24,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonWidget(
+                width: 80,
+                height: 32,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              const SizedBox(height: 8),
+              SkeletonWidget(
+                width: 120,
+                height: 14,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(height: 4),
+              SkeletonWidget(
+                width: 100,
+                height: 14,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

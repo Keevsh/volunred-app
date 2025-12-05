@@ -176,16 +176,16 @@ class _WelcomePageState extends State<WelcomePage> {
   ) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 8),
             // Imagen principal tipo tarjeta con esquinas redondeadas y círculos decorativos
             ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 420),
+              constraints: const BoxConstraints(maxHeight: 440),
               child: AspectRatio(
-                aspectRatio: 9 / 16,
+                aspectRatio: 10 / 16,
                 child: Stack(
                   children: [
                     // Foto principal con bordes redondeados (más grande)

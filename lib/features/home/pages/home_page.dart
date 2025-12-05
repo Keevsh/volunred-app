@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:volunred_app/core/widgets/skeleton_widget.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/voluntario_repository.dart';
@@ -149,6 +150,12 @@ class _HomePageState extends State<HomePage> {
         final perfil = await voluntarioRepo.getPerfilByUsuario(
           usuario.idUsuario,
         );
+        
+        // 🔍 DEBUG: Imprimir biografía
+        print('📖 Bio del perfil: ${perfil?.bio}');
+        print('📖 Bio es null: ${perfil?.bio == null}');
+        print('📖 Bio está vacía: ${perfil?.bio?.isEmpty}');
+        
         if (!mounted) return;
         setState(() {
           _perfilVoluntario = perfil;
@@ -252,6 +259,80 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isLoadingParticipaciones = false;
       });
+    }
+  }
+
+  Future<void> _editarBiografia(BuildContext context) async {
+    final bioController = TextEditingController(
+      text: _perfilVoluntario?.bio ?? '',
+    );
+
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Biografía'),
+        content: TextField(
+          controller: bioController,
+          decoration: const InputDecoration(
+            labelText: 'Biografía',
+            hintText: 'Cuéntanos sobre ti...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 5,
+          maxLength: 500,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (_perfilVoluntario == null) {
+                Navigator.pop(context, false);
+                return;
+              }
+
+              try {
+                final voluntarioRepo = Modular.get<VoluntarioRepository>();
+                final perfilActualizado = await voluntarioRepo.updatePerfil(
+                  _perfilVoluntario!.idPerfilVoluntario,
+                  {'bio': bioController.text.trim()},
+                );
+
+                if (!mounted) return;
+                
+                setState(() {
+                  _perfilVoluntario = perfilActualizado;
+                });
+
+                Navigator.pop(context, true);
+              } catch (e) {
+                print('❌ Error actualizando biografía: $e');
+                if (!mounted) return;
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error al actualizar: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                Navigator.pop(context, false);
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (resultado == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Biografía actualizada correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -4346,13 +4427,24 @@ class _HomePageState extends State<HomePage> {
                                       color: colorScheme.primary,
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      'Acerca de',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                          ),
+                                    Expanded(
+                                      child: Text(
+                                        'Acerca de',
+                                        style: theme.textTheme.titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: colorScheme.primary,
+                                      ),
+                                      onPressed: () => _editarBiografia(context),
+                                      tooltip: 'Editar biografía',
                                     ),
                                   ],
                                 ),
@@ -4361,10 +4453,17 @@ class _HomePageState extends State<HomePage> {
                                   _perfilVoluntario?.bio != null &&
                                           _perfilVoluntario!.bio!.isNotEmpty
                                       ? _perfilVoluntario!.bio!
-                                      : 'Sin biografía registrada.',
+                                      : 'Sin biografía registrada. Toca el ícono de editar para agregar una.',
                                   style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: colorScheme.onSurface,
+                                    color: _perfilVoluntario?.bio != null &&
+                                            _perfilVoluntario!.bio!.isNotEmpty
+                                        ? colorScheme.onSurface
+                                        : colorScheme.onSurface.withOpacity(0.6),
                                     height: 1.6,
+                                    fontStyle: _perfilVoluntario?.bio != null &&
+                                            _perfilVoluntario!.bio!.isNotEmpty
+                                        ? FontStyle.normal
+                                        : FontStyle.italic,
                                   ),
                                 ),
 
@@ -5621,18 +5720,27 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: CustomScrollView(
         slivers: [
-          // Header con portada (Cover Photo) - Skeleton - ESTILO LINKEDIN
+          // Header con portada - Skeleton mejorado
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [
-                  // Banner skeleton
+                  // Banner skeleton con gradiente animado
                   Container(
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.surfaceContainerHighest,
+                          colorScheme.surfaceContainerHigh,
+                        ],
+                      ),
+                    ),
+                    child: const SkeletonWidget(
+                      width: double.infinity,
+                      height: 280,
                     ),
                   ),
 
@@ -5644,23 +5752,30 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: colorScheme.surface,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: _buildShimmerEffect(
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                        ),
+                      child: const SkeletonWidget(
+                        width: 120,
+                        height: 120,
+                        borderRadius: BorderRadius.all(Radius.circular(60)),
                       ),
                     ),
                   ),
 
-                  // Botón de editar foto skeleton
+                  // Botón de cámara skeleton
                   Positioned(
                     bottom: -20,
-                    left: 140,
+                    left: 130,
                     child: Container(
-                      padding: const EdgeInsets.all(10),
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         color: colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
@@ -5670,156 +5785,69 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share, color: Colors.transparent),
-                onPressed: null,
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.settings, color: Colors.transparent),
-                onSelected: (value) {},
-                itemBuilder: (BuildContext context) => [],
-              ),
-            ],
           ),
 
-          // Contenido principal con skeletons - ESTILO LINKEDIN
+          // Contenido principal - Skeletons mejorados
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.only(top: 80),
               child: Column(
                 children: [
-                  // Información del perfil skeleton
+                  // Información del perfil
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Nombre skeleton
-                        Container(
-                          height: 36,
-                          width: 250,
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
+                        // Nombre
+                        SkeletonWidget(
+                          width: 220,
+                          height: 32,
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                        const SizedBox(height: 12),
 
-                        // Título skeleton
-                        Container(
-                          height: 24,
+                        // Subtítulo/Rol
+                        SkeletonWidget(
                           width: 180,
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
+                          height: 20,
+                          borderRadius: BorderRadius.circular(6),
                         ),
+                        const SizedBox(height: 8),
 
-                        // Ubicación y estado skeleton
+                        // Ubicación y estado
                         Row(
                           children: [
-                            SizedBox(
-                              height: 20,
-                              width: 140,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
+                            SkeletonWidget(
+                              width: 130,
+                              height: 18,
+                              borderRadius: BorderRadius.circular(4),
                             ),
                             const SizedBox(width: 16),
-                            SizedBox(
-                              height: 20,
-                              width: 160,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
+                            SkeletonWidget(
+                              width: 100,
+                              height: 18,
+                              borderRadius: BorderRadius.circular(4),
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 16),
-
-                        // Conexiones skeleton
-                        Row(
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              width: 60,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              height: 20,
-                              width: 120,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
                         const SizedBox(height: 20),
 
-                        // Botones skeleton
+                        // Botones de acción
                         Row(
                           children: [
                             Expanded(
-                              child: SizedBox(
-                                height: 40,
-                                child: _buildShimmerEffect(
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
+                              child: SkeletonWidget(
+                                width: double.infinity,
+                                height: 44,
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             const SizedBox(width: 12),
-                            SizedBox(
-                              height: 40,
+                            SkeletonWidget(
                               width: 120,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
+                              height: 44,
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ],
                         ),
@@ -5829,423 +5857,213 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 24),
 
-                  // Acerca de skeleton
+                  // Mi Resumen - Card con estadísticas
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 24),
                     padding: const EdgeInsets.all(24),
-                    child: _buildShimmerEffect(
-                      Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Experiencia skeleton
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    child: _buildShimmerEffect(
-                      Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Habilidades skeleton
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    child: _buildShimmerEffect(
-                      Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Estadísticas skeleton
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    child: _buildShimmerEffect(
-                      Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Biografía skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 20,
-                          width: 100,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 16,
-                          width: double.infinity,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 16,
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 16,
-                          width: MediaQuery.of(context).size.width * 0.6,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Estadísticas skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
+                        SkeletonWidget(
+                          width: 140,
                           height: 24,
-                          width: 120,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildStatSkeleton(),
-                            _buildStatSkeleton(),
-                            _buildStatSkeleton(),
+                            Column(
+                              children: [
+                                SkeletonWidget(
+                                  width: 48,
+                                  height: 48,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                const SizedBox(height: 8),
+                                SkeletonWidget(
+                                  width: 40,
+                                  height: 24,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 4),
+                                SkeletonWidget(
+                                  width: 70,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                SkeletonWidget(
+                                  width: 48,
+                                  height: 48,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                const SizedBox(height: 8),
+                                SkeletonWidget(
+                                  width: 40,
+                                  height: 24,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 4),
+                                SkeletonWidget(
+                                  width: 90,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                SkeletonWidget(
+                                  width: 48,
+                                  height: 48,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                const SizedBox(height: 8),
+                                SkeletonWidget(
+                                  width: 40,
+                                  height: 24,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 4),
+                                SkeletonWidget(
+                                  width: 80,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
 
-                  // Organizaciones skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              height: 24,
-                              width: 120,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            SizedBox(
-                              height: 16,
-                              width: 80,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                  // Organizaciones Inscritas
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                        const SizedBox(height: 16),
-                        _buildOrganizationSkeleton(),
-                        const SizedBox(height: 12),
-                        _buildOrganizationSkeleton(),
-                        const SizedBox(height: 12),
-                        _buildOrganizationSkeleton(),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Insignias skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            SizedBox(
-                              height: 24,
+                            SkeletonWidget(
                               width: 24,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
                               height: 24,
-                              width: 160,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            const Spacer(),
-                            SizedBox(
+                            const SizedBox(width: 12),
+                            SkeletonWidget(
+                              width: 180,
                               height: 20,
-                              width: 100,
-                              child: _buildShimmerEffect(
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              ),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        // Carrusel de insignias skeleton
-                        SizedBox(
-                          height: 180,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            children: [
-                              _buildBadgeSkeleton(),
-                              const SizedBox(width: 16),
-                              _buildBadgeSkeleton(),
-                              const SizedBox(width: 16),
-                              _buildBadgeSkeleton(),
-                              const SizedBox(width: 16),
-                              _buildBadgeSkeleton(),
-                            ],
-                          ),
-                        ),
-
                         const SizedBox(height: 16),
-
-                        // Progreso skeleton
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest
-                                .withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    height: 16,
-                                    width: 120,
-                                    child: _buildShimmerEffect(
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: colorScheme
-                                              .surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
+                        // Lista de organizaciones skeleton
+                        ...List.generate(
+                          2,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                SkeletonWidget(
+                                  width: 50,
+                                  height: 50,
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SkeletonWidget(
+                                        width: double.infinity,
+                                        height: 18,
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 16,
-                                    width: 40,
-                                    child: _buildShimmerEffect(
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: colorScheme
-                                              .surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
+                                      const SizedBox(height: 6),
+                                      SkeletonWidget(
+                                        width: 120,
+                                        height: 14,
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                height: 8,
-                                width: double.infinity,
-                                child: _buildShimmerEffect(
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                height: 12,
-                                width: 200,
-                                child: _buildShimmerEffect(
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
 
-                  // Proyectos skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  // Aptitudes
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          height: 24,
-                          width: 140,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
+                        SkeletonWidget(
+                          width: 120,
+                          height: 20,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         const SizedBox(height: 16),
-                        SizedBox(
-                          height: 40,
-                          width: double.infinity,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 120,
-                          width: double.infinity,
-                          child: _buildShimmerEffect(
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(
+                            6,
+                            (index) => SkeletonWidget(
+                              width: 80 + (index * 10).toDouble(),
+                              height: 32,
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                         ),
@@ -6253,17 +6071,60 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
 
-                  // Acciones sociales skeleton
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  // Experiencias
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSocialActionSkeleton(),
-                        _buildSocialActionSkeleton(),
-                        _buildSocialActionSkeleton(),
+                        SkeletonWidget(
+                          width: 140,
+                          height: 20,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        const SizedBox(height: 16),
+                        ...List.generate(
+                          2,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SkeletonWidget(
+                                  width: 200,
+                                  height: 18,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 8),
+                                SkeletonWidget(
+                                  width: 150,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                const SizedBox(height: 8),
+                                SkeletonWidget(
+                                  width: double.infinity,
+                                  height: 14,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -6297,9 +6158,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         SizedBox(
-          height: 20,
+          height: 16,
           width: 50,
           child: _buildShimmerEffect(
             Container(
@@ -6313,7 +6174,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         SizedBox(
           height: 12,
-          width: 60,
+          width: 70,
           child: _buildShimmerEffect(
             Container(
               decoration: BoxDecoration(

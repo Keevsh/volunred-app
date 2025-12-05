@@ -565,6 +565,8 @@ class _InscripcionesManagementPageState
     final usuarioEmail = usuario != null
         ? usuario['email'] ?? ''
         : '';
+    final bio = perfilVol?['bio'] ?? '';
+    final disponibilidad = perfilVol?['disponibilidad'] ?? '';
     final organizacionNombre = inscripcion.organizacion != null
         ? inscripcion.organizacion!['nombre'] ??
               'Organización #${inscripcion.organizacionId}'
@@ -582,6 +584,10 @@ class _InscripcionesManagementPageState
               _buildDetailRow('Usuario', usuarioNombre),
               if (usuarioEmail.isNotEmpty)
                 _buildDetailRow('Email', usuarioEmail),
+              if (bio.toString().isNotEmpty)
+                _buildDetailRow('Biografía', bio.toString()),
+              if (disponibilidad.toString().isNotEmpty)
+                _buildDetailRow('Disponibilidad', disponibilidad.toString()),
               _buildDetailRow('Organización', organizacionNombre),
               _buildDetailRow(
                 'Fecha Recepción',

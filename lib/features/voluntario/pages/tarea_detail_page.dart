@@ -409,9 +409,34 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                       return;
                     }
 
+                    // Cerrar el modal antes de hacer la operación
                     Navigator.pop(context);
 
+                    // Mostrar indicador de carga
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              Text('Guardando evidencia...'),
+                            ],
+                          ),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+
                     try {
+                      // Crear la evidencia
                       await _repository.createMyTaskEvidence(
                         widget.tareaId,
                         comentario: comentarioController.text.trim(),
@@ -419,20 +444,43 @@ class _TareaDetailPageState extends State<TareaDetailPage> {
                       );
 
                       if (mounted) {
+                        // Recargar tanto las evidencias como el detalle de la tarea
+                        await Future.wait([
+                          _loadEvidencias(),
+                          _loadTareaDetail(),
+                        ]);
+
+                        ScaffoldMessenger.of(context).clearSnackBars();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Evidencia creada exitosamente'),
+                            content: Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white),
+                                SizedBox(width: 12),
+                                Text('Evidencia creada exitosamente'),
+                              ],
+                            ),
                             backgroundColor: Colors.green,
+                            duration: Duration(seconds: 2),
                           ),
                         );
-                        _loadEvidencias();
                       }
                     } catch (e) {
                       if (mounted) {
+                        ScaffoldMessenger.of(context).clearSnackBars();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Error al crear evidencia: $e'),
+                            content: Row(
+                              children: [
+                                const Icon(Icons.error, color: Colors.white),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text('Error al crear evidencia: $e'),
+                                ),
+                              ],
+                            ),
                             backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 4),
                           ),
                         );
                       }

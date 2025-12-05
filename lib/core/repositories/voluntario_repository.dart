@@ -265,7 +265,16 @@ class VoluntarioRepository {
       final response = await _dioClient.dio.get(
         '${ApiConfig.perfilesVoluntarios}/$usuarioId',
       );
-      return PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
+      
+      // 🔍 DEBUG: Imprimir respuesta del backend
+      print('📡 RESPONSE getPerfilByUsuario: ${response.data}');
+      
+      final perfil = PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
+      
+      // 🔍 DEBUG: Imprimir perfil mapeado
+      print('📋 Perfil mapeado - bio: ${perfil.bio}');
+      
+      return perfil;
     } on DioException catch (e) {
       // Si el endpoint no existe o retorna 404, intentar obtener todos y filtrar
       if (e.response?.statusCode == 404) {
@@ -282,6 +291,8 @@ class VoluntarioRepository {
               json as Map<String, dynamic>,
             );
             if (perfil.usuarioId == usuarioId) {
+              print('📡 RESPONSE getPerfilByUsuario (fallback): $json');
+              print('📋 Perfil mapeado (fallback) - bio: ${perfil.bio}');
               return perfil;
             }
           }

@@ -140,7 +140,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       builder: (context) => AlertDialog(
         title: const Text('Subir Video'),
         content: const Text(
-          '⚠️ Límite de tamaño: 10 MB\n\n'
+          '⚠️ Límite de tamaño: 50 MB\n\n'
           '✅ Para videos más grandes, comprime antes de subir:\n\n'
           '📱 Apps recomendadas:\n'
           '• Video Compressor (Android/iOS)\n'
@@ -174,7 +174,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
 
     final videoFile = File(video.path);
     final fileSize = await videoFile.length();
-    const maxSize = 10 * 1024 * 1024; // 10 MB
+    const maxSize = 50 * 1024 * 1024; // 50 MB
     
     print('📹 Tamaño del video: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
 
@@ -185,7 +185,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         SnackBar(
           content: Text(
             'Video demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
-            'Máximo: 10 MB. Comprime el video con una app externa.',
+            'Máximo: 50 MB. Comprime el video con una app externa.',
           ),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 5),

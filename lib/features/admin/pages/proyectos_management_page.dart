@@ -25,6 +25,8 @@ class ProyectosManagementPage extends StatefulWidget {
 class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   bool? _esAdmin;
   int? _userId;
+  List<Proyecto> _proyectos = [];
+  List<Organizacion> _organizaciones = [];
   @override
   void initState() {
     super.initState();
@@ -38,6 +40,11 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     final usuario = await authRepo.getStoredUser();
 
     if (usuario == null) {
+      // Si está embebido, no redirigir, solo cargar como admin
+      if (widget.embedded) {
+        _loadData(true, 0);
+        return;
+      }
       // No autenticado, redirigir al login o home
       if (mounted) {
         Modular.to.navigate('/home');
@@ -83,6 +90,19 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listener: (context, state) {
+          // Guardar proyectos cuando lleguen
+          if (state is ProyectosLoaded) {
+            setState(() {
+              _proyectos = state.proyectos;
+            });
+          }
+          // Guardar organizaciones cuando lleguen
+          if (state is OrganizacionesLoaded) {
+            setState(() {
+              _organizaciones = state.organizaciones;
+            });
+          }
+          
           if (state is ProyectoCreated ||
               state is ProyectoUpdated ||
               state is ProyectoDeleted) {
@@ -171,72 +191,97 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               Expanded(
                 child: BlocBuilder<AdminBloc, AdminState>(
                   builder: (context, state) {
-                    if (state is AdminLoading) {
-                      // Mostrar grid de skeleton mientras carga
-                      return GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.9,
-                        ),
-                        itemCount: 6,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                    // Mostrar skeleton solo si está cargando Y no hay datos previos
+                    if (state is AdminLoading && _proyectos.isEmpty) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          int crossAxisCount = 2;
+                          double childAspectRatio = 1.3;
+                          
+                          if (constraints.maxWidth > 1200) {
+                            crossAxisCount = 4;
+                            childAspectRatio = 1.4;
+                          } else if (constraints.maxWidth > 900) {
+                            crossAxisCount = 3;
+                            childAspectRatio = 1.35;
+                          } else if (constraints.maxWidth > 600) {
+                            crossAxisCount = 2;
+                            childAspectRatio = 1.3;
+                          }
+                          
+                          return GridView.builder(
+                            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: childAspectRatio,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Skeleton header
-                                  Container(
-                                    height: 100,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(12),
+                            itemCount: 6,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 5,
+                                      child: Container(
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[300],
+                                          borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(16),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  // Skeleton título
-                                  Container(
-                                    height: 16,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(8),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              height: 14,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              height: 10,
+                                              width: 100,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Skeleton texto
-                                  Container(
-                                    height: 12,
-                                    width: 200,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                  ],
+                                ),
+                              );
+                            },
                           );
                         },
                       );
                     }
-                    if (state is ProyectosLoaded) {
-                      if (state.proyectos.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return _buildProyectosList(state.proyectos);
+                    
+                    // Usar datos locales guardados
+                    if (_proyectos.isEmpty) {
+                      return _buildEmptyState();
                     }
-                    return _buildEmptyState();
+                    return _buildProyectosList(_proyectos);
                   },
                 ),
               ),
@@ -250,18 +295,38 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   Widget _buildProyectosList(List<Proyecto> proyectos) {
     return RefreshIndicator(
       onRefresh: () async => _loadData(),
-      child: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.9,
-        ),
-        itemCount: proyectos.length,
-        itemBuilder: (context, index) {
-          final proyecto = proyectos[index];
-          return _buildProyectoGridCard(proyecto);
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Calcular columnas según el ancho disponible
+          // Aspect ratio > 1 = más ancho que alto
+          int crossAxisCount = 2;
+          double childAspectRatio = 1.3; // Más ancho que alto
+          
+          if (constraints.maxWidth > 1200) {
+            crossAxisCount = 4;
+            childAspectRatio = 1.4;
+          } else if (constraints.maxWidth > 900) {
+            crossAxisCount = 3;
+            childAspectRatio = 1.35;
+          } else if (constraints.maxWidth > 600) {
+            crossAxisCount = 2;
+            childAspectRatio = 1.3;
+          }
+          
+          return GridView.builder(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: childAspectRatio,
+            ),
+            itemCount: proyectos.length,
+            itemBuilder: (context, index) {
+              final proyecto = proyectos[index];
+              return _buildProyectoGridCard(proyecto);
+            },
+          );
         },
       ),
     );
@@ -292,25 +357,26 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header con gradiente
-                  Container(
-                    height: 100,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: estado == 'activo'
-                            ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
-                            : [
-                                const Color(0xFF90A4AE),
-                                const Color(0xFFB0BEC5),
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  // Header con imagen - más grande
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: estado == 'activo'
+                              ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
+                              : [
+                                  const Color(0xFF90A4AE),
+                                  const Color(0xFFB0BEC5),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                       ),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
-                    ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -380,9 +446,11 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                         ),
                       ],
                     ),
+                    ),
                   ),
-                  // Contenido
+                  // Contenido - más compacto
                   Expanded(
+                    flex: 3,
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -1072,37 +1140,18 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     String? selectedEstado = proyecto.estado;
     bool participacionPublica = proyecto.participacionPublica;
 
-    final bloc = BlocProvider.of<AdminBloc>(context);
+    // Usar datos locales ya cargados
+    final organizaciones = _organizaciones;
+    // Lista vacía para categorías (se puede cargar después si es necesario)
+    final List<dynamic> categorias = [];
+
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return BlocProvider.value(
-          value: bloc,
-          child: BlocBuilder<AdminBloc, AdminState>(
-            builder: (dialogContext, state) {
-              List<Organizacion> organizaciones = [];
-              List<dynamic> categorias = [];
-
-              if (state is OrganizacionesLoaded) {
-                organizaciones = state.organizaciones;
-              } else {
-                BlocProvider.of<AdminBloc>(
-                  dialogContext,
-                ).add(LoadOrganizacionesRequested());
-              }
-
-              if (state is CategoriasProyectosLoaded) {
-                categorias = state.categorias;
-              } else {
-                BlocProvider.of<AdminBloc>(
-                  dialogContext,
-                ).add(LoadCategoriasProyectosRequested());
-              }
-
-              return StatefulBuilder(
-                builder: (context, setDialogState) {
-                  return AlertDialog(
-                    title: const Text('Editar Proyecto'),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Editar Proyecto'),
                     content: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -1358,11 +1407,9 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                 },
               );
             },
-          ),
-        );
-      },
-    );
-  }
+          );
+    }
+  
 
   Widget _buildImageSelector(
     BuildContext context,

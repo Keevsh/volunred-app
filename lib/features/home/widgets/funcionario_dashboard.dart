@@ -35,6 +35,133 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     _loadData();
   }
 
+  Widget _buildOrganizacionSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Mi organización',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_organizacion == null)
+            _buildEmptyState(
+              icon: Icons.business,
+              message: 'No se encontró información de la organización',
+              theme: theme,
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _organizacion!.nombre,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (_organizacion!.descripcion != null)
+                  Text(
+                    _organizacion!.descripcion!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportesSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Reportes y métricas',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: [
+              _buildStatCard(
+                icon: Icons.folder_rounded,
+                label: 'Proyectos activos',
+                value: '${_proyectos.length}',
+                color: theme.colorScheme.primary,
+                theme: theme,
+              ),
+              _buildStatCard(
+                icon: Icons.people_rounded,
+                label: 'Voluntarios',
+                value: '${_participaciones.length}',
+                color: Colors.green,
+                theme: theme,
+              ),
+              _buildStatCard(
+                icon: Icons.assignment_rounded,
+                label: 'Solicitudes pendientes',
+                value: '${_inscripciones.length}',
+                color: Colors.orange,
+                theme: theme,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTareasSection(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tareas',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildEmptyState(
+            icon: Icons.task_alt,
+            message: 'Aún no hay tareas configuradas para mostrar aquí',
+            theme: theme,
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -71,12 +198,12 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
     final theme = Theme.of(context);
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    // En desktop, usar layout con sidebar
+    // En desktop, solo mostrar contenido (el sidebar está en home_page.dart)
     if (isDesktop) {
-      return _buildDesktopLayout(theme);
+      return _buildMainContent(theme);
     }
 
-    // En mobile, usar layout actual
+    // En mobile, usar layout con sidebar interno
     return _buildMobileLayout(theme);
   }
 
@@ -344,70 +471,59 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
       return _buildErrorState(theme);
     }
 
+    // En desktop solo mostrar Dashboard content sin headers internos
     return Container(
       color: const Color(0xFFF8F9FA),
       child: RefreshIndicator(
         onRefresh: _loadData,
         child: CustomScrollView(
           slivers: [
-            // Header con título y breadcrumbs
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade200),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Inicio',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 16,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _selectedMenuItem,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _selectedMenuItem,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Contenido según sección seleccionada
             SliverPadding(
               padding: const EdgeInsets.all(32),
-              sliver: SliverToBoxAdapter(child: _buildDashboardContent(theme)),
+              sliver: SliverToBoxAdapter(
+                child: _buildDashboardContent(theme),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildSectionContent(ThemeData theme) {
+    switch (_selectedMenuItem) {
+      case 'Proyectos':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDesktopProjectsSection(theme),
+          ],
+        );
+      case 'Inscripciones':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDesktopInscripcionesSection(theme),
+          ],
+        );
+      case 'Voluntarios':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDesktopParticipacionesSection(theme),
+          ],
+        );
+      case 'Mi Organización':
+      case 'Organización':
+        return _buildOrganizacionSection(theme);
+      case 'Reportes':
+        return _buildReportesSection(theme);
+      case 'Tareas':
+        return _buildTareasSection(theme);
+      case 'Dashboard':
+      default:
+        return _buildDashboardContent(theme);
+    }
   }
 
   Widget _buildLoadingSkeleton() {

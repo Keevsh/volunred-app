@@ -8,7 +8,9 @@ import 'create_rol_page.dart';
 import 'edit_rol_page.dart';
 
 class RolesManagementPage extends StatefulWidget {
-  const RolesManagementPage({super.key});
+  final bool embedded;
+  
+  const RolesManagementPage({super.key, this.embedded = false});
 
   @override
   State<RolesManagementPage> createState() => _RolesManagementPageState();
@@ -125,57 +127,58 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => Navigator.of(context).pop(),
+              if (!widget.embedded)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Material(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.arrow_back_rounded,
-                            color: Color(0xFF1D1D1F),
-                            size: 20,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        'Roles',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1D1D1F),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: _loadData,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.refresh_rounded,
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Roles',
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFF1D1D1F),
-                            size: 20,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          onTap: _loadData,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               Expanded(
                 child: BlocBuilder<AdminBloc, AdminState>(
                   builder: (context, state) {

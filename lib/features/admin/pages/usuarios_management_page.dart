@@ -8,7 +8,9 @@ import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 
 class UsuariosManagementPage extends StatefulWidget {
-  const UsuariosManagementPage({super.key});
+  final bool embedded;
+  
+  const UsuariosManagementPage({super.key, this.embedded = false});
 
   @override
   State<UsuariosManagementPage> createState() => _UsuariosManagementPageState();
@@ -379,58 +381,59 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header simple estilo Apple
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    children: [
-                      Material(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: () => Navigator.of(context).pop(),
+                // Header - ocultar si está embebido
+                if (!widget.embedded)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Material(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: Color(0xFF1D1D1F),
-                              size: 20,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              child: const Icon(
+                                Icons.arrow_back_rounded,
+                                color: Color(0xFF1D1D1F),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Text(
-                          'Usuarios',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1D1D1F),
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ),
-                      Material(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: _loadData,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Icon(
-                              Icons.refresh_rounded,
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Text(
+                            'Usuarios',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
                               color: Color(0xFF1D1D1F),
-                              size: 20,
+                              letterSpacing: -0.5,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            onTap: _loadData,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              child: const Icon(
+                                Icons.refresh_rounded,
+                                color: Color(0xFF1D1D1F),
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
                 // Barra de búsqueda limpia
                 Padding(

@@ -9,7 +9,9 @@ import 'create_aptitud_page.dart';
 import 'edit_aptitud_page.dart';
 
 class AptitudesManagementPage extends StatefulWidget {
-  const AptitudesManagementPage({super.key});
+  final bool embedded;
+  
+  const AptitudesManagementPage({super.key, this.embedded = false});
 
   @override
   State<AptitudesManagementPage> createState() =>
@@ -94,58 +96,59 @@ class _AptitudesManagementPageState extends State<AptitudesManagementPage> {
             if (state is AptitudesLoaded) {
               return Column(
                 children: [
-                  // Header simple
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Row(
-                      children: [
-                        Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).pop(),
+                  // Header - ocultar si está embebido
+                  if (!widget.embedded)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Row(
+                        children: [
+                          Material(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              child: const Icon(
-                                Icons.arrow_back_rounded,
-                                color: Color(0xFF1D1D1F),
-                                size: 20,
+                            child: InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                child: const Icon(
+                                  Icons.arrow_back_rounded,
+                                  color: Color(0xFF1D1D1F),
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            'Aptitudes',
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1D1D1F),
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ),
-                        Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          child: InkWell(
-                            onTap: _loadAptitudes,
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              child: const Icon(
-                                Icons.refresh_rounded,
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Text(
+                              'Aptitudes',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
                                 color: Color(0xFF1D1D1F),
-                                size: 20,
+                                letterSpacing: -0.5,
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            child: InkWell(
+                              onTap: _loadAptitudes,
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                child: const Icon(
+                                  Icons.refresh_rounded,
+                                  color: Color(0xFF1D1D1F),
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
                   if (state.aptitudes.isEmpty)
                     Expanded(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/models/proyecto.dart';
+import '../../../core/models/categoria.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -25,6 +26,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
   final VoluntarioRepository _repository = Modular.get<VoluntarioRepository>();
 
   List<Proyecto> _proyectos = [];
+  List<Categoria> _categorias = [];
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _filterSoloActivos = true;
@@ -48,11 +50,13 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
 
     try {
       final proyectos = await _repository.getProyectos();
+      final categorias = await _repository.getCategorias();
       await _repository.getInscripciones();
 
       if (!mounted) return;
       setState(() {
         _proyectos = proyectos;
+        _categorias = categorias;
         _isLoading = false;
       });
     } catch (e) {
@@ -196,6 +200,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
               // Barra de búsqueda
               SliverToBoxAdapter(child: _buildSearchBar(theme)),
 
+              // Chips de categorías (si hay categorías disponibles)
+              if (_categorias.isNotEmpty)
+                SliverToBoxAdapter(child: _buildCategoryChips(theme)),
+
               if (hasSearch)
                 _buildSearchResults(theme, colorScheme)
               else ...[
@@ -282,23 +290,43 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Ej: Medio Ambiente, Educación...',
-                      prefixIcon: const Icon(Icons.category_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  if (_categorias.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Todas'),
+                          selected: categoriaTemp == null,
+                          onSelected: (_) => setModalState(() => categoriaTemp = null),
+                        ),
+                        ..._categorias.map((cat) => ChoiceChip(
+                              label: Text(cat.nombre),
+                              selected: categoriaTemp == cat.nombre,
+                              onSelected: (_) => setModalState(() {
+                                categoriaTemp = categoriaTemp == cat.nombre ? null : cat.nombre;
+                              }),
+                            )),
+                      ],
+                    )
+                  else
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Ej: Medio Ambiente, Educación...',
+                        prefixIcon: const Icon(Icons.category_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      controller: TextEditingController(
+                        text: categoriaTemp ?? '',
+                      ),
+                      onChanged: (value) {
+                        setModalState(() {
+                          categoriaTemp = value.isEmpty ? null : value;
+                        });
+                      },
                     ),
-                    controller: TextEditingController(
-                      text: categoriaTemp ?? '',
-                    ),
-                    onChanged: (value) {
-                      setModalState(() {
-                        categoriaTemp = value.isEmpty ? null : value;
-                      });
-                    },
-                  ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -454,6 +482,39 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChips(ThemeData theme) {
+    final chips = [
+      ChoiceChip(
+        label: const Text('Todas'),
+        selected: _filterCategoriaNombre == null,
+        onSelected: (_) {
+          setState(() => _filterCategoriaNombre = null);
+        },
+      ),
+      ..._categorias.map((cat) {
+        final selected = _filterCategoriaNombre == cat.nombre;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            label: Text(cat.nombre),
+            selected: selected,
+            onSelected: (_) {
+              setState(() => _filterCategoriaNombre = selected ? null : cat.nombre);
+            },
+          ),
+        );
+      }),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: chips),
       ),
     );
   }

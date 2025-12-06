@@ -8,7 +8,9 @@ import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 
 class ProgramasManagementPage extends StatefulWidget {
-  const ProgramasManagementPage({super.key});
+  final bool embedded;
+  
+  const ProgramasManagementPage({super.key, this.embedded = false});
 
   @override
   State<ProgramasManagementPage> createState() =>
@@ -108,68 +110,69 @@ class _ProgramasManagementPageState extends State<ProgramasManagementPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F7),
+        backgroundColor: widget.embedded ? Colors.transparent : const Color(0xFFF5F5F7),
         floatingActionButton: FloatingActionButton(
           onPressed: _showCreateDialog,
-          backgroundColor: const Color(0xFF007AFF),
+          backgroundColor: const Color(0xFF42A5F5),
           child: const Icon(Icons.add, color: Colors.white),
         ),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header simple estilo Apple
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => Navigator.of(context).pop(),
+              // Header - ocultar botón volver si está embebido
+              if (!widget.embedded)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Material(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.arrow_back_rounded,
-                            color: Color(0xFF1D1D1F),
-                            size: 20,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        'Programas',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1D1D1F),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: _loadData,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: const Icon(
-                            Icons.refresh_rounded,
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Programas',
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFF1D1D1F),
-                            size: 20,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          onTap: _loadData,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: Color(0xFF1D1D1F),
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
               // Tabs de selección
               Padding(

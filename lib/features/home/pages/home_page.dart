@@ -19,6 +19,7 @@ import '../../../core/widgets/responsive_layout.dart';
 import '../widgets/funcionario_dashboard.dart';
 import '../widgets/voluntario_dashboard.dart';
 import '../widgets/mi_actividad_widget.dart';
+import 'support_pages.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -1275,15 +1276,42 @@ class _HomePageState extends State<HomePage> {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     final shouldShowBottomNav = !(_isFuncionario && isDesktop);
     
+    // Desktop layout with sidebar + content
+    if (_isFuncionario && isDesktop) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Row(
+          children: [
+            // Sidebar
+            _buildDesktopSidebar(),
+            // Content
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  _buildFuncionarioHomeView(),
+                  _buildFuncionarioProyectosView(),
+                  _buildFuncionarioInscripcionesView(),
+                  _buildFuncionarioOrganizacionView(),
+                  _buildProfileView(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Mobile layout
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Fondo gris claro
+      backgroundColor: const Color(0xFFF8F9FA),
       body: IndexedStack(
         index: _currentIndex,
         children: _isFuncionario
             ? [
                 _buildFuncionarioHomeView(),
                 _buildFuncionarioProyectosView(),
-                _buildFuncionarioInscripcionesView(),
+                _buildFuncionarioOrganizacionView(),
                 _buildProfileView(),
               ]
             : [
@@ -1352,6 +1380,103 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
       ) : null,
+    );
+  }
+
+  Widget _buildDesktopSidebar() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final destinos = [
+      ('Inicio', Icons.home_rounded, 0),
+      ('Proyectos', Icons.folder_rounded, 1),
+      ('Inscripciones', Icons.person_add_rounded, 2),
+      ('Mi Organización', Icons.business_rounded, 3),
+    ];
+
+    return SizedBox(
+      width: 280,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            right: BorderSide(
+              color: colorScheme.outlineVariant,
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'VolunRed',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: destinos.length,
+                  itemBuilder: (context, index) {
+                    final (label, icon, idx) = destinos[index];
+                    final isSelected = _currentIndex == idx;
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: isSelected
+                          ? BoxDecoration(
+                              color: colorScheme.primary.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            )
+                          : null,
+                      child: ListTile(
+                        leading: Icon(
+                          icon,
+                          color: isSelected ? colorScheme.primary : Colors.grey[700],
+                        ),
+                        title: Text(
+                          label,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                            color: isSelected ? colorScheme.primary : Colors.grey[800],
+                          ),
+                        ),
+                        onTap: () {
+                          setState(() => _currentIndex = idx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.person_rounded),
+                title: const Text('Mi Perfil'),
+                onTap: () {
+                  setState(() => _currentIndex = 4);
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: FilledButton.icon(
+                  onPressed: _handleLogout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Cerrar Sesión'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -2591,6 +2716,295 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ========== VISTA INSCRIPCIONES FUNCIONARIO ==========
+  Widget _buildFuncionarioOrganizacionView() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    // Parse the cached perfil to get organizacion
+    Map<String, dynamic>? organizacionData;
+    if (_perfilFuncionario != null &&
+        _perfilFuncionario!['organizacion'] != null) {
+      organizacionData = _perfilFuncionario!['organizacion'];
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 140,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Mi Organización',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: organizacionData == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.business,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No asignado a organización',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      shrinkWrap: true,
+                      children: [
+                        // Organización Header Card
+                        Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  organizacionData['nombre'] ?? 'Organización',
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                if (organizacionData['descripcion'] != null)
+                                  Text(
+                                    organizacionData['descripcion'],
+                                    style:
+                                        theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Stats Section
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.folder,
+                                        color: colorScheme.primary,
+                                        size: 32,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Proyectos',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      Text(
+                                        '0',
+                                        style: theme.textTheme.headlineMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.people,
+                                        color: const Color(0xFF4CAF50),
+                                        size: 32,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Voluntarios',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      Text(
+                                        '0',
+                                        style: theme.textTheme.headlineMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF4CAF50),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Información de Contacto
+                        Text(
+                          'Información de Contacto',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          color: Colors.white,
+                          child: Column(
+                            children: [
+                              if (organizacionData['email'] != null)
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.email,
+                                    color: colorScheme.primary,
+                                  ),
+                                  title: Text(
+                                    organizacionData['email'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  trailing: const Icon(Icons.open_in_new,
+                                      size: 18, color: Colors.grey),
+                                  onTap: () {
+                                    // TODO: Implement email action
+                                  },
+                                ),
+                              if (organizacionData['telefono'] != null)
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.phone,
+                                    color: colorScheme.primary,
+                                  ),
+                                  title: Text(
+                                    organizacionData['telefono'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  trailing: const Icon(Icons.open_in_new,
+                                      size: 18, color: Colors.grey),
+                                  onTap: () {
+                                    // TODO: Implement phone action
+                                  },
+                                ),
+                              if (organizacionData['sitioWeb'] != null)
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.public,
+                                    color: colorScheme.primary,
+                                  ),
+                                  title: Text(
+                                    organizacionData['sitioWeb'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  trailing: const Icon(Icons.open_in_new,
+                                      size: 18, color: Colors.grey),
+                                  onTap: () {
+                                    // TODO: Implement website action
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Ubicación
+                        if (organizacionData['direccion'] != null) ...[
+                          Text(
+                            'Ubicación',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.location_on,
+                                color: colorScheme.primary,
+                              ),
+                              title: Text(
+                                organizacionData['direccion'],
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFuncionarioInscripcionesView() {
     final theme = Theme.of(context);
 
@@ -4089,44 +4503,29 @@ class _HomePageState extends State<HomePage> {
                   pinned: true,
                   backgroundColor: colorScheme.surface,
                   elevation: 0,
-                  title: Text(
-                    _userName,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  title: const Text(''),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.share),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función de compartir próximamente'),
-                          ),
-                        );
-                      },
-                    ),
                     PopupMenuButton<String>(
                       onSelected: (value) {
                         switch (value) {
                           case 'configuracion':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Configuración próximamente'),
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ConfiguracionPage(),
                               ),
                             );
                             break;
                           case 'ayuda':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Centro de Ayuda próximamente'),
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const HelpCenterPage(),
                               ),
                             );
                             break;
                           case 'sobre':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Sobre la App próximamente'),
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AboutPage(),
                               ),
                             );
                             break;

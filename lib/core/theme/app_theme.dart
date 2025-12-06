@@ -82,7 +82,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: lightColorScheme,
       brightness: Brightness.light,
-      fontFamily: 'Nunito',
+      fontFamily: 'Roboto',
 
       // AppBar Theme - Estilo Google
       appBarTheme: AppBarTheme(
@@ -256,9 +256,9 @@ class AppTheme {
         space: 1,
       ),
 
-      // Typography con Nunito desde Google Fonts
+      // Typography con Roboto desde Google Fonts
       textTheme:
-          GoogleFonts.nunitoTextTheme(
+          GoogleFonts.robotoTextTheme(
             const TextTheme(
               displayLarge: TextStyle(
                 fontSize: 57,
@@ -370,7 +370,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: darkColorScheme,
       brightness: Brightness.dark,
-      fontFamily: 'Nunito',
+      fontFamily: 'Roboto',
 
       appBarTheme: AppBarTheme(
         centerTitle: false,
@@ -433,8 +433,8 @@ class AppTheme {
         ),
       ),
 
-      // Typography con Nunito también en modo oscuro
-      textTheme: GoogleFonts.nunitoTextTheme().apply(
+      // Typography con Roboto también en modo oscuro
+      textTheme: GoogleFonts.robotoTextTheme().apply(
         bodyColor: darkColorScheme.onSurface,
         displayColor: darkColorScheme.onSurface,
       ),

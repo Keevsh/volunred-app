@@ -2505,7 +2505,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      return base64Decode(imageData);
+      var cleaned = imageData.trim();
+      final dataUriPrefix = RegExp(r'data:image\/[a-zA-Z]+;base64,');
+      if (dataUriPrefix.hasMatch(cleaned)) {
+        cleaned = cleaned.split(',').last;
+      }
+      return base64Decode(cleaned);
     } catch (e) {
       // Image is corrupted or invalid, return null to use gradient fallback
       return null;
@@ -2522,17 +2527,39 @@ class _HomePageState extends State<HomePage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 120,
             pinned: true,
             backgroundColor: Colors.white,
             elevation: 0,
+            toolbarHeight: 72,
+            titleSpacing: 20,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Mis Proyectos',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Gestiona tus iniciativas y estados',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: IconButton(
                   icon: const Icon(Icons.add_circle_outline),
                   color: const Color(0xFF1976D2),
-                  iconSize: 28,
+                  iconSize: 26,
                   tooltip: 'Crear Proyecto',
                   onPressed: () {
                     Modular.to.pushNamed('/proyectos/create');
@@ -2540,23 +2567,11 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Mis Proyectos',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: Colors.black.withOpacity(0.05),
               ),
             ),
           ),
@@ -2742,27 +2757,37 @@ class _HomePageState extends State<HomePage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 140,
             pinned: true,
             backgroundColor: Colors.white,
             elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Mi Organización',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            toolbarHeight: 72,
+            titleSpacing: 20,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Solicitudes',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1A1A),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Inscripciones y participaciones pendientes',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: Colors.black.withOpacity(0.05),
               ),
             ),
           ),
@@ -3033,27 +3058,37 @@ class _HomePageState extends State<HomePage> {
           key: _inscripcionesRefreshKey,
         slivers: [
           SliverAppBar(
-            expandedHeight: 120,
             pinned: true,
             backgroundColor: Colors.white,
             elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Solicitudes',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFFFE5E5), Color(0xFFFFFFFF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            toolbarHeight: 72,
+            titleSpacing: 20,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Solicitudes',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1A1A),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Inscripciones y participaciones pendientes',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: Colors.black.withOpacity(0.05),
               ),
             ),
           ),

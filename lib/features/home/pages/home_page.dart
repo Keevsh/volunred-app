@@ -4765,25 +4765,25 @@ class _HomePageState extends State<HomePage> {
 
                         const SizedBox(height: 16),
 
-                        // Stats al estilo Instagram
+                        // Stats al estilo Instagram - DATOS REALES
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildIgStatItem(
                               'Proyectos',
-                              '8',
+                              _participacionesVoluntario.length.toString(),
                               theme,
                               colorScheme,
                             ),
                             _buildIgStatItem(
-                              'Horas',
-                              '127',
+                              'Aptitudes',
+                              _aptitudesVoluntario.length.toString(),
                               theme,
                               colorScheme,
                             ),
                             _buildIgStatItem(
-                              'Personas',
-                              '342',
+                              'Experiencias',
+                              _experienciasVoluntario.length.toString(),
                               theme,
                               colorScheme,
                             ),
@@ -5302,42 +5302,6 @@ class _HomePageState extends State<HomePage> {
 
                         if (!_isFuncionario) const SizedBox(height: 24),
 
-                        // ORGANIZACIONES INSCRITAS - DATOS REALES (solo voluntarios)
-                        if (!_isFuncionario)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.business,
-                                      size: 24,
-                                      color: colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Mis Organizaciones',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _buildRealOrganizationsSection(
-                                  theme,
-                                  colorScheme,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        if (!_isFuncionario) const SizedBox(height: 24),
-
                         // APTITUDES Y HABILIDADES - ESTILO LINKEDIN (solo voluntarios)
                         if (!_isFuncionario)
                           Padding(
@@ -5377,39 +5341,6 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildSkillsSection(theme, colorScheme),
-                              ],
-                            ),
-                          ),
-
-                        if (!_isFuncionario) const SizedBox(height: 24),
-
-                        // PROYECTOS EN LOS QUE PARTICIPO - DATOS REALES
-                        if (!_isFuncionario)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.folder_special,
-                                      size: 24,
-                                      color: colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Proyectos en los que participo',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _buildMyProjectsSection(theme, colorScheme),
                               ],
                             ),
                           ),

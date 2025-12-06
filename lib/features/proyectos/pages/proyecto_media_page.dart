@@ -140,12 +140,13 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       builder: (context) => AlertDialog(
         title: const Text('Subir Video'),
         content: const Text(
-          '⚠️ Los videos deben ser menores a 5 MB.\n\n'
-          '📱 Videos muy largos o de alta resolución pueden fallar.\n\n'
-          '✅ Recomendación:\n'
-          '• Máximo 15-20 segundos\n'
-          '• Resolución 720p o menor\n'
-          '• Comprime el video antes de subirlo',
+          '⚠️ Límite de tamaño: 10 MB\n\n'
+          '✅ Para videos más grandes, comprime antes de subir:\n\n'
+          '📱 Apps recomendadas:\n'
+          '• Video Compressor (Android/iOS)\n'
+          '• VidCompact (Android)\n'
+          '• Compress Videos (iOS)\n\n'
+          '💡 Tip: Graba en 720p para videos más pequeños',
           style: TextStyle(height: 1.5),
         ),
         actions: [
@@ -155,7 +156,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Continuar'),
+            child: const Text('Seleccionar Video'),
           ),
         ],
       ),
@@ -166,13 +167,35 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     final picker = ImagePicker();
     final XFile? video = await picker.pickVideo(
       source: ImageSource.gallery,
-      maxDuration: const Duration(seconds: 20), // Reducir a 20 segundos
+      maxDuration: const Duration(seconds: 60),
     );
 
     if (video == null) return;
 
+    final videoFile = File(video.path);
+    final fileSize = await videoFile.length();
+    const maxSize = 10 * 1024 * 1024; // 10 MB
+    
+    print('📹 Tamaño del video: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
+
+    if (fileSize > maxSize) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Video demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
+            'Máximo: 10 MB. Comprime el video con una app externa.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      return;
+    }
+
     await _procesarArchivo(
-      File(video.path),
+      videoFile,
       tipoMedia: 'video',
       mimeType: 'video/mp4',
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/voluntario_repository.dart';
@@ -6,6 +7,7 @@ import 'pages/create_profile_page.dart';
 import 'pages/create_funcionario_profile_page.dart';
 import 'pages/edit_profile_page.dart';
 import 'pages/view_funcionario_profile_page.dart';
+import 'pages/voluntario_profile_view_page.dart';
 import 'pages/select_aptitudes_page.dart';
 import 'pages/create_organizacion_page.dart';
 import 'pages/funcionario_options_page.dart';
@@ -47,5 +49,26 @@ class ProfileModule extends Module {
     ChildRoute('/edit', child: (_, __) => const EditProfilePage()),
     ChildRoute('/edit-funcionario', child: (_, __) => const CreateFuncionarioProfilePage()),
     ChildRoute('/view-funcionario', child: (_, __) => const ViewFuncionarioProfilePage()),
+    ChildRoute(
+      '/view-voluntario/:perfilVolId',
+      child: (_, args) {
+        final perfilIdStr = args.params['perfilVolId'];
+        final perfilId = int.tryParse(perfilIdStr ?? '');
+        final initialName = args.data is Map ? (args.data['initialName'] as String?) : null;
+
+        if (perfilId == null) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Perfil no disponible'),
+            ),
+          );
+        }
+
+        return VoluntarioProfileViewPage(
+          perfilVolId: perfilId,
+          initialName: initialName,
+        );
+      },
+    ),
   ];
 }

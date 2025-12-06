@@ -3046,6 +3046,29 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  int? _safeInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String && value.isNotEmpty) {
+      return int.tryParse(value);
+    }
+    return null;
+  }
+
+  void _openVoluntarioProfile(int? perfilVolId, {String? fallbackName}) {
+    if (perfilVolId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se encontró el perfil del voluntario')),
+      );
+      return;
+    }
+
+    Modular.to.pushNamed(
+      '/profile/view-voluntario/$perfilVolId',
+      arguments: {'initialName': fallbackName},
+    );
+  }
+
   Widget _buildFuncionarioInscripcionesView() {
     final theme = Theme.of(context);
 
@@ -3338,6 +3361,7 @@ class _HomePageState extends State<HomePage> {
     // Buscar datos del usuario en múltiples lugares
     String nombreUsuario = 'Usuario';
     String email = 'Sin email';
+    int? perfilVolIdForNav = inscripcion.perfilVolId;
     
     // 1. Intentar desde usuario_completo
     if (inscripcion.usuarioCompleto != null) {
@@ -3356,6 +3380,8 @@ class _HomePageState extends State<HomePage> {
     // 3. Intentar desde perfilVoluntario.usuario
     else if (inscripcion.perfilVoluntario != null) {
       final usuario = inscripcion.perfilVoluntario!['usuario'];
+      perfilVolIdForNav ??= _safeInt(inscripcion.perfilVoluntario!['id_perfil_voluntario']) ??
+          _safeInt(inscripcion.perfilVoluntario!['perfil_vol_id']);
       if (usuario != null && usuario is Map) {
         final nombres = usuario['nombres'] ?? '';
         final apellidos = usuario['apellidos'] ?? '';
@@ -3418,6 +3444,10 @@ class _HomePageState extends State<HomePage> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
+          onTap: () => _openVoluntarioProfile(
+            perfilVolIdForNav,
+            fallbackName: nombreUsuario,
+          ),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -3551,6 +3581,15 @@ class _HomePageState extends State<HomePage> {
     String nombreProyecto = 'Proyecto #${participacion.proyectoId}';
     if (participacion.proyecto != null) {
       nombreProyecto = participacion.proyecto!['nombre'] ?? nombreProyecto;
+    }
+    int? perfilVolIdForNav = participacion.perfilVolId;
+    perfilVolIdForNav ??= _safeInt(participacion.inscripcion?['perfil_vol_id']);
+    if (perfilVolIdForNav == null) {
+      final perfilVol = participacion.inscripcion?['perfil_voluntario'];
+      if (perfilVol is Map) {
+        perfilVolIdForNav = _safeInt(perfilVol['id_perfil_voluntario']) ??
+            _safeInt(perfilVol['perfil_vol_id']);
+      }
     }
     
     if (nombreUsuario.isEmpty) nombreUsuario = 'Voluntario';

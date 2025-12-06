@@ -9,6 +9,7 @@ import '../../../core/models/participacion.dart';
 import '../../../core/widgets/skeleton_widget.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../../../core/utils/participation_logger.dart';
+import 'funcionario_dashboard_desktop.dart';
 
 class FuncionarioDashboard extends StatefulWidget {
   const FuncionarioDashboard({super.key});
@@ -197,13 +198,16 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final isTablet = ResponsiveLayout.isTablet(context);
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    // En desktop, solo mostrar contenido (el sidebar está en home_page.dart)
-    if (isDesktop) {
-      return _buildMainContent(theme);
+    // Solo en desktop/tablet con pantalla grande usar el nuevo diseño
+    // En móvil (incluso web móvil) usar el diseño original
+    if ((isDesktop || isTablet) && screenWidth >= 900) {
+      return const FuncionarioDashboardDesktop();
     }
 
-    // En mobile, usar layout con sidebar interno
+    // En mobile, usar layout móvil original
     return _buildMobileLayout(theme);
   }
 

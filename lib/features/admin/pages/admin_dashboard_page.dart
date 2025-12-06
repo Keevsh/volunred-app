@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/admin_repository.dart';
 import '../../../core/widgets/skeleton_widget.dart';
 import '../../../core/widgets/responsive_layout.dart';
-import 'admin_dashboard_page_desktop.dart';
+import 'admin_dashboard_page_desktop_new.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -61,13 +60,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     final isTablet = ResponsiveLayout.isTablet(context);
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    // En web o desktop, usar el panel de admin desktop completo
-    if (kIsWeb || isDesktop || isTablet) {
-      return const AdminDashboardPageDesktop();
+    // Solo en desktop/tablet con pantalla grande usar el nuevo diseño
+    // En móvil (incluso web móvil) usar el diseño original
+    if ((isDesktop || isTablet) && screenWidth >= 900) {
+      return const AdminDashboardPageDesktopNew();
     }
 
-    // En móvil, usar el diseño móvil
+    // En móvil, usar el diseño móvil original
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       body: SafeArea(

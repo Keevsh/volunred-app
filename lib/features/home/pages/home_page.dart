@@ -17,6 +17,7 @@ import '../../../core/models/participacion.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../widgets/funcionario_dashboard.dart';
+import '../widgets/funcionario_dashboard_desktop.dart';
 import '../widgets/voluntario_dashboard.dart';
 import '../widgets/mi_actividad_widget.dart';
 import 'support_pages.dart';
@@ -1274,32 +1275,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final isTablet = ResponsiveLayout.isTablet(context);
+    final screenWidth = MediaQuery.of(context).size.width;
     final shouldShowBottomNav = !(_isFuncionario && isDesktop);
     
-    // Desktop layout with sidebar + content
-    if (_isFuncionario && isDesktop) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
-        body: Row(
-          children: [
-            // Sidebar
-            _buildDesktopSidebar(),
-            // Content
-            Expanded(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: [
-                  _buildFuncionarioHomeView(),
-                  _buildFuncionarioProyectosView(),
-                  _buildFuncionarioInscripcionesView(),
-                  _buildFuncionarioOrganizacionView(),
-                  _buildProfileView(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+    // Desktop layout para funcionario - usar el nuevo dashboard con su propio sidebar
+    if (_isFuncionario && (isDesktop || isTablet) && screenWidth >= 900) {
+      return const FuncionarioDashboardDesktop();
     }
     
     // Mobile layout

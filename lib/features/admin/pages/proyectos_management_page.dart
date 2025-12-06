@@ -27,6 +27,7 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
   int? _userId;
   List<Proyecto> _proyectos = [];
   List<Organizacion> _organizaciones = [];
+  List<dynamic> _categorias = [];
   @override
   void initState() {
     super.initState();
@@ -100,6 +101,12 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
           if (state is OrganizacionesLoaded) {
             setState(() {
               _organizaciones = state.organizaciones;
+            });
+          }
+          // Guardar categorías cuando lleguen
+          if (state is CategoriasProyectosLoaded) {
+            setState(() {
+              _categorias = state.categorias;
             });
           }
           
@@ -833,33 +840,23 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
     final ImagePicker _imagePicker = ImagePicker();
 
     final bloc = BlocProvider.of<AdminBloc>(context);
+    
+    // Usar datos ya cargados
+    final organizaciones = _organizaciones;
+    final categorias = _categorias;
+    
+    // Si no hay datos, cargarlos
+    if (organizaciones.isEmpty) {
+      bloc.add(LoadOrganizacionesRequested());
+    }
+    if (categorias.isEmpty) {
+      bloc.add(LoadCategoriasProyectosRequested());
+    }
+    
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return BlocProvider.value(
-          value: bloc,
-          child: BlocBuilder<AdminBloc, AdminState>(
-            builder: (dialogContext, state) {
-              List<Organizacion> organizaciones = [];
-              List<dynamic> categorias = [];
-
-              if (state is OrganizacionesLoaded) {
-                organizaciones = state.organizaciones;
-              } else {
-                BlocProvider.of<AdminBloc>(
-                  dialogContext,
-                ).add(LoadOrganizacionesRequested());
-              }
-
-              if (state is CategoriasProyectosLoaded) {
-                categorias = state.categorias;
-              } else {
-                BlocProvider.of<AdminBloc>(
-                  dialogContext,
-                ).add(LoadCategoriasProyectosRequested());
-              }
-
-              return StatefulBuilder(
+        return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
                     title: const Text('Nuevo Proyecto'),
@@ -1119,9 +1116,6 @@ class _ProyectosManagementPageState extends State<ProyectosManagementPage> {
                     ],
                   );
                 },
-              );
-            },
-          ),
         );
       },
     );

@@ -14,6 +14,7 @@ import '../../../core/models/perfil_voluntario.dart';
 import '../../../core/models/experiencia_voluntario.dart';
 import '../../../core/models/aptitud.dart';
 import '../../../core/models/participacion.dart';
+import '../../../core/models/dto/voluntario_responses.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import '../../../core/widgets/responsive_layout.dart';
 import '../widgets/funcionario_dashboard.dart';
@@ -47,7 +48,7 @@ class _HomePageState extends State<HomePage> {
   List<ExperienciaVoluntario> _experienciasVoluntario = [];
   bool _isLoadingExperiencias = false;
   String? _experienciasError;
-  List<Participacion> _participacionesVoluntario = [];
+  List<ParticipacionVoluntario> _participacionesVoluntario = [];
   bool _isLoadingParticipaciones = false;
 
   @override
@@ -237,19 +238,16 @@ class _HomePageState extends State<HomePage> {
       });
 
       final voluntarioRepo = Modular.get<VoluntarioRepository>();
-      final participaciones = await voluntarioRepo.getParticipaciones();
+      // Usar getMyParticipaciones que incluye los datos del proyecto
+      final participaciones = await voluntarioRepo.getMyParticipaciones();
       
-      // Incluir participaciones activas, pendientes y aprobadas
-      final activas = participaciones
-          .where((p) {
-            final estado = p.estado.toLowerCase();
-            return estado == 'activo' || 
-                   estado == 'pendiente' || 
-                   estado == 'aprobado';
-          })
-          .toList();
+      // Filtrar participaciones activas
+      final activas = participaciones.where((p) => p.isActive || p.isPending).toList();
 
-      print('✅ Participaciones cargadas: ${participaciones.length} total, ${activas.length} activas/pendientes/aprobadas');
+      print('✅ Participaciones cargadas: ${participaciones.length} total, ${activas.length} activas');
+      for (var p in participaciones) {
+        print('   - Participación ${p.idParticipacion}: estado=${p.estado}, proyecto=${p.proyecto?.nombre}');
+      }
 
       if (!mounted) return;
       setState(() {
@@ -640,12 +638,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: _participacionesVoluntario.map((participacion) {
         final proyecto = participacion.proyecto;
-        String orgName = 'Organización';
-        if (proyecto != null && proyecto['organizacion'] != null) {
-          final org = proyecto['organizacion'];
-          orgName = org['nombre'] ?? org['nombre_legal'] ?? 'Organización';
-        }
-        final proyectoNombre = proyecto?['nombre'] ?? 'Proyecto';
+        String orgName = proyecto?.organizacion?.nombreCorto ?? proyecto?.organizacion?.nombreLegal ?? 'Organización';
+        final proyectoNombre = proyecto?.nombre ?? 'Proyecto #${participacion.proyectoId}';
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -728,11 +722,8 @@ class _HomePageState extends State<HomePage> {
     final orgIds = <int>{};
     for (final p in _participacionesVoluntario) {
       final proyecto = p.proyecto;
-      if (proyecto != null && proyecto['organizacion'] != null) {
-        final org = proyecto['organizacion'];
-        if (org['id_organizacion'] != null) {
-          orgIds.add(org['id_organizacion'] as int);
-        }
+      if (proyecto?.organizacion != null) {
+        orgIds.add(proyecto!.organizacion!.idOrganizacion);
       }
     }
     return orgIds.length;
@@ -767,8 +758,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: _participacionesVoluntario.map((participacion) {
         final proyecto = participacion.proyecto;
-        final proyectoNombre = proyecto?['nombre'] ?? 'Proyecto';
-        final proyectoDesc = proyecto?['descripcion'] ?? '';
+        final proyectoNombre = proyecto?.nombre ?? 'Proyecto #${participacion.proyectoId}';
+        final proyectoDesc = proyecto?.objetivo ?? '';
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -832,13 +823,13 @@ class _HomePageState extends State<HomePage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: _getEstadoParticipacionColor(participacion.estado).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Activo',
+                child: Text(
+                  _getEstadoParticipacionLabel(participacion.estado),
                   style: TextStyle(
-                    color: Colors.green,
+                    color: _getEstadoParticipacionColor(participacion.estado),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -849,6 +840,42 @@ class _HomePageState extends State<HomePage> {
         );
       }).toList(),
     );
+  }
+
+  Color _getEstadoParticipacionColor(String estado) {
+    switch (estado.toUpperCase()) {
+      case 'EN_PROGRESO':
+      case 'ACTIVO':
+        return Colors.green;
+      case 'PROGRAMADA':
+      case 'PENDIENTE':
+        return Colors.orange;
+      case 'COMPLETADO':
+        return Colors.blue;
+      case 'AUSENTE':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getEstadoParticipacionLabel(String estado) {
+    switch (estado.toUpperCase()) {
+      case 'EN_PROGRESO':
+        return 'En Progreso';
+      case 'ACTIVO':
+        return 'Activo';
+      case 'PROGRAMADA':
+        return 'Programada';
+      case 'PENDIENTE':
+        return 'Pendiente';
+      case 'COMPLETADO':
+        return 'Completado';
+      case 'AUSENTE':
+        return 'Ausente';
+      default:
+        return estado;
+    }
   }
 
   Future<void> _loadPerfilFuncionario() async {
@@ -5386,52 +5413,6 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ),
-
-                        const SizedBox(height: 32),
-
-                        // ACCIONES SOCIALES - ESTILO LINKEDIN
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildSocialAction(
-                                icon: Icons.edit,
-                                label: 'Editar Perfil',
-                                color: colorScheme.primary,
-                                onTap: () {
-                                  Modular.to.pushNamed('/profile/edit');
-                                },
-                              ),
-                              _buildSocialAction(
-                                icon: Icons.share,
-                                label: 'Compartir',
-                                color: colorScheme.secondary,
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Compartir perfil próximamente',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              _buildSocialAction(
-                                icon: Icons.message,
-                                label: 'Mensajes',
-                                color: colorScheme.tertiary,
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Mensajes próximamente'),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
 
                         const SizedBox(height: 32),
                       ],

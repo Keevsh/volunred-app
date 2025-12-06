@@ -5,9 +5,11 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/archivo_digital.dart';
 import '../../../core/models/proyecto.dart';
+import '../../../core/services/media_service.dart';
 
 class ProyectoMediaPage extends StatefulWidget {
   final Proyecto proyecto;
@@ -140,13 +142,13 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       builder: (context) => AlertDialog(
         title: const Text('Subir Video'),
         content: const Text(
-          '⚠️ Límite de tamaño: 50 MB\n\n'
-          '✅ Para videos más grandes, comprime antes de subir:\n\n'
-          '📱 Apps recomendadas:\n'
-          '• Video Compressor (Android/iOS)\n'
-          '• VidCompact (Android)\n'
-          '• Compress Videos (iOS)\n\n'
-          '💡 Tip: Graba en 720p para videos más pequeños',
+          '⚠️ Límite de tamaño: 20 MB\n\n'
+          '✅ El video se comprimirá automáticamente:\n\n'
+          '📱 Conversión automática:\n'
+          '• Comprime a 720p\n'
+          '• Reduce calidad inteligentemente\n'
+          '• Mantiene audio de buena calidad\n\n'
+          '💡 Tip: Máximo 60 segundos',
           style: TextStyle(height: 1.5),
         ),
         actions: [
@@ -173,32 +175,84 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     if (video == null) return;
 
     final videoFile = File(video.path);
-    final fileSize = await videoFile.length();
-    const maxSize = 50 * 1024 * 1024; // 50 MB
-    
-    print('📹 Tamaño del video: ${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB');
 
-    if (fileSize > maxSize) {
-      if (!mounted) return;
+    // Mostrar diálogo de compresión
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Comprimiendo video...'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 20),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 20),
+            const Text('Por favor espera mientras se comprime el video'),
+            const SizedBox(height: 10),
+            Text(
+              'Esto puede tomar unos minutos',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final mediaService = MediaService();
       
+      // Obtener el token de autenticación
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      
+      print('🔐 DEBUG: Token recuperado: ${token.isNotEmpty ? "SÍ (${token.length} chars)" : "NO"}');
+
+      await mediaService.subirVideoAlProyecto(
+        videoFile: videoFile,
+        proyectoId: widget.proyecto.idProyecto,
+        jwtToken: token,
+        nombreArchivo: 'video_${DateTime.now().millisecondsSinceEpoch}.mp4',
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Cerrar diálogo de compresión
+
+      // Recargar archivos
+      await _loadArchivos();
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Video demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
-            'Máximo: 50 MB. Comprime el video con una app externa.',
-          ),
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 5),
+        const SnackBar(
+          content: Text('✅ Video subido exitosamente'),
+          backgroundColor: Colors.green,
         ),
       );
-      return;
-    }
+    } catch (e) {
+      print('📋 CATCH ERROR EN WIDGET: $e');
+      print('📋 Error type: ${e.runtimeType}');
+      if (e is Exception) {
+        print('📋 Exception message: ${e.toString()}');
+      }
+      
+      if (!mounted) return;
+      Navigator.pop(context); // Cerrar diálogo de compresión
 
-    await _procesarArchivo(
-      videoFile,
-      tipoMedia: 'video',
-      mimeType: 'video/mp4',
-    );
+      String errorMsg = e.toString();
+      // Extraer mensaje más legible
+      if (errorMsg.contains('Exception:')) {
+        errorMsg = errorMsg.replaceFirst('Exception: ', '');
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: $errorMsg'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
   }
 
   Future<void> _subirDocumento() async {
@@ -264,9 +318,11 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     setState(() => _isUploading = true);
 
     try {
-      // Verificar tamaño del archivo
+      // Verificar tamaño del archivo según tipo
       final fileSize = await file.length();
-      const maxSize = 5 * 1024 * 1024; // Reducir a 5 MB para más margen
+      final maxSize = tipoMedia == 'video'
+          ? 50 * 1024 * 1024
+          : 5 * 1024 * 1024;
 
       if (fileSize > maxSize) {
         if (!mounted) return;
@@ -275,7 +331,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
           SnackBar(
             content: Text(
               'Archivo demasiado grande (${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB).\n'
-              'Máximo: 5 MB',
+              'Máximo permitido: ${tipoMedia == "video" ? "50 MB" : "5 MB"}',
             ),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 4),

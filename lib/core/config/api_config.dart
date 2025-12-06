@@ -2,7 +2,7 @@ class ApiConfig {
   // URL base del backend
   // static const String baseUrl = 'http://localhost:3000';
 
-  // static const String baseUrl= 'http://192.168.0.56:3000';
+  // static const String baseUrl= 'http://192.168.26.3:3000';
 
   static const String baseUrl = 'https://volunred-backend.vercel.app';
 

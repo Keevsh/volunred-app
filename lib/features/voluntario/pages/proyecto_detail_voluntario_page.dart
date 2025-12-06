@@ -7,6 +7,7 @@ import '../../../core/models/inscripcion.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/dto/request_models.dart';
 import '../../../core/widgets/image_base64_widget.dart';
+import 'proyecto_galeria_page.dart';
 
 class ProyectoDetailVoluntarioPage extends StatefulWidget {
   final int proyectoId;
@@ -57,8 +58,11 @@ class _ProyectoDetailVoluntarioPageState
           }
           if (perfil == null) return false;
           // Coincidir por usuario_id (normalizado) o por perfil_vol_id como respaldo
-          final byUsuario = part.usuarioId != null && part.usuarioId == perfil.usuarioId;
-          final byPerfilVol = part.perfilVolId != null && part.perfilVolId == perfil.idPerfilVoluntario;
+          final byUsuario =
+              part.usuarioId != null && part.usuarioId == perfil.usuarioId;
+          final byPerfilVol =
+              part.perfilVolId != null &&
+              part.perfilVolId == perfil.idPerfilVoluntario;
           return byUsuario || byPerfilVol;
         }, orElse: () => throw Exception('No encontrada'));
       } catch (e) {
@@ -628,12 +632,12 @@ class _ProyectoDetailVoluntarioPageState
           inscripcionId: response.inscripcionId,
           creadoEn: response.creadoEn,
         );
-        
+
         setState(() {
           _participacion = nuevaParticipacion;
           _isParticipando = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -711,6 +715,40 @@ class _ProyectoDetailVoluntarioPageState
             color: const Color(0xFF1976D2),
           ),
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.photo_library, size: 20),
+              onPressed: _proyecto != null
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProyectoGaleriaPage(
+                            proyectoId: _proyecto!.idProyecto,
+                            proyectoNombre: _proyecto!.nombre,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+              color: const Color(0xFF1976D2),
+              tooltip: 'Ver galería',
+            ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -920,12 +958,15 @@ class _ProyectoDetailVoluntarioPageState
                                                       vertical: 6,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF4CAF50),
+                                                  color: const Color(
+                                                    0xFF4CAF50,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
                                                 child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     const Icon(
                                                       Icons.public,

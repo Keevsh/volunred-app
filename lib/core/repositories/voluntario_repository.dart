@@ -14,6 +14,7 @@ import '../models/organizacion.dart';
 import '../models/tarea.dart';
 import '../models/asignacion_tarea.dart';
 import '../models/categoria.dart';
+import '../models/archivo_digital.dart';
 import '../services/dio_client.dart';
 import '../services/storage_service.dart';
 
@@ -265,15 +266,17 @@ class VoluntarioRepository {
       final response = await _dioClient.dio.get(
         '${ApiConfig.perfilesVoluntarios}/$usuarioId',
       );
-      
+
       // 🔍 DEBUG: Imprimir respuesta del backend
       print('📡 RESPONSE getPerfilByUsuario: ${response.data}');
-      
-      final perfil = PerfilVoluntario.fromJson(response.data as Map<String, dynamic>);
-      
+
+      final perfil = PerfilVoluntario.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+
       // 🔍 DEBUG: Imprimir perfil mapeado
       print('📋 Perfil mapeado - bio: ${perfil.bio}');
-      
+
       return perfil;
     } on DioException catch (e) {
       // Si el endpoint no existe o retorna 404, intentar obtener todos y filtrar
@@ -612,6 +615,27 @@ class VoluntarioRepository {
     }
   }
 
+  /// Obtener archivos digitales de un proyecto (galería)
+  Future<List<ArchivoDigital>> getArchivosDigitalesProyecto(
+    int proyectoId,
+  ) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.archivosDigitalesProyecto(proyectoId),
+      );
+
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['archivos'] ?? []);
+
+      return data
+          .map((json) => ArchivoDigital.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Obtener categoría por ID
   Future<Categoria> getCategoriaById(int id) async {
     try {
@@ -667,11 +691,13 @@ class VoluntarioRepository {
         try {
           // Obtener todas las inscripciones del usuario y buscar la más reciente
           final inscripciones = await getInscripciones();
-            final perfilVolId = normalizedData['perfil_vol_id'] as int?;
+          final perfilVolId = normalizedData['perfil_vol_id'] as int?;
           final organizacionId = normalizedData['organizacion_id'] as int?;
 
-            if (perfilVolId == null || organizacionId == null) {
-              throw Exception('perfil_vol_id o organizacion_id no pueden ser null');
+          if (perfilVolId == null || organizacionId == null) {
+            throw Exception(
+              'perfil_vol_id o organizacion_id no pueden ser null',
+            );
           }
 
           // Buscar la inscripción más reciente para este usuario y organización
@@ -679,7 +705,7 @@ class VoluntarioRepository {
               inscripciones
                   .where(
                     (ins) =>
-                          ins.perfilVolId == perfilVolId &&
+                        ins.perfilVolId == perfilVolId &&
                         ins.organizacionId == organizacionId,
                   )
                   .toList()
@@ -695,7 +721,7 @@ class VoluntarioRepository {
             );
             inscripcion = Inscripcion(
               idInscripcion: 0, // Temporal, se actualizará después
-                perfilVolId: perfilVolId,
+              perfilVolId: perfilVolId,
               organizacionId: organizacionId,
               fechaRecepcion: normalizedData['fecha_recepcion'] != null
                   ? DateTime.parse(normalizedData['fecha_recepcion'] as String)
@@ -713,7 +739,9 @@ class VoluntarioRepository {
           final organizacionId = normalizedData['organizacion_id'] as int?;
 
           if (perfilVolId == null || organizacionId == null) {
-            throw Exception('perfil_vol_id o organizacion_id no pueden ser null');
+            throw Exception(
+              'perfil_vol_id o organizacion_id no pueden ser null',
+            );
           }
 
           inscripcion = Inscripcion(
@@ -1512,7 +1540,9 @@ class VoluntarioRepository {
       if (esPublico) {
         // Proyectos públicos: enviar solo perfil_vol_id
         body['perfil_vol_id'] = perfil.idPerfilVoluntario;
-        print('🟢 Proyecto público: usando perfil_vol_id=${perfil.idPerfilVoluntario}');
+        print(
+          '🟢 Proyecto público: usando perfil_vol_id=${perfil.idPerfilVoluntario}',
+        );
       } else {
         // Proyectos privados: enviar perfil_vol_id y inscripcion_id aprobada
         print('🟠 Proyecto privado: buscando inscripción APROBADA...');
@@ -1528,7 +1558,9 @@ class VoluntarioRepository {
         );
         body['perfil_vol_id'] = perfil.idPerfilVoluntario;
         body['inscripcion_id'] = inscripcionAprobada.idInscripcion;
-        print('✅ Enviando perfil_vol_id=${perfil.idPerfilVoluntario} e inscripcion_id=${inscripcionAprobada.idInscripcion}');
+        print(
+          '✅ Enviando perfil_vol_id=${perfil.idPerfilVoluntario} e inscripcion_id=${inscripcionAprobada.idInscripcion}',
+        );
       }
 
       final response = await _dioClient.dio.post(

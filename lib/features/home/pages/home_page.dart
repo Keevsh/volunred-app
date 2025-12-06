@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   String? _experienciasError;
   List<ParticipacionVoluntario> _participacionesVoluntario = [];
   bool _isLoadingParticipaciones = false;
+  Key _inscripcionesRefreshKey = UniqueKey();
 
   @override
   void initState() {
@@ -1320,7 +1321,7 @@ class _HomePageState extends State<HomePage> {
             ? [
                 _buildFuncionarioHomeView(),
                 _buildFuncionarioProyectosView(),
-                _buildFuncionarioOrganizacionView(),
+                _buildFuncionarioInscripcionesView(),
                 _buildProfileView(),
               ]
             : [
@@ -3014,12 +3015,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _refreshInscripciones() async {
+    setState(() {
+      _inscripcionesRefreshKey = UniqueKey();
+    });
+  }
+
   Widget _buildFuncionarioInscripcionesView() {
     final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: _refreshInscripciones,
+        color: const Color(0xFFFF6B6B),
+        child: CustomScrollView(
+          key: _inscripcionesRefreshKey,
         slivers: [
           SliverAppBar(
             expandedHeight: 120,
@@ -3282,20 +3293,58 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInscripcionCardModern(Inscripcion inscripcion, ThemeData theme) {
-    final perfilVol = inscripcion.perfilVoluntario;
-    final usuario = perfilVol?['usuario'];
-    final nombreUsuario = usuario != null
-        ? '${usuario['nombres'] ?? ''} ${usuario['apellidos'] ?? ''}'.trim()
-        : 'Usuario';
-    final email = usuario?['email'] ?? 'Sin email';
-    final iniciales = nombreUsuario.isNotEmpty
-        ? nombreUsuario.split(' ').map((w) => w[0]).take(2).join()
+    // Buscar datos del usuario en múltiples lugares
+    String nombreUsuario = 'Usuario';
+    String email = 'Sin email';
+    
+    // 1. Intentar desde usuario_completo
+    if (inscripcion.usuarioCompleto != null) {
+      final nombres = inscripcion.usuarioCompleto!['nombres'] ?? '';
+      final apellidos = inscripcion.usuarioCompleto!['apellidos'] ?? '';
+      nombreUsuario = '$nombres $apellidos'.trim();
+      email = inscripcion.usuarioCompleto!['email'] ?? 'Sin email';
+    }
+    // 2. Intentar desde usuario
+    else if (inscripcion.usuario != null) {
+      final nombres = inscripcion.usuario!['nombres'] ?? '';
+      final apellidos = inscripcion.usuario!['apellidos'] ?? '';
+      nombreUsuario = '$nombres $apellidos'.trim();
+      email = inscripcion.usuario!['email'] ?? 'Sin email';
+    }
+    // 3. Intentar desde perfilVoluntario.usuario
+    else if (inscripcion.perfilVoluntario != null) {
+      final usuario = inscripcion.perfilVoluntario!['usuario'];
+      if (usuario != null && usuario is Map) {
+        final nombres = usuario['nombres'] ?? '';
+        final apellidos = usuario['apellidos'] ?? '';
+        nombreUsuario = '$nombres $apellidos'.trim();
+        email = usuario['email'] ?? 'Sin email';
+      } else {
+        // Si no hay usuario, mostrar info del perfil
+        final bio = inscripcion.perfilVoluntario!['bio'];
+        if (bio != null && bio.toString().isNotEmpty) {
+          nombreUsuario = 'Voluntario #${inscripcion.perfilVolId}';
+          email = bio.toString().length > 50 
+              ? '${bio.toString().substring(0, 50)}...' 
+              : bio.toString();
+        }
+      }
+    }
+    
+    // Fallback final
+    if (nombreUsuario.isEmpty || nombreUsuario == 'Usuario') {
+      nombreUsuario = 'Voluntario #${inscripcion.perfilVolId}';
+    }
+    
+    final iniciales = nombreUsuario.isNotEmpty && nombreUsuario != 'Usuario'
+        ? nombreUsuario.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join().toUpperCase()
         : 'U';
 
     Color estadoColor;
@@ -3433,8 +3482,47 @@ class _HomePageState extends State<HomePage> {
     Participacion participacion,
     ThemeData theme,
   ) {
-    // Participacion model fields are: idParticipacion, inscripcionId, proyectoId, estado, etc.
-    final iniciales = 'V';
+    // Obtener nombre del voluntario desde los datos disponibles
+    String nombreUsuario = 'Voluntario';
+    String email = 'Sin email';
+    
+    // Intentar obtener de usuario_completo primero
+    if (participacion.usuarioCompleto != null) {
+      final nombres = participacion.usuarioCompleto!['nombres'] ?? '';
+      final apellidos = participacion.usuarioCompleto!['apellidos'] ?? '';
+      nombreUsuario = '$nombres $apellidos'.trim();
+      email = participacion.usuarioCompleto!['email'] ?? 'Sin email';
+    } 
+    // Luego de usuario
+    else if (participacion.usuario != null) {
+      final nombres = participacion.usuario!['nombres'] ?? '';
+      final apellidos = participacion.usuario!['apellidos'] ?? '';
+      nombreUsuario = '$nombres $apellidos'.trim();
+      email = participacion.usuario!['email'] ?? 'Sin email';
+    }
+    // Finalmente de inscripcion -> perfil_voluntario -> usuario
+    else if (participacion.inscripcion != null) {
+      final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+      if (perfilVol != null && perfilVol['usuario'] != null) {
+        final usuario = perfilVol['usuario'];
+        final nombres = usuario['nombres'] ?? '';
+        final apellidos = usuario['apellidos'] ?? '';
+        nombreUsuario = '$nombres $apellidos'.trim();
+        email = usuario['email'] ?? 'Sin email';
+      }
+    }
+    
+    // Obtener nombre del proyecto
+    String nombreProyecto = 'Proyecto #${participacion.proyectoId}';
+    if (participacion.proyecto != null) {
+      nombreProyecto = participacion.proyecto!['nombre'] ?? nombreProyecto;
+    }
+    
+    if (nombreUsuario.isEmpty) nombreUsuario = 'Voluntario';
+    
+    final iniciales = nombreUsuario.isNotEmpty
+        ? nombreUsuario.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join().toUpperCase()
+        : 'V';
 
     Color estadoColor;
     String estadoText;
@@ -3442,6 +3530,7 @@ class _HomePageState extends State<HomePage> {
 
     switch (participacion.estado.toLowerCase()) {
       case 'aprobado':
+      case 'aprobada':
       case 'aceptada':
         estadoColor = const Color(0xFF4CAF50);
         estadoText = 'Aceptada';
@@ -3517,7 +3606,7 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Participante #${participacion.inscripcionId}',
+                            nombreUsuario,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF1A1A1A),
@@ -3525,11 +3614,21 @@ class _HomePageState extends State<HomePage> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
-                            'Para: Proyecto #${participacion.proyectoId}',
+                            email,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: const Color(0xFF757575),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            nombreProyecto,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF9C27B0),
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

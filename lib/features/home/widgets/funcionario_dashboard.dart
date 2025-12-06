@@ -959,29 +959,49 @@ class _FuncionarioDashboardState extends State<FuncionarioDashboard> {
   }
 
   Widget _buildActivityItem(Participacion participacion, ThemeData theme) {
-    final inscripcionData = participacion.inscripcion;
     String nombre = 'Voluntario desconocido';
 
-    if (inscripcionData != null) {
-      try {
-        // Extraer nombre del mapa de inscripción
-        var usuario = inscripcionData['usuario'];
-        if (usuario == null && inscripcionData['perfil_voluntario'] != null) {
-          final perfilVol = inscripcionData['perfil_voluntario'];
-          if (perfilVol is Map) {
-            usuario = perfilVol['usuario'];
-          }
-        }
-
+    try {
+      // 1. Intentar desde usuario_completo (campo directo en participacion)
+      if (participacion.usuarioCompleto != null) {
+        final nombres = participacion.usuarioCompleto!['nombres']?.toString() ?? '';
+        final apellidos = participacion.usuarioCompleto!['apellidos']?.toString() ?? '';
+        nombre = '$nombres $apellidos'.trim();
+      }
+      // 2. Intentar desde usuario (campo directo en participacion)
+      else if (participacion.usuario != null) {
+        final nombres = participacion.usuario!['nombres']?.toString() ?? '';
+        final apellidos = participacion.usuario!['apellidos']?.toString() ?? '';
+        nombre = '$nombres $apellidos'.trim();
+      }
+      // 3. Intentar desde perfil_voluntario.usuario
+      else if (participacion.perfilVoluntario != null) {
+        final usuario = participacion.perfilVoluntario!['usuario'];
         if (usuario != null && usuario is Map) {
           final nombres = usuario['nombres']?.toString() ?? '';
           final apellidos = usuario['apellidos']?.toString() ?? '';
           nombre = '$nombres $apellidos'.trim();
-          if (nombre.isEmpty) nombre = 'Voluntario desconocido';
         }
-      } catch (e) {
-        // Keep default name
       }
+      // 4. Fallback: buscar en inscripcion
+      else if (participacion.inscripcion != null) {
+        var usuario = participacion.inscripcion!['usuario'];
+        if (usuario == null && participacion.inscripcion!['perfil_voluntario'] != null) {
+          final perfilVol = participacion.inscripcion!['perfil_voluntario'];
+          if (perfilVol is Map) {
+            usuario = perfilVol['usuario'];
+          }
+        }
+        if (usuario != null && usuario is Map) {
+          final nombres = usuario['nombres']?.toString() ?? '';
+          final apellidos = usuario['apellidos']?.toString() ?? '';
+          nombre = '$nombres $apellidos'.trim();
+        }
+      }
+      
+      if (nombre.isEmpty) nombre = 'Voluntario desconocido';
+    } catch (e) {
+      // Keep default name
     }
 
     return Padding(

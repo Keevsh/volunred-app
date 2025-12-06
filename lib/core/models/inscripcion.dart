@@ -13,6 +13,8 @@ class Inscripcion extends Equatable {
   // Relaciones opcionales
   final Map<String, dynamic>? perfilVoluntario;
   final Map<String, dynamic>? organizacion;
+  final Map<String, dynamic>? usuario;
+  final Map<String, dynamic>? usuarioCompleto;
 
   const Inscripcion({
     required this.idInscripcion,
@@ -25,6 +27,8 @@ class Inscripcion extends Equatable {
     this.actualizadoEn,
     this.perfilVoluntario,
     this.organizacion,
+    this.usuario,
+    this.usuarioCompleto,
   });
 
   factory Inscripcion.fromJson(Map<String, dynamic> json) {
@@ -92,11 +96,18 @@ class Inscripcion extends Equatable {
         motivoRechazo: _getString(json['motivo_rechazo']),
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,
-        perfilVoluntario: json['perfil_voluntario'] is Map
-          ? json['perfil_voluntario'] as Map<String, dynamic>?
+        // Manejar tanto camelCase como snake_case para perfilVoluntario
+        perfilVoluntario: (json['perfilVoluntario'] ?? json['perfil_voluntario']) is Map
+          ? (json['perfilVoluntario'] ?? json['perfil_voluntario']) as Map<String, dynamic>?
             : null,
         organizacion: json['organizacion'] is Map
             ? json['organizacion'] as Map<String, dynamic>?
+            : null,
+        usuario: json['usuario'] is Map
+            ? json['usuario'] as Map<String, dynamic>?
+            : null,
+        usuarioCompleto: (json['usuario_completo'] ?? json['usuarioCompleto']) is Map
+            ? (json['usuario_completo'] ?? json['usuarioCompleto']) as Map<String, dynamic>?
             : null,
       );
     } catch (e, stackTrace) {
@@ -119,6 +130,8 @@ class Inscripcion extends Equatable {
         'actualizado_en': actualizadoEn!.toIso8601String(),
       if (perfilVoluntario != null) 'perfil_voluntario': perfilVoluntario,
       if (organizacion != null) 'organizacion': organizacion,
+      if (usuario != null) 'usuario': usuario,
+      if (usuarioCompleto != null) 'usuario_completo': usuarioCompleto,
     };
   }
 

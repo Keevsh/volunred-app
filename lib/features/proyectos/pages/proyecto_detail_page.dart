@@ -3,7 +3,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/tarea.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/image_base64_widget.dart';
 import 'proyecto_media_page.dart';
 
@@ -67,6 +66,363 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
         _tareasError = e.toString();
         _isLoadingTareas = false;
       });
+    }
+  }
+
+  /// Mostrar diálogo para editar proyecto
+  Future<void> _showEditProyectoDialog() async {
+    if (_proyecto == null) return;
+
+    final nombreController = TextEditingController(text: _proyecto!.nombre);
+    final objetivoController = TextEditingController(text: _proyecto!.objetivo ?? '');
+    final ubicacionController = TextEditingController(text: _proyecto!.ubicacion ?? '');
+    
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Editar Proyecto'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nombreController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre *',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.title),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: objetivoController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Objetivo',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.description),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: ubicacionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ubicación',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (nombreController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('El nombre es requerido')),
+                  );
+                  return;
+                }
+
+                final data = <String, dynamic>{
+                  'nombre': nombreController.text.trim(),
+                };
+                
+                if (objetivoController.text.trim().isNotEmpty) {
+                  data['objetivo'] = objetivoController.text.trim();
+                }
+                if (ubicacionController.text.trim().isNotEmpty) {
+                  data['ubicacion'] = ubicacionController.text.trim();
+                }
+
+                try {
+                  final funcionarioRepo = Modular.get<FuncionarioRepository>();
+                  await funcionarioRepo.updateProyecto(widget.proyectoId, data);
+                  if (mounted) {
+                    Navigator.of(dialogContext).pop();
+                    await _loadProyecto();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Proyecto actualizado correctamente'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error al actualizar: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Cambiar estado del proyecto (activo/inactivo)
+  Future<void> _cambiarEstadoProyecto() async {
+    if (_proyecto == null) return;
+
+    final nuevoEstado = _proyecto!.estado == 'activo' ? 'inactivo' : 'activo';
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${nuevoEstado == 'activo' ? 'Activar' : 'Desactivar'} Proyecto'),
+        content: Text(
+          '¿Estás seguro de que deseas ${nuevoEstado == 'activo' ? 'activar' : 'desactivar'} este proyecto?\n\n'
+          '${nuevoEstado == 'inactivo' ? 'Los voluntarios no podrán ver ni inscribirse en el proyecto.' : 'El proyecto volverá a estar visible para los voluntarios.'}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: nuevoEstado == 'activo' ? Colors.green : Colors.orange,
+            ),
+            child: Text(nuevoEstado == 'activo' ? 'Activar' : 'Desactivar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      await funcionarioRepo.updateProyecto(widget.proyectoId, {'estado': nuevoEstado});
+      
+      if (mounted) {
+        await _loadProyecto();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Proyecto ${nuevoEstado == 'activo' ? 'activado' : 'desactivado'} correctamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cambiar estado: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Ver voluntarios inscritos en el proyecto
+  Future<void> _verVoluntariosInscritos() async {
+    if (_proyecto == null) return;
+
+    try {
+      final funcionarioRepo = Modular.get<FuncionarioRepository>();
+      final participaciones = await funcionarioRepo.getParticipacionesByProyecto(widget.proyectoId);
+      
+      if (!mounted) return;
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) {
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+          
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                // Handle
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outline.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.people, color: colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Voluntarios Participantes (${participaciones.length})',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // Lista de voluntarios
+                Expanded(
+                  child: participaciones.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_off,
+                                size: 64,
+                                color: colorScheme.outline,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No hay voluntarios participando',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.outline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: participaciones.length,
+                          itemBuilder: (context, index) {
+                            final participacion = participaciones[index];
+                            // Obtener datos del voluntario desde inscripcion
+                            final inscripcionData = participacion.inscripcion;
+                            final perfilVol = inscripcionData?['perfil_voluntario'];
+                            final nombreVol = perfilVol?['nombre'] ?? 
+                                              perfilVol?['usuario']?['nombre'] ?? 
+                                              'Voluntario #${participacion.perfilVolId ?? participacion.inscripcionId}';
+                            final emailVol = perfilVol?['email'] ?? 
+                                             perfilVol?['usuario']?['email'];
+                            final estado = participacion.estado.toLowerCase();
+                            
+                            Color estadoColor;
+                            String estadoLabel;
+                            switch (estado) {
+                              case 'en_progreso':
+                                estadoColor = Colors.blue;
+                                estadoLabel = 'En Progreso';
+                                break;
+                              case 'completado':
+                                estadoColor = Colors.green;
+                                estadoLabel = 'Completado';
+                                break;
+                              case 'programada':
+                                estadoColor = Colors.orange;
+                                estadoLabel = 'Programada';
+                                break;
+                              case 'ausente':
+                                estadoColor = Colors.red;
+                                estadoLabel = 'Ausente';
+                                break;
+                              default:
+                                estadoColor = Colors.grey;
+                                estadoLabel = estado;
+                            }
+
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  child: Text(
+                                    nombreVol.isNotEmpty
+                                        ? nombreVol[0].toUpperCase()
+                                        : '?',
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  nombreVol,
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (emailVol != null)
+                                      Text(
+                                        emailVol,
+                                        style: TextStyle(
+                                          color: colorScheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    if (participacion.rolAsignado != null)
+                                      Text(
+                                        'Rol: ${participacion.rolAsignado}',
+                                        style: TextStyle(
+                                          color: colorScheme.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: estadoColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        estadoLabel,
+                                        style: TextStyle(
+                                          color: estadoColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                isThreeLine: true,
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar voluntarios: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -354,6 +710,13 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
         foregroundColor: const Color(0xFF1A1A1A),
         centerTitle: false,
         actions: [
+          // Botón para ver voluntarios
+          IconButton(
+            icon: const Icon(Icons.people_rounded),
+            onPressed: _verVoluntariosInscritos,
+            tooltip: 'Ver voluntarios',
+          ),
+          // Botón para multimedia
           IconButton(
             icon: const Icon(Icons.perm_media_rounded),
             onPressed: () {
@@ -369,6 +732,50 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
               }
             },
             tooltip: 'Multimedia del proyecto',
+          ),
+          // Menú de opciones
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'editar':
+                  _showEditProyectoDialog();
+                  break;
+                case 'estado':
+                  _cambiarEstadoProyecto();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'editar',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit),
+                    SizedBox(width: 12),
+                    Text('Editar proyecto'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'estado',
+                child: Row(
+                  children: [
+                    Icon(
+                      _proyecto?.estado == 'activo' 
+                          ? Icons.pause_circle_outline 
+                          : Icons.play_circle_outline,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _proyecto?.estado == 'activo' 
+                          ? 'Desactivar proyecto' 
+                          : 'Activar proyecto',
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

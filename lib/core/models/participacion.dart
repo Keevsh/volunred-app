@@ -49,6 +49,15 @@ class Participacion extends Equatable {
   /// Datos del proyecto (opcional, se incluye cuando se hace join)
   final Map<String, dynamic>? proyecto;
 
+  /// Datos del perfil del voluntario (opcional, se incluye cuando se hace join)
+  final Map<String, dynamic>? perfilVoluntario;
+
+  /// Datos del usuario (opcional, se incluye cuando se hace join)
+  final Map<String, dynamic>? usuario;
+
+  /// Datos completos del usuario (opcional, se incluye cuando se hace join)
+  final Map<String, dynamic>? usuarioCompleto;
+
   /// ID del usuario (normalizado por el backend, viene directo en participaciones públicas)
   final int? usuarioId;
 
@@ -64,6 +73,9 @@ class Participacion extends Equatable {
     this.actualizadoEn,
     this.inscripcion,
     this.proyecto,
+    this.perfilVoluntario,
+    this.usuario,
+    this.usuarioCompleto,
     this.usuarioId,
   });
 
@@ -138,6 +150,15 @@ class Participacion extends Equatable {
       proyecto: json['proyecto'] is Map
           ? json['proyecto'] as Map<String, dynamic>?
           : null,
+      perfilVoluntario: json['perfil_voluntario'] is Map
+          ? json['perfil_voluntario'] as Map<String, dynamic>?
+          : null,
+      usuario: json['usuario'] is Map
+          ? json['usuario'] as Map<String, dynamic>?
+          : null,
+      usuarioCompleto: json['usuario_completo'] is Map
+          ? json['usuario_completo'] as Map<String, dynamic>?
+          : null,
       usuarioId: _getInt(json['usuario_id']),
     );
   }
@@ -157,6 +178,9 @@ class Participacion extends Equatable {
         'actualizado_en': actualizadoEn!.toIso8601String(),
       if (inscripcion != null) 'inscripcion': inscripcion,
       if (proyecto != null) 'proyecto': proyecto,
+      if (perfilVoluntario != null) 'perfil_voluntario': perfilVoluntario,
+      if (usuario != null) 'usuario': usuario,
+      if (usuarioCompleto != null) 'usuario_completo': usuarioCompleto,
       if (usuarioId != null) 'usuario_id': usuarioId,
     };
   }
@@ -172,6 +196,9 @@ class Participacion extends Equatable {
     estado,
     creadoEn,
     actualizadoEn,
+    perfilVoluntario,
+    usuario,
+    usuarioCompleto,
     usuarioId,
   ];
 }

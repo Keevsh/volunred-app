@@ -3565,11 +3565,37 @@ class _HomePageState extends State<HomePage> {
       nombreUsuario = '$nombres $apellidos'.trim();
       email = participacion.usuario!['email'] ?? 'Sin email';
     }
-    // Finalmente de inscripcion -> perfil_voluntario -> usuario
+    // Intentar desde la inscripción relacionada (usuario_completo / usuario)
     else if (participacion.inscripcion != null) {
-      final perfilVol = participacion.inscripcion!['perfil_voluntario'];
-      if (perfilVol != null && perfilVol['usuario'] != null) {
-        final usuario = perfilVol['usuario'];
+      final inscripcion = participacion.inscripcion!;
+      final usuarioCompleto = inscripcion['usuario_completo'];
+      final usuarioBasico = inscripcion['usuario'];
+
+      if (usuarioCompleto is Map) {
+        final nombres = usuarioCompleto['nombres'] ?? '';
+        final apellidos = usuarioCompleto['apellidos'] ?? '';
+        nombreUsuario = '$nombres $apellidos'.trim();
+        email = usuarioCompleto['email'] ?? 'Sin email';
+      } else if (usuarioBasico is Map) {
+        final nombres = usuarioBasico['nombres'] ?? '';
+        final apellidos = usuarioBasico['apellidos'] ?? '';
+        nombreUsuario = '$nombres $apellidos'.trim();
+        email = usuarioBasico['email'] ?? 'Sin email';
+      } else {
+        final perfilVol = inscripcion['perfil_voluntario'];
+        if (perfilVol is Map && perfilVol['usuario'] is Map) {
+          final usuario = perfilVol['usuario'] as Map;
+          final nombres = usuario['nombres'] ?? '';
+          final apellidos = usuario['apellidos'] ?? '';
+          nombreUsuario = '$nombres $apellidos'.trim();
+          email = usuario['email'] ?? 'Sin email';
+        }
+      }
+    }
+    // Como último recurso usar el perfilVoluntario adjunto directamente en la participación
+    else if (participacion.perfilVoluntario != null) {
+      final usuario = participacion.perfilVoluntario!['usuario'];
+      if (usuario is Map) {
         final nombres = usuario['nombres'] ?? '';
         final apellidos = usuario['apellidos'] ?? '';
         nombreUsuario = '$nombres $apellidos'.trim();

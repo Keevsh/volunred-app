@@ -189,8 +189,6 @@ class _ViewFuncionarioProfilePageState
               _buildProfessionalSection(colorScheme),
               const SizedBox(height: 16),
               _buildBioSection(colorScheme),
-              const SizedBox(height: 16),
-              _buildStatsSection(colorScheme),
               const SizedBox(height: 32),
             ],
           ),
@@ -231,29 +229,7 @@ class _ViewFuncionarioProfilePageState
               ],
             ),
             child: ClipOval(
-              child: _perfil?.fotoPerfil != null && _perfil!.fotoPerfil!.isNotEmpty
-                  ? Image.memory(
-                      base64Decode(_perfil!.fotoPerfil!.split(',').last),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.white.withOpacity(0.2),
-                          child: const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      color: Colors.white.withOpacity(0.2),
-                      child: const Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ),
+              child: _buildProfileImage(),
             ),
           ),
           const SizedBox(height: 16),
@@ -555,119 +531,45 @@ class _ViewFuncionarioProfilePageState
     );
   }
 
-  Widget _buildStatsSection(ColorScheme colorScheme) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Estadísticas',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  colorScheme: colorScheme,
-                  icon: Icons.folder_outlined,
-                  label: 'Proyectos',
-                  value: '8',
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  colorScheme: colorScheme,
-                  icon: Icons.group_outlined,
-                  label: 'Voluntarios',
-                  value: '45',
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  colorScheme: colorScheme,
-                  icon: Icons.schedule_outlined,
-                  label: 'Horas',
-                  value: '320',
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  colorScheme: colorScheme,
-                  icon: Icons.trending_up_outlined,
-                  label: 'Impacto',
-                  value: '9/10',
-                  color: Colors.purple,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required ColorScheme colorScheme,
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(AppStyles.borderRadiusMedium),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+  Widget _buildProfileImage() {
+    final foto = _perfil?.fotoPerfil;
+    if (foto == null || foto.isEmpty) {
+      return Container(
+        color: Colors.white.withOpacity(0.2),
+        child: const Icon(
+          Icons.person,
+          size: 60,
+          color: Colors.white,
         ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+      );
+    }
+
+    try {
+      final cleaned = foto.split(',').last.trim();
+      final bytes = base64Decode(cleaned);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.white.withOpacity(0.2),
+            child: const Icon(
+              Icons.person,
+              size: 60,
+              color: Colors.white,
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
+          );
+        },
+      );
+    } catch (_) {
+      return Container(
+        color: Colors.white.withOpacity(0.2),
+        child: const Icon(
+          Icons.person,
+          size: 60,
+          color: Colors.white,
+        ),
+      );
+    }
   }
 }

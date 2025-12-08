@@ -27,6 +27,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
   bool _isLoading = true;
   String? _error;
   bool _isUploading = false;
+  int _uploadProgress = 0;
 
   @override
   void initState() {
@@ -68,15 +69,13 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
 
   Future<void> _subirFoto() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
 
     // Comprimir imagen manualmente
     final compressedFile = await _comprimirImagen(File(image.path));
-    
+
     if (compressedFile == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +100,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       // Leer imagen
       final bytes = await imageFile.readAsBytes();
       img.Image? image = img.decodeImage(bytes);
-      
+
       if (image == null) return null;
 
       // Redimensionar si es muy grande
@@ -116,18 +115,22 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
 
       // Comprimir a JPEG con calidad 60%
       final compressedBytes = img.encodeJpg(image, quality: 60);
-      
+
       // Guardar en archivo temporal
       final tempDir = Directory.systemTemp;
-      final tempFile = File('${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final tempFile = File(
+        '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       await tempFile.writeAsBytes(compressedBytes);
-      
+
       final originalSize = bytes.length / 1024; // KB
       final compressedSize = compressedBytes.length / 1024; // KB
       print('📸 Original: ${originalSize.toStringAsFixed(1)} KB');
       print('📸 Comprimido: ${compressedSize.toStringAsFixed(1)} KB');
-      print('📸 Reducción: ${((1 - compressedSize / originalSize) * 100).toStringAsFixed(1)}%');
-      
+      print(
+        '📸 Reducción: ${((1 - compressedSize / originalSize) * 100).toStringAsFixed(1)}%',
+      );
+
       return tempFile;
     } catch (e) {
       print('❌ Error comprimiendo imagen: $e');
@@ -176,48 +179,89 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
 
     final videoFile = File(video.path);
 
-    // Mostrar diálogo de compresión
+    setState(() {
+      _isUploading = true;
+      _uploadProgress = 0;
+    });
+
+    // Mostrar diálogo de compresión y progreso
     if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Comprimiendo video...'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 20),
-            const CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            const Text('Por favor espera mientras se comprime el video'),
-            const SizedBox(height: 10),
-            Text(
-              'Esto puede tomar unos minutos',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.cloud_upload, color: Colors.blue),
+              const SizedBox(width: 12),
+              Text(_uploadProgress < 100 ? 'Procesando video...' : '¡Listo!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: _uploadProgress / 100,
+                minHeight: 8,
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _uploadProgress == 0
+                    ? 'Comprimiendo video...'
+                    : _uploadProgress < 100
+                    ? 'Subiendo: $_uploadProgress%'
+                    : '✅ Video subido exitosamente',
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              if (_uploadProgress > 0 && _uploadProgress < 100) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Subiendo en chunks de 1 MB',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
 
     try {
       final mediaService = MediaService();
-      
+
       // Obtener el token de autenticación
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token') ?? '';
-      
-      print('🔐 DEBUG: Token recuperado: ${token.isNotEmpty ? "SÍ (${token.length} chars)" : "NO"}');
+
+      print(
+        '🔐 DEBUG: Token recuperado: ${token.isNotEmpty ? "SÍ (${token.length} chars)" : "NO"}',
+      );
 
       await mediaService.subirVideoAlProyecto(
         videoFile: videoFile,
         proyectoId: widget.proyecto.idProyecto,
         jwtToken: token,
         nombreArchivo: 'video_${DateTime.now().millisecondsSinceEpoch}.mp4',
+        onProgress: (progreso) {
+          setState(() {
+            _uploadProgress = progreso;
+          });
+        },
       );
 
       if (!mounted) return;
-      Navigator.pop(context); // Cerrar diálogo de compresión
+
+      // Esperar un momento para que se vea el 100%
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      Navigator.pop(context); // Cerrar diálogo de progreso
 
       // Recargar archivos
       await _loadArchivos();
@@ -235,9 +279,9 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       if (e is Exception) {
         print('📋 Exception message: ${e.toString()}');
       }
-      
+
       if (!mounted) return;
-      Navigator.pop(context); // Cerrar diálogo de compresión
+      Navigator.pop(context); // Cerrar diálogo de progreso
 
       String errorMsg = e.toString();
       // Extraer mensaje más legible
@@ -249,9 +293,14 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         SnackBar(
           content: Text('❌ Error: $errorMsg'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 8),
+          duration: const Duration(seconds: 5),
         ),
       );
+    } finally {
+      setState(() {
+        _isUploading = false;
+        _uploadProgress = 0;
+      });
     }
   }
 
@@ -265,14 +314,14 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     if (result == null) return;
 
     final file = File(result.files.single.path!);
-    
+
     // Verificar tamaño antes de procesar
     final fileSize = await file.length();
     const maxSize = 5 * 1024 * 1024; // 5 MB (mismo límite que fotos)
-    
+
     if (fileSize > maxSize) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -285,7 +334,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       );
       return;
     }
-    
+
     final extension = result.files.single.extension?.toLowerCase();
 
     String mimeType = 'application/octet-stream';
@@ -303,11 +352,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
           'application/vnd.openxmlformats-officedocument.presentationml.presentation';
     }
 
-    await _procesarArchivo(
-      file,
-      tipoMedia: 'documento',
-      mimeType: mimeType,
-    );
+    await _procesarArchivo(file, tipoMedia: 'documento', mimeType: mimeType);
   }
 
   Future<void> _procesarArchivo(
@@ -320,13 +365,11 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
     try {
       // Verificar tamaño del archivo según tipo
       final fileSize = await file.length();
-      final maxSize = tipoMedia == 'video'
-          ? 50 * 1024 * 1024
-          : 5 * 1024 * 1024;
+      final maxSize = tipoMedia == 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
 
       if (fileSize > maxSize) {
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -337,7 +380,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
             duration: const Duration(seconds: 4),
           ),
         );
-        
+
         setState(() => _isUploading = false);
         return;
       }
@@ -350,7 +393,9 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       final base64Size = base64String.length;
       print('📊 Tamaño archivo: ${(fileSize / 1024).toStringAsFixed(1)} KB');
       print('📊 Tamaño base64: ${(base64Size / 1024).toStringAsFixed(1)} KB');
-      print('📊 Tamaño estimado request: ${((base64Size + 500) / 1024).toStringAsFixed(1)} KB');
+      print(
+        '📊 Tamaño estimado request: ${((base64Size + 500) / 1024).toStringAsFixed(1)} KB',
+      );
 
       // Obtener nombre del archivo
       final fileName = file.path.split('/').last;
@@ -413,14 +458,16 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).clearSnackBars();
-      
+
       String errorMessage = 'Error al subir archivo';
       if (e.toString().contains('413') || e.toString().contains('too large')) {
-        errorMessage = '⚠️ Archivo demasiado grande para el servidor\n\n'
+        errorMessage =
+            '⚠️ Archivo demasiado grande para el servidor\n\n'
             'El límite del servidor es menor al esperado.\n'
             'Intenta con una foto más pequeña o de menor resolución.';
       } else if (e.toString().contains('timeout')) {
-        errorMessage = 'La subida tardó demasiado.\n'
+        errorMessage =
+            'La subida tardó demasiado.\n'
             'Verifica tu conexión e intenta con un archivo más pequeño.';
       } else {
         errorMessage = 'Error: ${e.toString()}';
@@ -510,16 +557,16 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildMediaGrid('imagen'),
-                    _buildMediaGrid('video'),
-                    _buildMediaGrid('documento'),
-                    _buildMediaGrid(null), // Todos
-                  ],
-                ),
+          ? Center(child: Text('Error: $_error'))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildMediaGrid('imagen'),
+                _buildMediaGrid('video'),
+                _buildMediaGrid('documento'),
+                _buildMediaGrid(null), // Todos
+              ],
+            ),
       floatingActionButton: _isUploading
           ? const CircularProgressIndicator()
           : SpeedDial(
@@ -554,18 +601,11 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.folder_open,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.folder_open, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No hay archivos',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -594,9 +634,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: _buildPreview(archivo),
-          ),
+          Expanded(child: _buildPreview(archivo)),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -623,10 +661,7 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
                     Expanded(
                       child: Text(
                         archivo.tipoMedia,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                     ),
                     IconButton(
@@ -663,7 +698,11 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            const Icon(Icons.play_circle_outline, size: 64, color: Colors.white),
+            const Icon(
+              Icons.play_circle_outline,
+              size: 64,
+              color: Colors.white,
+            ),
             Positioned(
               bottom: 8,
               left: 8,
@@ -688,7 +727,11 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(_getDocumentIcon(archivo.mimeType), size: 48, color: Colors.blue),
+            Icon(
+              _getDocumentIcon(archivo.mimeType),
+              size: 48,
+              color: Colors.blue,
+            ),
             const SizedBox(height: 8),
             Text(
               _getExtension(archivo.nombreArchivo).toUpperCase(),

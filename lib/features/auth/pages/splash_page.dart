@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/services/storage_service.dart';
@@ -11,15 +12,23 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    _checkAuth();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _checkAuth();
+    }
   }
 
   Future<void> _checkAuth() async {
     // Pequeña pausa para mostrar splash
     await Future.delayed(const Duration(milliseconds: 500));
+
+    // Detectar si es desktop (web o pantalla grande)
+    final isDesktop = kIsWeb || MediaQuery.of(context).size.width >= 1100;
 
     try {
       // Verificar si hay token guardado
@@ -33,14 +42,25 @@ class _SplashPageState extends State<SplashPage> {
         print('✅ Sesión activa, redirigiendo a /home');
         Modular.to.navigate('/home');
       } else {
-        // No hay sesión, ir a welcome
-        print('⚠️ No hay sesión, redirigiendo a /auth/welcome');
-        Modular.to.navigate('/auth/welcome');
+        // No hay sesión
+        if (isDesktop) {
+          // En desktop ir directo al login
+          print('💻 Desktop detectado, redirigiendo a /auth/login');
+          Modular.to.navigate('/auth/login');
+        } else {
+          // En móvil ir a welcome
+          print('📱 Móvil detectado, redirigiendo a /auth/welcome');
+          Modular.to.navigate('/auth/welcome');
+        }
       }
     } catch (e) {
       print('❌ Error verificando sesión: $e');
-      // En caso de error, ir a welcome
-      Modular.to.navigate('/auth/welcome');
+      // En caso de error, ir a login en desktop o welcome en móvil
+      if (isDesktop) {
+        Modular.to.navigate('/auth/login');
+      } else {
+        Modular.to.navigate('/auth/welcome');
+      }
     }
   }
 

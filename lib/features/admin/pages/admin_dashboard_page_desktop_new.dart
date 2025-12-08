@@ -200,20 +200,44 @@ class _AdminDashboardPageDesktopNewState extends State<AdminDashboardPageDesktop
           ),
           const SizedBox(height: 16),
           // Botón de colapsar/expandir
-          GestureDetector(
-            onTap: () => setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: DashboardTheme.sidebarHover,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _isSidebarCollapsed 
-                    ? Icons.chevron_right_rounded 
-                    : Icons.chevron_left_rounded,
-                color: DashboardTheme.textMuted,
-                size: 20,
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: DashboardTheme.sidebarHover.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: _isSidebarCollapsed 
+                      ? MainAxisAlignment.center 
+                      : MainAxisAlignment.start,
+                  children: [
+                    AnimatedRotation(
+                      turns: _isSidebarCollapsed ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_double_arrow_left_rounded,
+                        color: DashboardTheme.textMuted,
+                        size: 18,
+                      ),
+                    ),
+                    if (!_isSidebarCollapsed) ...[
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Ocultar menú',
+                        style: TextStyle(
+                          color: DashboardTheme.textMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),

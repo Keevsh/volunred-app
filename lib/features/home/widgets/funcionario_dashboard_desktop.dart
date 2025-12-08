@@ -29,6 +29,7 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
   bool _isSidebarCollapsed = false;
   String _userName = 'Funcionario';
   String _userEmail = 'funcionario@volunred.com';
+  Proyecto? _selectedProyecto; // Proyecto seleccionado para ver detalles
 
   final List<_MenuItem> _menuItems = [
     _MenuItem(icon: Icons.dashboard_rounded, title: 'Dashboard'),
@@ -191,20 +192,45 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
             ],
           ),
           const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () => setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: DashboardTheme.sidebarHover,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _isSidebarCollapsed 
-                    ? Icons.chevron_right_rounded 
-                    : Icons.chevron_left_rounded,
-                color: DashboardTheme.textMuted,
-                size: 20,
+          // Botón de colapsar/expandir
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: DashboardTheme.sidebarHover.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: _isSidebarCollapsed 
+                      ? MainAxisAlignment.center 
+                      : MainAxisAlignment.start,
+                  children: [
+                    AnimatedRotation(
+                      turns: _isSidebarCollapsed ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_double_arrow_left_rounded,
+                        color: DashboardTheme.textMuted,
+                        size: 18,
+                      ),
+                    ),
+                    if (!_isSidebarCollapsed) ...[
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Ocultar menú',
+                        style: TextStyle(
+                          color: DashboardTheme.textMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -503,7 +529,7 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
           child: _buildDashboardContent(),
         );
       case 1:
-        return SingleChildScrollView(
+        return Padding(
           padding: const EdgeInsets.all(32),
           child: _buildProyectosContent(),
         );
@@ -885,75 +911,93 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
   }
 
   Widget _buildProjectItem(Proyecto proyecto) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: DashboardTheme.background,
-        borderRadius: BorderRadius.circular(DashboardTheme.radiusMedium),
-        border: Border.all(color: DashboardTheme.borderColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: DashboardTheme.chartBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.folder_rounded,
-              color: DashboardTheme.chartBlue,
-              size: 24,
+    final isSelected = _selectedProyecto?.idProyecto == proyecto.idProyecto;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedProyecto = proyecto),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected ? DashboardTheme.primary.withOpacity(0.05) : DashboardTheme.background,
+            borderRadius: BorderRadius.circular(DashboardTheme.radiusMedium),
+            border: Border.all(
+              color: isSelected ? DashboardTheme.primary : DashboardTheme.borderColor,
+              width: isSelected ? 2 : 1,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  proyecto.nombre,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: DashboardTheme.textPrimary,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: DashboardTheme.chartBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  proyecto.objetivo ?? 'Sin objetivo definido',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: DashboardTheme.textMuted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: const Icon(
+                  Icons.folder_rounded,
+                  color: DashboardTheme.chartBlue,
+                  size: 24,
                 ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: proyecto.estado == 'activo' 
-                  ? DashboardTheme.successLight 
-                  : DashboardTheme.warningLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              proyecto.estado,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: proyecto.estado == 'activo' 
-                    ? DashboardTheme.success 
-                    : DashboardTheme.warning,
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      proyecto.nombre,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: DashboardTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      proyecto.objetivo ?? 'Sin objetivo definido',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: DashboardTheme.textMuted,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: proyecto.estado == 'activo' 
+                      ? DashboardTheme.successLight 
+                      : DashboardTheme.warningLight,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  proyecto.estado,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: proyecto.estado == 'activo' 
+                        ? DashboardTheme.success 
+                        : DashboardTheme.warning,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: isSelected ? DashboardTheme.primary : DashboardTheme.textMuted,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1094,32 +1138,244 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
 
   // Contenido de otras secciones
   Widget _buildProyectosContent() {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Mis Proyectos',
+        // Lista de proyectos
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Mis Proyectos',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: DashboardTheme.textPrimary,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.add),
+                    label: const Text('Nuevo Proyecto'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: _proyectos.isEmpty
+                    ? _buildEmptyState('No hay proyectos', Icons.folder_open)
+                    : ListView.builder(
+                        itemCount: _proyectos.length,
+                        itemBuilder: (context, index) => _buildProjectItem(_proyectos[index]),
+                      ),
+              ),
+            ],
+          ),
+        ),
+        // Panel de detalles del proyecto
+        if (_selectedProyecto != null) ...[
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              child: _buildProyectoDetailPanel(_selectedProyecto!),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildProyectoDetailPanel(Proyecto proyecto) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: DashboardTheme.cardBg,
+        borderRadius: BorderRadius.circular(DashboardTheme.radiusLarge),
+        border: Border.all(color: DashboardTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header con botón cerrar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  proyecto.nombre,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: DashboardTheme.textPrimary,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => setState(() => _selectedProyecto = null),
+                icon: const Icon(Icons.close_rounded),
+                tooltip: 'Cerrar',
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Estado
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: proyecto.estado == 'activo' 
+                  ? DashboardTheme.successLight 
+                  : DashboardTheme.warningLight,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              proyecto.estado.toUpperCase(),
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: DashboardTheme.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: proyecto.estado == 'activo' 
+                    ? DashboardTheme.success 
+                    : DashboardTheme.warning,
               ),
             ),
-            FilledButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add),
-              label: const Text('Nuevo Proyecto'),
+          ),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 20),
+          // Información del proyecto
+          _buildDetailRow(Icons.description_rounded, 'Objetivo', proyecto.objetivo ?? 'Sin objetivo'),
+          const SizedBox(height: 16),
+          _buildDetailRow(Icons.calendar_today_rounded, 'Fecha Inicio', 
+              proyecto.fechaInicio != null ? _formatDate(proyecto.fechaInicio!) : 'No definida'),
+          const SizedBox(height: 16),
+          _buildDetailRow(Icons.event_rounded, 'Fecha Fin', 
+              proyecto.fechaFin != null ? _formatDate(proyecto.fechaFin!) : 'No definida'),
+          const SizedBox(height: 16),
+          _buildDetailRow(Icons.location_on_rounded, 'Ubicación', proyecto.ubicacion ?? 'No especificada'),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          // Sección de Tareas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Tareas del Proyecto',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: DashboardTheme.textPrimary,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  // TODO: Agregar tarea
+                },
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Agregar'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Lista de tareas (placeholder)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: DashboardTheme.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: DashboardTheme.borderColor),
             ),
-          ],
+            child: Column(
+              children: [
+                Icon(
+                  Icons.task_alt_rounded,
+                  size: 48,
+                  color: DashboardTheme.textMuted.withOpacity(0.5),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No hay tareas asignadas',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: DashboardTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Crea tareas para organizar el trabajo del proyecto',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: DashboardTheme.textMuted.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Botones de acción
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Editar proyecto
+                  },
+                  icon: const Icon(Icons.edit_rounded),
+                  label: const Text('Editar'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () {
+                    // TODO: Ver voluntarios
+                  },
+                  icon: const Icon(Icons.people_rounded),
+                  label: const Text('Voluntarios'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: DashboardTheme.textMuted),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DashboardTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: DashboardTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        if (_proyectos.isEmpty)
-          _buildEmptyState('No hay proyectos', Icons.folder_open)
-        else
-          ...(_proyectos.map((p) => _buildProjectItem(p))),
       ],
     );
   }

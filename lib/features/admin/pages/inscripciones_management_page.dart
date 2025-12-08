@@ -16,6 +16,8 @@ class InscripcionesManagementPage extends StatefulWidget {
 class _InscripcionesManagementPageState
     extends State<InscripcionesManagementPage> {
   String _filtroEstado = 'todos'; // 'todos', 'activo', 'inactivo'
+  List<Inscripcion> _inscripciones = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -24,6 +26,7 @@ class _InscripcionesManagementPageState
   }
 
   void _loadData() {
+    setState(() => _isLoading = true);
     context.read<AdminBloc>().add(LoadInscripcionesRequested());
   }
 
@@ -142,21 +145,26 @@ class _InscripcionesManagementPageState
 
               // Lista de inscripciones
               Expanded(
-                child: BlocBuilder<AdminBloc, AdminState>(
+                child: BlocConsumer<AdminBloc, AdminState>(
+                  listener: (context, state) {
+                    if (state is InscripcionesLoaded) {
+                      setState(() {
+                        _inscripciones = state.inscripciones;
+                        _isLoading = false;
+                      });
+                    }
+                  },
                   builder: (context, state) {
-                    if (state is AdminLoading) {
+                    if (_isLoading && _inscripciones.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state is InscripcionesLoaded) {
-                      final inscripcionesFiltradas = _filtrarInscripciones(
-                        state.inscripciones,
-                      );
-                      if (inscripcionesFiltradas.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return _buildInscripcionesList(inscripcionesFiltradas);
+                    final inscripcionesFiltradas = _filtrarInscripciones(
+                      _inscripciones,
+                    );
+                    if (inscripcionesFiltradas.isEmpty) {
+                      return _buildEmptyState();
                     }
-                    return _buildEmptyState();
+                    return _buildInscripcionesList(inscripcionesFiltradas);
                   },
                 ),
               ),

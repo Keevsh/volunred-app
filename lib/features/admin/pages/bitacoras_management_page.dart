@@ -62,41 +62,6 @@ class _BitacorasManagementPageState extends State<BitacorasManagementPage>
     }).toList();
   }
 
-  void _showDeleteConfirmDialog({
-    required String tipo,
-    required int id,
-    required String comentario,
-  }) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Confirmar Eliminación'),
-        content: Text(
-          '¿Estás seguro de eliminar esta bitácora?\n\n"$comentario"\n\nEsta acción no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (tipo == 'operacion') {
-                BlocProvider.of<AdminBloc>(context)
-                    .add(DeleteBitacoraOperacionRequested(id));
-              } else {
-                BlocProvider.of<AdminBloc>(context)
-                    .add(DeleteBitacoraAutorRequested(id));
-              }
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showDetailDialog(dynamic bitacora) {
     final isOperacion = bitacora is BitacoraOperacion;
@@ -371,18 +336,12 @@ class _BitacorasManagementPageState extends State<BitacorasManagementPage>
       itemBuilder: (context, index) {
         final bitacora = filtered[index];
         return _buildBitacoraCard(
-          id: bitacora.idOperaciones,
           tipo: 'operacion',
           comentario: bitacora.comentario,
           estado: bitacora.estado,
           creadoEn: bitacora.creadoEn,
           nombreUsuario: bitacora.nombreUsuario,
           onTap: () => _showDetailDialog(bitacora),
-          onDelete: () => _showDeleteConfirmDialog(
-            tipo: 'operacion',
-            id: bitacora.idOperaciones,
-            comentario: bitacora.comentario,
-          ),
         );
       },
     );
@@ -400,18 +359,12 @@ class _BitacorasManagementPageState extends State<BitacorasManagementPage>
       itemBuilder: (context, index) {
         final bitacora = filtered[index];
         return _buildBitacoraCard(
-          id: bitacora.idAutores,
           tipo: 'autor',
           comentario: bitacora.comentario,
           estado: bitacora.estado,
           creadoEn: bitacora.creadoEn,
           nombreUsuario: bitacora.nombreUsuario,
           onTap: () => _showDetailDialog(bitacora),
-          onDelete: () => _showDeleteConfirmDialog(
-            tipo: 'autor',
-            id: bitacora.idAutores,
-            comentario: bitacora.comentario,
-          ),
         );
       },
     );
@@ -457,14 +410,12 @@ class _BitacorasManagementPageState extends State<BitacorasManagementPage>
   }
 
   Widget _buildBitacoraCard({
-    required int id,
     required String tipo,
     required String comentario,
     required String estado,
     required DateTime creadoEn,
     required String nombreUsuario,
     required VoidCallback onTap,
-    required VoidCallback onDelete,
   }) {
     final estadoColor = estado == 'activo'
         ? const Color(0xFF34C759)
@@ -565,14 +516,11 @@ class _BitacorasManagementPageState extends State<BitacorasManagementPage>
                 ),
               ),
               const SizedBox(width: 8),
-              // Botón eliminar
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: Color(0xFFFF3B30),
-                  size: 20,
-                ),
-                onPressed: onDelete,
+              // Icono de solo lectura
+              const Icon(
+                Icons.visibility_rounded,
+                color: Color(0xFF86868B),
+                size: 20,
               ),
             ],
           ),

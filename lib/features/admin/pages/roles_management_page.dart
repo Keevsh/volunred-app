@@ -17,6 +17,9 @@ class RolesManagementPage extends StatefulWidget {
 }
 
 class _RolesManagementPageState extends State<RolesManagementPage> {
+  List<Rol> _roles = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -24,6 +27,7 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
   }
 
   void _loadData() {
+    setState(() => _isLoading = true);
     context.read<AdminBloc>().add(LoadRolesRequested());
   }
 
@@ -180,18 +184,23 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
                   ),
                 ),
               Expanded(
-                child: BlocBuilder<AdminBloc, AdminState>(
+                child: BlocConsumer<AdminBloc, AdminState>(
+                  listener: (context, state) {
+                    if (state is RolesLoaded) {
+                      setState(() {
+                        _roles = state.roles;
+                        _isLoading = false;
+                      });
+                    }
+                  },
                   builder: (context, state) {
-                    if (state is AdminLoading) {
+                    if (_isLoading && _roles.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state is RolesLoaded) {
-                      if (state.roles.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return _buildRolesList(state.roles);
+                    if (_roles.isEmpty) {
+                      return _buildEmptyState();
                     }
-                    return _buildEmptyState();
+                    return _buildRolesList(_roles);
                   },
                 ),
               ),

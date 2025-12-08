@@ -16,6 +16,9 @@ class TareasManagementPage extends StatefulWidget {
 }
 
 class _TareasManagementPageState extends State<TareasManagementPage> {
+  List<Tarea> _tareas = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +26,7 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
   }
 
   void _loadData() {
+    setState(() => _isLoading = true);
     context.read<AdminBloc>().add(LoadTareasRequested());
     context.read<AdminBloc>().add(LoadProyectosRequested());
   }
@@ -124,18 +128,23 @@ class _TareasManagementPageState extends State<TareasManagementPage> {
 
               // Lista de tareas
               Expanded(
-                child: BlocBuilder<AdminBloc, AdminState>(
+                child: BlocConsumer<AdminBloc, AdminState>(
+                  listener: (context, state) {
+                    if (state is TareasLoaded) {
+                      setState(() {
+                        _tareas = state.tareas;
+                        _isLoading = false;
+                      });
+                    }
+                  },
                   builder: (context, state) {
-                    if (state is AdminLoading) {
+                    if (_isLoading && _tareas.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state is TareasLoaded) {
-                      if (state.tareas.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return _buildTareasList(state.tareas);
+                    if (_tareas.isEmpty) {
+                      return _buildEmptyState();
                     }
-                    return _buildEmptyState();
+                    return _buildTareasList(_tareas);
                   },
                 ),
               ),

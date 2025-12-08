@@ -17,6 +17,9 @@ class OrganizacionesManagementPage extends StatefulWidget {
 
 class _OrganizacionesManagementPageState
     extends State<OrganizacionesManagementPage> {
+  List<Organizacion> _organizaciones = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +29,7 @@ class _OrganizacionesManagementPageState
   }
 
   void _loadData() {
+    setState(() => _isLoading = true);
     context.read<AdminBloc>().add(LoadOrganizacionesRequested());
     context.read<AdminBloc>().add(LoadCategoriasOrganizacionesRequested());
   }
@@ -127,18 +131,23 @@ class _OrganizacionesManagementPageState
 
               // Lista de organizaciones
               Expanded(
-                child: BlocBuilder<AdminBloc, AdminState>(
+                child: BlocConsumer<AdminBloc, AdminState>(
+                  listener: (context, state) {
+                    if (state is OrganizacionesLoaded) {
+                      setState(() {
+                        _organizaciones = state.organizaciones;
+                        _isLoading = false;
+                      });
+                    }
+                  },
                   builder: (context, state) {
-                    if (state is AdminLoading) {
+                    if (_isLoading && _organizaciones.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state is OrganizacionesLoaded) {
-                      if (state.organizaciones.isEmpty) {
-                        return _buildEmptyState();
-                      }
-                      return _buildOrganizacionesList(state.organizaciones);
+                    if (_organizaciones.isEmpty) {
+                      return _buildEmptyState();
                     }
-                    return _buildEmptyState();
+                    return _buildOrganizacionesList(_organizaciones);
                   },
                 ),
               ),

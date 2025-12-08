@@ -4,6 +4,7 @@ import '../../core/repositories/admin_repository.dart';
 import 'bloc/admin_bloc.dart';
 import 'pages/admin_dashboard_page.dart';
 import 'pages/aptitudes_management_page.dart';
+import 'pages/bitacoras_management_page.dart';
 import 'pages/usuarios_management_page.dart';
 import 'pages/roles_management_page.dart';
 import 'pages/permisos_management_page.dart';
@@ -81,6 +82,13 @@ class AdminModule extends Module {
       child: (_, __) => BlocProvider(
         create: (context) => AdminBloc(Modular.get<AdminRepository>()),
         child: const TareasManagementPage(),
+      ),
+    ),
+    ChildRoute(
+      '/bitacoras',
+      child: (_, __) => BlocProvider(
+        create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+        child: const BitacorasManagementPage(),
       ),
     ),
   ];

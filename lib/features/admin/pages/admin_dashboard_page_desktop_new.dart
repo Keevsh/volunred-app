@@ -5,6 +5,7 @@ import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/admin_repository.dart';
 import '../../../core/theme/dashboard_theme.dart';
 import '../bloc/admin_bloc.dart';
+import 'bitacoras_management_page.dart';
 import 'usuarios_management_page.dart';
 import 'roles_management_page.dart';
 import 'permisos_management_page.dart';
@@ -41,6 +42,7 @@ class _AdminDashboardPageDesktopNewState extends State<AdminDashboardPageDesktop
     _MenuItem(icon: Icons.business_rounded, title: 'Organizaciones'),
     _MenuItem(icon: Icons.folder_special_rounded, title: 'Proyectos'),
     _MenuItem(icon: Icons.task_rounded, title: 'Tareas'),
+    _MenuItem(icon: Icons.history_rounded, title: 'Bitácoras'),
   ];
 
   @override
@@ -445,6 +447,11 @@ class _AdminDashboardPageDesktopNewState extends State<AdminDashboardPageDesktop
         return BlocProvider(
           create: (context) => AdminBloc(Modular.get<AdminRepository>()),
           child: const TareasManagementPage(embedded: true),
+        );
+      case 9:
+        return BlocProvider(
+          create: (context) => AdminBloc(Modular.get<AdminRepository>()),
+          child: const BitacorasManagementPage(embedded: true),
         );
       default:
         return SingleChildScrollView(

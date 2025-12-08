@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import '../../../core/models/aplicacion.dart';
 import '../../../core/models/aptitud.dart';
+import '../../../core/models/bitacora_autor.dart';
+import '../../../core/models/bitacora_operacion.dart';
 import '../../../core/models/modulo.dart';
 import '../../../core/models/organizacion.dart';
 import '../../../core/models/permiso.dart';
@@ -589,6 +591,64 @@ class InscripcionDeleted extends AdminState {
   final String message;
 
   const InscripcionDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== BITÁCORAS DE OPERACIONES ====================
+
+class BitacorasOperacionesLoaded extends AdminState {
+  final List<BitacoraOperacion> bitacoras;
+
+  const BitacorasOperacionesLoaded(this.bitacoras);
+
+  @override
+  List<Object?> get props => [bitacoras];
+}
+
+class BitacoraOperacionLoaded extends AdminState {
+  final BitacoraOperacion bitacora;
+
+  const BitacoraOperacionLoaded(this.bitacora);
+
+  @override
+  List<Object?> get props => [bitacora];
+}
+
+class BitacoraOperacionDeleted extends AdminState {
+  final String message;
+
+  const BitacoraOperacionDeleted(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ==================== BITÁCORAS DE AUTORES ====================
+
+class BitacorasAutoresLoaded extends AdminState {
+  final List<BitacoraAutor> bitacoras;
+
+  const BitacorasAutoresLoaded(this.bitacoras);
+
+  @override
+  List<Object?> get props => [bitacoras];
+}
+
+class BitacoraAutorLoaded extends AdminState {
+  final BitacoraAutor bitacora;
+
+  const BitacoraAutorLoaded(this.bitacora);
+
+  @override
+  List<Object?> get props => [bitacora];
+}
+
+class BitacoraAutorDeleted extends AdminState {
+  final String message;
+
+  const BitacoraAutorDeleted(this.message);
 
   @override
   List<Object?> get props => [message];

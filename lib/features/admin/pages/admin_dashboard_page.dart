@@ -338,6 +338,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         color: const Color(0xFF007AFF),
         route: '/admin/tareas',
       ),
+      _AdminOption(
+        icon: Icons.history_rounded,
+        title: 'Bitácoras',
+        subtitle: 'Historial de operaciones',
+        color: const Color(0xFFAF52DE),
+        route: '/admin/bitacoras',
+      ),
     ];
 
     return items.asMap().entries.map((entry) {

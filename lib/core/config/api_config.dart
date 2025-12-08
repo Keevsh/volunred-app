@@ -33,6 +33,7 @@ class ApiConfig {
 
   // Endpoints de administración (solo admin)
   static const String perfilesUsuarios = '/perfiles/usuarios';
+  static const String adminUsuarios = '/administracion/usuarios';
   static const String adminRoles = '/administracion/roles';
   static const String adminPermisos = '/administracion/permisos';
   static const String adminProgramas = '/administracion/programas';
@@ -42,6 +43,13 @@ class ApiConfig {
       '/administracion/roles/asignar-rol-usuario';
   static const String adminAsignarPermisos =
       '/administracion/roles/asignar-permisos';
+
+  // Endpoints de bitácoras (administración)
+  static const String bitacorasOperaciones =
+      '/administracion/bitacoras-operaciones';
+  static String bitacoraOperacion(int id) => '$bitacorasOperaciones/$id';
+  static const String bitacorasAutores = '/administracion/bitacoras-autores';
+  static String bitacoraAutor(int id) => '$bitacorasAutores/$id';
 
   // Endpoints de categorías
   static const String categoriasOrganizaciones = '/configuracion/categorias';

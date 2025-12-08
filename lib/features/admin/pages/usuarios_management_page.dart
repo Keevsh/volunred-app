@@ -213,13 +213,18 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
           ElevatedButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                // TODO: Implementar actualización
-                Navigator.pop(dialogContext);
-                AppWidgets.showStyledSnackBar(
-                  context: context,
-                  message: 'Funcionalidad en desarrollo',
-                  isError: false,
+                final telefono = telefonoController.text.isNotEmpty
+                    ? int.tryParse(telefonoController.text)
+                    : null;
+                BlocProvider.of<AdminBloc>(context).add(
+                  UpdateUsuarioRequested(
+                    id: usuario.idUsuario,
+                    nombres: nombreController.text,
+                    apellidos: apellidoController.text,
+                    telefono: telefono,
+                  ),
                 );
+                Navigator.pop(dialogContext);
               }
             },
             child: const Text('Guardar'),
@@ -352,6 +357,13 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
               AppWidgets.showStyledSnackBar(
                 context: context,
                 message: 'Rol asignado exitosamente',
+                isError: false,
+              );
+              _loadData();
+            } else if (state is UsuarioUpdated) {
+              AppWidgets.showStyledSnackBar(
+                context: context,
+                message: 'Usuario actualizado exitosamente',
                 isError: false,
               );
               _loadData();

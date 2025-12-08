@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import '../models/aplicacion.dart';
 import '../models/aptitud.dart';
+import '../models/bitacora_autor.dart';
+import '../models/bitacora_operacion.dart';
 import '../models/dto/request_models.dart';
 import '../models/modulo.dart';
 import '../models/organizacion.dart';
@@ -124,10 +126,29 @@ class AdminRepository {
   /// Actualizar usuario
   Future<Usuario> updateUsuario(int id, UpdateUsuarioRequest request) async {
     try {
+      final requestData = request.toJson();
+      print('🔄 [ADMIN REPO] ========================================');
+      print('🔄 [ADMIN REPO] Actualizando usuario ID: $id');
+      print('🔄 [ADMIN REPO] Datos enviados: $requestData');
+      print('🔄 [ADMIN REPO] URL: ${ApiConfig.perfilesUsuarios}/$id');
+      
       final response = await _dioClient.dio.patch(
         '${ApiConfig.perfilesUsuarios}/$id',
-        data: request.toJson(),
+        data: requestData,
       );
+
+      print('📦 [ADMIN REPO] Status: ${response.statusCode}');
+      print('📦 [ADMIN REPO] Respuesta: ${response.data}');
+      
+      // Verificar si los datos se actualizaron
+      final responseData = response.data as Map<String, dynamic>;
+      if (requestData.containsKey('nombres') && 
+          responseData['nombres'] != requestData['nombres']) {
+        print('⚠️ [ADMIN REPO] ADVERTENCIA: El nombre no se actualizó!');
+        print('⚠️ [ADMIN REPO] Enviado: ${requestData['nombres']}');
+        print('⚠️ [ADMIN REPO] Recibido: ${responseData['nombres']}');
+      }
+      print('🔄 [ADMIN REPO] ========================================');
 
       // Manejar diferentes formatos de respuesta
       final data = response.data;
@@ -138,6 +159,8 @@ class AdminRepository {
 
       return Usuario.fromJson(response.data);
     } on DioException catch (e) {
+      print('❌ [ADMIN REPO] Error: ${e.message}');
+      print('❌ [ADMIN REPO] Response: ${e.response?.data}');
       throw _handleError(e);
     }
   }
@@ -1061,6 +1084,140 @@ class AdminRepository {
   Future<void> deleteInscripcion(int id) async {
     try {
       await _dioClient.dio.delete('${ApiConfig.inscripciones}/$id');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== BITÁCORAS DE OPERACIONES ====================
+
+  /// Listar todas las bitácoras de operaciones
+  Future<List<BitacoraOperacion>> getBitacorasOperaciones() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.bitacorasOperaciones);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['bitacoras'] ?? []);
+      return data
+          .map((json) => BitacoraOperacion.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener bitácora de operación por ID
+  Future<BitacoraOperacion> getBitacoraOperacionById(int id) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.bitacoraOperacion(id),
+      );
+      return BitacoraOperacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear bitácora de operación manualmente
+  Future<BitacoraOperacion> createBitacoraOperacion(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.bitacorasOperaciones,
+        data: data,
+      );
+      return BitacoraOperacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar bitácora de operación
+  Future<BitacoraOperacion> updateBitacoraOperacion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        ApiConfig.bitacoraOperacion(id),
+        data: data,
+      );
+      return BitacoraOperacion.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar bitácora de operación
+  Future<void> deleteBitacoraOperacion(int id) async {
+    try {
+      await _dioClient.dio.delete(ApiConfig.bitacoraOperacion(id));
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== BITÁCORAS DE AUTORES ====================
+
+  /// Listar todas las bitácoras de autores
+  Future<List<BitacoraAutor>> getBitacorasAutores() async {
+    try {
+      final response = await _dioClient.dio.get(ApiConfig.bitacorasAutores);
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['bitacoras'] ?? []);
+      return data
+          .map((json) => BitacoraAutor.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener bitácora de autor por ID
+  Future<BitacoraAutor> getBitacoraAutorById(int id) async {
+    try {
+      final response = await _dioClient.dio.get(
+        ApiConfig.bitacoraAutor(id),
+      );
+      return BitacoraAutor.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Crear bitácora de autor manualmente
+  Future<BitacoraAutor> createBitacoraAutor(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiConfig.bitacorasAutores,
+        data: data,
+      );
+      return BitacoraAutor.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Actualizar bitácora de autor
+  Future<BitacoraAutor> updateBitacoraAutor(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dioClient.dio.patch(
+        ApiConfig.bitacoraAutor(id),
+        data: data,
+      );
+      return BitacoraAutor.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Eliminar bitácora de autor
+  Future<void> deleteBitacoraAutor(int id) async {
+    try {
+      await _dioClient.dio.delete(ApiConfig.bitacoraAutor(id));
     } on DioException catch (e) {
       throw _handleError(e);
     }

@@ -777,3 +777,47 @@ class DeleteInscripcionRequested extends AdminEvent {
   @override
   List<Object?> get props => [id];
 }
+
+// ==================== BITÁCORAS DE OPERACIONES ====================
+
+class LoadBitacorasOperacionesRequested extends AdminEvent {}
+
+class LoadBitacoraOperacionByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadBitacoraOperacionByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class DeleteBitacoraOperacionRequested extends AdminEvent {
+  final int id;
+
+  const DeleteBitacoraOperacionRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+// ==================== BITÁCORAS DE AUTORES ====================
+
+class LoadBitacorasAutoresRequested extends AdminEvent {}
+
+class LoadBitacoraAutorByIdRequested extends AdminEvent {
+  final int id;
+
+  const LoadBitacoraAutorByIdRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class DeleteBitacoraAutorRequested extends AdminEvent {
+  final int id;
+
+  const DeleteBitacoraAutorRequested(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}

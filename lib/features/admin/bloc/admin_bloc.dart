@@ -104,6 +104,16 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<CreateInscripcionRequested>(_onCreateInscripcionRequested);
     on<UpdateInscripcionRequested>(_onUpdateInscripcionRequested);
     on<DeleteInscripcionRequested>(_onDeleteInscripcionRequested);
+
+    // Bitácoras de Operaciones
+    on<LoadBitacorasOperacionesRequested>(_onLoadBitacorasOperacionesRequested);
+    on<LoadBitacoraOperacionByIdRequested>(_onLoadBitacoraOperacionByIdRequested);
+    on<DeleteBitacoraOperacionRequested>(_onDeleteBitacoraOperacionRequested);
+
+    // Bitácoras de Autores
+    on<LoadBitacorasAutoresRequested>(_onLoadBitacorasAutoresRequested);
+    on<LoadBitacoraAutorByIdRequested>(_onLoadBitacoraAutorByIdRequested);
+    on<DeleteBitacoraAutorRequested>(_onDeleteBitacoraAutorRequested);
   }
 
   // ==================== USUARIOS ====================
@@ -1197,6 +1207,88 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       await adminRepository.deleteInscripcion(event.id);
       emit(const InscripcionDeleted('Inscripción eliminada correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== BITÁCORAS DE OPERACIONES ====================
+
+  Future<void> _onLoadBitacorasOperacionesRequested(
+    LoadBitacorasOperacionesRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final bitacoras = await adminRepository.getBitacorasOperaciones();
+      emit(BitacorasOperacionesLoaded(bitacoras));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadBitacoraOperacionByIdRequested(
+    LoadBitacoraOperacionByIdRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final bitacora = await adminRepository.getBitacoraOperacionById(event.id);
+      emit(BitacoraOperacionLoaded(bitacora));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteBitacoraOperacionRequested(
+    DeleteBitacoraOperacionRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteBitacoraOperacion(event.id);
+      emit(const BitacoraOperacionDeleted('Bitácora eliminada correctamente'));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  // ==================== BITÁCORAS DE AUTORES ====================
+
+  Future<void> _onLoadBitacorasAutoresRequested(
+    LoadBitacorasAutoresRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final bitacoras = await adminRepository.getBitacorasAutores();
+      emit(BitacorasAutoresLoaded(bitacoras));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadBitacoraAutorByIdRequested(
+    LoadBitacoraAutorByIdRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final bitacora = await adminRepository.getBitacoraAutorById(event.id);
+      emit(BitacoraAutorLoaded(bitacora));
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteBitacoraAutorRequested(
+    DeleteBitacoraAutorRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      await adminRepository.deleteBitacoraAutor(event.id);
+      emit(const BitacoraAutorDeleted('Bitácora eliminada correctamente'));
     } catch (e) {
       emit(AdminError(e.toString()));
     }

@@ -596,7 +596,9 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
   }
 
   Widget _buildUsuarioCard(Usuario usuario) {
-    final rolColor = _getRolColor(usuario.rol?.nombre ?? 'Sin rol');
+    final rol = _getUsuarioRol(usuario);
+    final rolNombre = rol?.nombre ?? 'Sin rol';
+    final rolColor = _getRolColor(rolNombre);
 
     return Material(
       color: Colors.white,
@@ -666,7 +668,7 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  usuario.rol?.nombre ?? 'Sin rol',
+                  rolNombre,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -737,6 +739,17 @@ class _UsuariosManagementPageState extends State<UsuariosManagementPage> {
         ),
       ),
     );
+  }
+
+  Rol? _getUsuarioRol(Usuario usuario) {
+    if (usuario.rol != null) return usuario.rol;
+    final idRol = usuario.idRol;
+    if (idRol == null) return null;
+    try {
+      return _roles.firstWhere((rol) => rol.idRol == idRol);
+    } catch (_) {
+      return null;
+    }
   }
 
   Color _getRolColor(String rolNombre) {

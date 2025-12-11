@@ -83,35 +83,32 @@ class _HomePageState extends State<HomePage> {
       if (!usuario.isAdmin) {
         try {
           if (usuario.isFuncionario) {
-            // Verificar si tiene perfil O inscripción aprobada
+            // Verificar si tiene perfil de funcionario (organización)
             final tienePerfil = await authRepo.tienePerfilFuncionario();
             
             if (!tienePerfil) {
-              // Si no tiene perfil guardado, verificar inscripciones aprobadas del usuario actual
+              // Si no tiene perfil guardado, verificar si tiene organización en el backend
               try {
-                final voluntarioRepo = Modular.get<VoluntarioRepository>();
-                final perfil = await voluntarioRepo.getStoredPerfil();
-                final inscripciones = await voluntarioRepo.getInscripciones();
-                // Filtrar solo las inscripciones del usuario actual
-                final inscripcionesUsuario = perfil != null
-                    ? inscripciones.where((ins) => ins.perfilVolId == perfil.idPerfilVoluntario).toList()
-                    : <Inscripcion>[];
-                final tieneInscripcionAprobada = inscripcionesUsuario.any(
-                  (ins) => ins.estado.toUpperCase() == 'APROBADO',
-                );
+                final funcionarioRepo = Modular.get<FuncionarioRepository>();
+                final organizacion = await funcionarioRepo.getMiOrganizacion();
                 
-                if (!tieneInscripcionAprobada && mounted) {
-                  // Solo redirigir a crear perfil si NO tiene inscripciones aprobadas
+                if (organizacion.idOrganizacion > 0) {
+                  // Tiene organización, guardar el flag y permitir acceso
+                  print('✅ Funcionario tiene organización: ${organizacion.nombre}');
+                  await StorageService.saveString(
+                    ApiConfig.tienePerfilFuncionarioKey,
+                    'true',
+                  );
+                } else if (mounted) {
+                  // No tiene organización, redirigir a opciones
                   Future.microtask(() {
                     Modular.to.navigate('/profile/funcionario-options');
                   });
                   return;
-                } else if (tieneInscripcionAprobada) {
-                  print('✅ Usuario tiene inscripción aprobada, permitiendo acceso al dashboard');
                 }
               } catch (e) {
-                print('❌ Error verificando inscripciones: $e');
-                // Si hay error verificando inscripciones, redirigir a opciones
+                print('❌ Error verificando organización: $e');
+                // Si hay error verificando organización, redirigir a opciones
                 if (mounted) {
                   Future.microtask(() {
                     Modular.to.navigate('/profile/funcionario-options');

@@ -484,7 +484,11 @@ class _OrganizacionesManagementPageState
     );
     final ciudadController = TextEditingController();
     int? selectedCategoriaId = organizacion.idCategoriaOrganizacion;
-    String? selectedEstado = organizacion.estado;
+    // Normalizar el estado a minúsculas y asegurar que sea un valor válido
+    String? selectedEstado = organizacion.estado.toLowerCase();
+    if (selectedEstado != 'activo' && selectedEstado != 'inactivo') {
+      selectedEstado = 'activo'; // Valor por defecto si no es válido
+    }
 
     final bloc = context.read<AdminBloc>();
     showDialog(

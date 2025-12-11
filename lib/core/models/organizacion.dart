@@ -177,7 +177,7 @@ class Organizacion extends Equatable {
         razonSocial:
             _getString(json['razon_social']) ??
             _getString(json['nombre_legal']),
-        estado: _getString(json['estado']) ?? 'activo',
+        estado: (_getString(json['estado']) ?? 'activo').toLowerCase(),
         logo: logo,
         creadoEn: creadoEn,
         actualizadoEn: actualizadoEn,

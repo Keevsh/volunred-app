@@ -36,6 +36,8 @@ class _VideoFeedPageState extends State<VideoFeedPage> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Inicializar _isVisible basado en el parámetro isActive
+    _isVisible = widget.isActive;
     _cargarVideos();
   }
 
@@ -186,8 +188,8 @@ class _VideoFeedPageState extends State<VideoFeedPage> with WidgetsBindingObserv
         _controllers[index] = controller;
       });
 
-      // Si es el video actual, reproducirlo
-      if (index == _currentIndex) {
+      // Si es el video actual Y el widget está visible, reproducirlo
+      if (index == _currentIndex && _isVisible) {
         controller.play();
       }
     } catch (e) {
@@ -205,9 +207,11 @@ class _VideoFeedPageState extends State<VideoFeedPage> with WidgetsBindingObserv
       _currentIndex = index;
     });
 
-    // Reproducir video actual
+    // Reproducir video actual solo si está visible
     if (_controllers.containsKey(index)) {
-      _controllers[index]!.play();
+      if (_isVisible) {
+        _controllers[index]!.play();
+      }
     } else {
       _inicializarVideo(index);
     }

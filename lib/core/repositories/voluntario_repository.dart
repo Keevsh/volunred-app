@@ -603,6 +603,60 @@ class VoluntarioRepository {
     }
   }
 
+  /// Actualizar proyecto
+  /// 
+  /// Campos opcionales:
+  /// - nombre, objetivo, ubicacion
+  /// - fecha_inicio, fecha_fin (formato ISO o YYYY-MM-DD)
+  /// - estado: planificacion, activo, en_progreso, completado, cancelado
+  /// - participacion_publica: boolean
+  /// - categorias_ids: List<int> (reemplaza todas las categorías)
+  /// - imagen: base64 con prefijo data:image/...;base64, o null para eliminar
+  Future<Proyecto> updateProyecto(int id, Map<String, dynamic> data) async {
+    try {
+      final cleanData = Map<String, dynamic>.from(data);
+      // No se puede cambiar organizacion_id
+      cleanData.remove('organizacion_id');
+
+      // Convertir categoria_proyecto_id legacy a categorias_ids
+      if (cleanData.containsKey('categoria_proyecto_id') &&
+          !cleanData.containsKey('categorias_ids')) {
+        final categoriaId = cleanData.remove('categoria_proyecto_id');
+        if (categoriaId != null) {
+          cleanData['categorias_ids'] = [categoriaId];
+        }
+      }
+
+      // Asegurar que categorias_ids sea un array de números
+      if (cleanData.containsKey('categorias_ids')) {
+        final categoriasIds = cleanData['categorias_ids'];
+        if (categoriasIds is List) {
+          cleanData['categorias_ids'] = categoriasIds
+              .map((id) => id is int ? id : int.tryParse(id.toString()))
+              .where((id) => id != null)
+              .toList();
+        } else if (categoriasIds != null) {
+          final id = categoriasIds is int
+              ? categoriasIds
+              : int.tryParse(categoriasIds.toString());
+          if (id != null) {
+            cleanData['categorias_ids'] = [id];
+          } else {
+            cleanData.remove('categorias_ids');
+          }
+        }
+      }
+
+      final response = await _dioClient.dio.patch(
+        '${ApiConfig.proyectos}/$id',
+        data: cleanData,
+      );
+      return Proyecto.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Obtener todas las categorías
   Future<List<Categoria>> getCategorias() async {
     try {

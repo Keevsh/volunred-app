@@ -1402,20 +1402,200 @@ class _FuncionarioDashboardDesktopState extends State<FuncionarioDashboardDeskto
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Voluntarios',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: DashboardTheme.textPrimary,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Voluntarios',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: DashboardTheme.textPrimary,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: DashboardTheme.chartGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_participaciones.length} activos',
+                style: TextStyle(
+                  color: DashboardTheme.chartGreen,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         if (_participaciones.isEmpty)
           _buildEmptyState('No hay voluntarios activos', Icons.people)
         else
-          Text('${_participaciones.length} voluntarios activos'),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Header de la tabla
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: DashboardTheme.background,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: Row(
+                    children: const [
+                      Expanded(flex: 3, child: Text('Voluntario', style: TextStyle(fontWeight: FontWeight.w600, color: DashboardTheme.textSecondary))),
+                      Expanded(flex: 2, child: Text('Proyecto', style: TextStyle(fontWeight: FontWeight.w600, color: DashboardTheme.textSecondary))),
+                      Expanded(flex: 2, child: Text('Rol', style: TextStyle(fontWeight: FontWeight.w600, color: DashboardTheme.textSecondary))),
+                      Expanded(flex: 1, child: Text('Estado', style: TextStyle(fontWeight: FontWeight.w600, color: DashboardTheme.textSecondary))),
+                    ],
+                  ),
+                ),
+                // Lista de voluntarios
+                ...(_participaciones.map((p) => _buildVoluntarioRow(p))),
+              ],
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _buildVoluntarioRow(Participacion participacion) {
+    // Obtener nombre del voluntario
+    String nombreVoluntario = 'Sin nombre';
+    if (participacion.perfilVoluntario != null) {
+      final perfil = participacion.perfilVoluntario!;
+      final nombre = perfil['nombre'] ?? '';
+      final apellido = perfil['apellido'] ?? '';
+      nombreVoluntario = '$nombre $apellido'.trim();
+      if (nombreVoluntario.isEmpty) {
+        nombreVoluntario = perfil['bio']?.toString().substring(0, 20) ?? 'Voluntario';
+      }
+    } else if (participacion.usuario != null) {
+      nombreVoluntario = participacion.usuario!['nombre'] ?? participacion.usuario!['email'] ?? 'Voluntario';
+    } else if (participacion.inscripcion != null) {
+      final ins = participacion.inscripcion!;
+      if (ins['perfil_voluntario'] != null) {
+        final perfil = ins['perfil_voluntario'];
+        nombreVoluntario = '${perfil['nombre'] ?? ''} ${perfil['apellido'] ?? ''}'.trim();
+      }
+    }
+
+    // Obtener nombre del proyecto
+    String nombreProyecto = 'Sin proyecto';
+    if (participacion.proyecto != null) {
+      nombreProyecto = participacion.proyecto!['nombre'] ?? 'Proyecto';
+    } else {
+      // Buscar en la lista de proyectos
+      final proyecto = _proyectos.where((p) => p.idProyecto == participacion.proyectoId).firstOrNull;
+      if (proyecto != null) {
+        nombreProyecto = proyecto.nombre;
+      }
+    }
+
+    // Color del estado
+    Color estadoColor;
+    switch (participacion.estado.toUpperCase()) {
+      case 'EN_PROGRESO':
+        estadoColor = DashboardTheme.chartGreen;
+        break;
+      case 'COMPLETADO':
+        estadoColor = DashboardTheme.chartBlue;
+        break;
+      case 'PROGRAMADA':
+        estadoColor = DashboardTheme.chartOrange;
+        break;
+      default:
+        estadoColor = DashboardTheme.textSecondary;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade100),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: DashboardTheme.primary.withOpacity(0.1),
+                  child: Text(
+                    nombreVoluntario.isNotEmpty ? nombreVoluntario[0].toUpperCase() : 'V',
+                    style: TextStyle(
+                      color: DashboardTheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    nombreVoluntario,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: DashboardTheme.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              nombreProyecto,
+              style: const TextStyle(color: DashboardTheme.textSecondary),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              participacion.rolAsignado ?? 'Sin rol',
+              style: const TextStyle(color: DashboardTheme.textSecondary),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: estadoColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                participacion.estado.replaceAll('_', ' '),
+                style: TextStyle(
+                  color: estadoColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -734,29 +734,32 @@ class _ProyectoDetailPageState extends State<ProyectoDetailPage> {
             tooltip: 'Multimedia del proyecto',
           ),
           // Menú de opciones
+          // Botón de editar proyecto
+          IconButton(
+            icon: const Icon(Icons.edit_rounded),
+            onPressed: () async {
+              if (_proyecto != null) {
+                final result = await Modular.to.pushNamed(
+                  '/proyectos/${_proyecto!.idProyecto}/editar',
+                );
+                if (result == true) {
+                  _loadProyecto();
+                }
+              }
+            },
+            tooltip: 'Editar proyecto',
+          ),
+          // Menú de opciones
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
               switch (value) {
-                case 'editar':
-                  _showEditProyectoDialog();
-                  break;
                 case 'estado':
                   _cambiarEstadoProyecto();
                   break;
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'editar',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit),
-                    SizedBox(width: 12),
-                    Text('Editar proyecto'),
-                  ],
-                ),
-              ),
               PopupMenuItem(
                 value: 'estado',
                 child: Row(

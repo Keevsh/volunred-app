@@ -1,5 +1,6 @@
 import 'package:flutter_modular/flutter_modular.dart';
 import 'pages/create_proyecto_page.dart';
+import 'pages/edit_proyecto_page.dart';
 import 'pages/proyecto_detail_page.dart';
 import 'pages/tareas_management_page.dart';
 import 'pages/tareas_kanban_page.dart';
@@ -17,6 +18,11 @@ class ProyectosModule extends Module {
       '/:id',
       child: (_, args) =>
           ProyectoDetailPage(proyectoId: int.parse(args.params['id']!)),
+    ),
+    ChildRoute(
+      '/:id/editar',
+      child: (_, args) =>
+          EditProyectoPage(proyectoId: int.parse(args.params['id']!)),
     ),
     ChildRoute(
       '/:id/tareas',

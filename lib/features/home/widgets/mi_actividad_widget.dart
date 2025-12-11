@@ -37,13 +37,20 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
     });
 
     try {
-      // Obtener el perfil del usuario para filtrar participaciones
+      // Obtener el perfil del usuario para filtrar participaciones e inscripciones
       final perfil = await _repository.getStoredPerfil();
       
       final inscripciones = await _repository.getInscripciones();
       final participaciones = await _repository.getParticipaciones();
       final proyectos = await _repository.getMyProyectos();
       final tareas = await _repository.getMyTasks();
+
+      // Filtrar solo las inscripciones del usuario actual
+      final inscripcionesUsuario = perfil != null
+          ? inscripciones.where((ins) {
+              return ins.perfilVolId == perfil.idPerfilVoluntario;
+            }).toList()
+          : <Inscripcion>[];
 
       // Filtrar solo las participaciones del usuario actual
       final participacionesUsuario = perfil != null
@@ -57,7 +64,7 @@ class _MiActividadWidgetState extends State<MiActividadWidget> {
 
       if (!mounted) return;
       setState(() {
-        _misInscripciones = inscripciones;
+        _misInscripciones = inscripcionesUsuario;
         _misParticipaciones = participacionesUsuario;
         _misTareas = tareas;
         _proyectosCache = {

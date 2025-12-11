@@ -87,11 +87,16 @@ class _HomePageState extends State<HomePage> {
             final tienePerfil = await authRepo.tienePerfilFuncionario();
             
             if (!tienePerfil) {
-              // Si no tiene perfil guardado, verificar inscripciones aprobadas
+              // Si no tiene perfil guardado, verificar inscripciones aprobadas del usuario actual
               try {
                 final voluntarioRepo = Modular.get<VoluntarioRepository>();
+                final perfil = await voluntarioRepo.getStoredPerfil();
                 final inscripciones = await voluntarioRepo.getInscripciones();
-                final tieneInscripcionAprobada = inscripciones.any(
+                // Filtrar solo las inscripciones del usuario actual
+                final inscripcionesUsuario = perfil != null
+                    ? inscripciones.where((ins) => ins.perfilVolId == perfil.idPerfilVoluntario).toList()
+                    : <Inscripcion>[];
+                final tieneInscripcionAprobada = inscripcionesUsuario.any(
                   (ins) => ins.estado.toUpperCase() == 'APROBADO',
                 );
                 

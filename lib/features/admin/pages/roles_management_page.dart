@@ -222,7 +222,6 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
 
   Widget _buildRolCard(Rol rol) {
     final permisosCount = rol.permisos?.length ?? rol.cantidadPermisos ?? 0;
-    final usuariosCount = rol.cantidadUsuarios ?? 0;
 
     // Agrupar permisos por módulo
     Map<String, List<Map<String, dynamic>>> permisosPorModulo = {};
@@ -289,25 +288,6 @@ class _RolesManagementPageState extends State<RolesManagementPage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F7),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '$usuariosCount usuarios',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF86868B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,

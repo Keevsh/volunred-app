@@ -1331,7 +1331,12 @@ class _HomePageState extends State<HomePage> {
               ]
             : [
                 _buildHomeView(),
-                _buildExplorarView(),
+                // Usar Visibility para notificar al VideoFeedPage cuando está visible
+                Visibility(
+                  visible: true,
+                  maintainState: true,
+                  child: _VideoFeedWrapper(isActive: _currentIndex == 1),
+                ),
                 _buildMiActividadView(),
                 _buildProfileView(),
               ],
@@ -1512,7 +1517,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildExplorarView() {
     // Usar el feed de videos estilo TikTok para explorar proyectos
     // Pasar isActive para pausar/reanudar videos según el tab actual
-    return VideoFeedPage(isActive: _currentIndex == 1);
+    return VideoFeedPage(
+      key: const ValueKey('video_feed'),
+      isActive: _currentIndex == 1,
+    );
   }
 
   Widget _buildHomeViewOldBackup() {
@@ -7222,6 +7230,36 @@ class _ShimmerContainerState extends State<ShimmerContainer>
           child: widget.child,
         );
       },
+    );
+  }
+}
+
+/// Wrapper para VideoFeedPage que maneja correctamente el estado activo
+/// cuando se usa dentro de IndexedStack
+class _VideoFeedWrapper extends StatefulWidget {
+  final bool isActive;
+
+  const _VideoFeedWrapper({required this.isActive});
+
+  @override
+  State<_VideoFeedWrapper> createState() => _VideoFeedWrapperState();
+}
+
+class _VideoFeedWrapperState extends State<_VideoFeedWrapper> {
+  @override
+  void didUpdateWidget(_VideoFeedWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Forzar rebuild del VideoFeedPage cuando cambia isActive
+    if (oldWidget.isActive != widget.isActive) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoFeedPage(
+      key: ValueKey('video_feed_active_${widget.isActive}'),
+      isActive: widget.isActive,
     );
   }
 }

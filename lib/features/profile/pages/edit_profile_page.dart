@@ -42,7 +42,6 @@ class _EditProfilePageState extends State<EditProfilePage>
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  int _completionPercentage = 0;
 
   @override
   void initState() {
@@ -56,23 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage>
       curve: Curves.easeInOut,
     );
 
-    _bioController.addListener(_updateCompletionPercentage);
-    _nombreController.addListener(_updateCompletionPercentage);
-    _apellidoController.addListener(_updateCompletionPercentage);
-    _telefonoController.addListener(_updateCompletionPercentage);
-
     _loadProfile();
-  }
-
-  void _updateCompletionPercentage() {
-    int filled = 0;
-    if (_bioController.text.isNotEmpty) filled++;
-    if (_fotoPerfilBase64 != null && _fotoPerfilBase64!.isNotEmpty) filled++;
-    if (_selectedDisponibilidad.isNotEmpty) filled++;
-
-    setState(() {
-      _completionPercentage = (filled / 3 * 100).toInt();
-    });
   }
 
   Future<void> _loadProfile() async {
@@ -113,7 +96,6 @@ class _EditProfilePageState extends State<EditProfilePage>
               }
             }
             _isLoading = false;
-            _updateCompletionPercentage();
           });
           _animationController.forward();
         } else {
@@ -130,18 +112,10 @@ class _EditProfilePageState extends State<EditProfilePage>
   @override
   void dispose() {
     _animationController.dispose();
-    _bioController
-      ..removeListener(_updateCompletionPercentage)
-      ..dispose();
-    _nombreController
-      ..removeListener(_updateCompletionPercentage)
-      ..dispose();
-    _apellidoController
-      ..removeListener(_updateCompletionPercentage)
-      ..dispose();
-    _telefonoController
-      ..removeListener(_updateCompletionPercentage)
-      ..dispose();
+    _bioController.dispose();
+    _nombreController.dispose();
+    _apellidoController.dispose();
+    _telefonoController.dispose();
     super.dispose();
   }
 
@@ -158,7 +132,6 @@ class _EditProfilePageState extends State<EditProfilePage>
         final base64 = await ImageUtils.convertXFileToBase64(image);
         setState(() {
           _fotoPerfilBase64 = base64;
-          _updateCompletionPercentage();
         });
       }
     } catch (e) {
@@ -284,30 +257,13 @@ class _EditProfilePageState extends State<EditProfilePage>
                 key: _formKey,
                 child: Stack(
                   children: [
-                    // Gradiente de fondo superior
-                    Container(
-                      height: 280,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colorScheme.primary,
-                            colorScheme.primary.withOpacity(0.8),
-                            colorScheme.primaryContainer,
-                          ],
-                        ),
-                      ),
-                    ),
                     // Contenido
                     SingleChildScrollView(
-                      padding: const EdgeInsets.only(top: 100),
+                      padding: const EdgeInsets.only(top: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildProfilePhotoSection(colorScheme),
-                          const SizedBox(height: 24),
-                          _buildProgressIndicator(colorScheme),
                           const SizedBox(height: 24),
                           _buildPersonalInfoSection(colorScheme),
                           const SizedBox(height: 16),
@@ -327,98 +283,6 @@ class _EditProfilePageState extends State<EditProfilePage>
     );
   }
 
-  Widget _buildProgressIndicator(ColorScheme colorScheme) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.primaryContainer.withOpacity(0.2),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.stars_rounded,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Completitud del perfil',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      'Completa tu perfil para mejores oportunidades',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$_completionPercentage%',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: _completionPercentage / 100,
-              minHeight: 10,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildProfilePhotoSection(ColorScheme colorScheme) {
     return Center(
       child: Column(
@@ -430,12 +294,12 @@ class _EditProfilePageState extends State<EditProfilePage>
                 height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 5),
+                  border: Border.all(color: Colors.grey[200]!, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -449,18 +313,11 @@ class _EditProfilePageState extends State<EditProfilePage>
                           fit: BoxFit.cover,
                         )
                       : Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.primary.withOpacity(0.3),
-                                colorScheme.primaryContainer.withOpacity(0.5),
-                              ],
-                            ),
-                          ),
+                          color: Colors.grey[100],
                           child: Icon(
                             Icons.person,
                             size: 70,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.grey[400],
                           ),
                         ),
                 ),
@@ -739,7 +596,6 @@ class _EditProfilePageState extends State<EditProfilePage>
                     } else {
                       _selectedDisponibilidad.remove(option);
                     }
-                    _updateCompletionPercentage();
                   });
                 },
                 selectedColor: colorScheme.primary,

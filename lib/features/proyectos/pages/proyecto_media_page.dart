@@ -10,6 +10,7 @@ import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/models/archivo_digital.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/services/media_service.dart';
+import '../../../core/widgets/media_preview_dialog.dart';
 
 class ProyectoMediaPage extends StatefulWidget {
   final Proyecto proyecto;
@@ -631,10 +632,14 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
   Widget _buildMediaCard(ArchivoDigital archivo) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _buildPreview(archivo)),
+      child: InkWell(
+        onTap: (archivo.esImagen || archivo.esVideo)
+            ? () => MediaPreviewDialog.show(context, archivo)
+            : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: _buildPreview(archivo)),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -676,50 +681,21 @@ class _ProyectoMediaPageState extends State<ProyectoMediaPage>
             ),
           ),
         ],
+        ),
       ),
     );
   }
 
   Widget _buildPreview(ArchivoDigital archivo) {
     if (archivo.esImagen) {
-      return Image.memory(
-        base64Decode(archivo.contenidoBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, size: 48),
-          );
-        },
+      return ImageThumbnailWidget(
+        archivo: archivo,
+        onTap: () => MediaPreviewDialog.show(context, archivo),
       );
     } else if (archivo.esVideo) {
-      return Container(
-        color: Colors.black,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const Icon(
-              Icons.play_circle_outline,
-              size: 64,
-              color: Colors.white,
-            ),
-            Positioned(
-              bottom: 8,
-              left: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'VIDEO',
-                  style: TextStyle(color: Colors.white, fontSize: 10),
-                ),
-              ),
-            ),
-          ],
-        ),
+      return VideoThumbnailWidget(
+        archivo: archivo,
+        onTap: () => MediaPreviewDialog.show(context, archivo),
       );
     } else if (archivo.esDocumento) {
       return Container(

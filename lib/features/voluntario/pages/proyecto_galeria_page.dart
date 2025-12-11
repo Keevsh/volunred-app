@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/models/archivo_digital.dart';
+import '../../../core/widgets/media_preview_dialog.dart';
 
 class ProyectoGaleriaPage extends StatefulWidget {
   final int proyectoId;
@@ -191,7 +192,9 @@ class _ProyectoGaleriaPageState extends State<ProyectoGaleriaPage>
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _verArchivoDetalle(archivo),
+        onTap: (archivo.esImagen || archivo.esVideo)
+            ? () => MediaPreviewDialog.show(context, archivo)
+            : () => _verArchivoDetalle(archivo),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -241,48 +244,14 @@ class _ProyectoGaleriaPageState extends State<ProyectoGaleriaPage>
 
   Widget _buildPreview(ArchivoDigital archivo) {
     if (archivo.esImagen) {
-      return Image.memory(
-        base64Decode(archivo.contenidoBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, size: 48),
-          );
-        },
+      return ImageThumbnailWidget(
+        archivo: archivo,
+        onTap: () => MediaPreviewDialog.show(context, archivo),
       );
     } else if (archivo.esVideo) {
-      return Container(
-        color: Colors.black,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const Icon(
-              Icons.play_circle_outline,
-              size: 64,
-              color: Colors.white,
-            ),
-            Positioned(
-              bottom: 8,
-              left: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'VIDEO',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      return VideoThumbnailWidget(
+        archivo: archivo,
+        onTap: () => MediaPreviewDialog.show(context, archivo),
       );
     } else {
       return Container(

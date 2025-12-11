@@ -6,7 +6,7 @@ import '../../../core/repositories/voluntario_repository.dart';
 import '../../../core/models/proyecto.dart';
 import '../../../core/models/categoria.dart';
 import '../../../core/widgets/image_base64_widget.dart';
-import 'package:intl/intl.dart';
+import '../../../core/widgets/skeleton_widget.dart';
 
 class VoluntarioDashboard extends StatefulWidget {
   final String userName;
@@ -156,6 +156,118 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
     }).toList();
   }
 
+  Widget _buildLoadingSkeleton() {
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header skeleton
+              Row(
+                children: [
+                  SkeletonWidget(
+                    width: 50,
+                    height: 50,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonWidget(
+                        width: 120,
+                        height: 16,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 8),
+                      SkeletonWidget(
+                        width: 180,
+                        height: 20,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Search bar skeleton
+              SkeletonWidget(
+                width: double.infinity,
+                height: 50,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              const SizedBox(height: 20),
+              
+              // Category chips skeleton
+              Row(
+                children: [
+                  SkeletonWidget(
+                    width: 80,
+                    height: 36,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  const SizedBox(width: 8),
+                  SkeletonWidget(
+                    width: 100,
+                    height: 36,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  const SizedBox(width: 8),
+                  SkeletonWidget(
+                    width: 90,
+                    height: 36,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Banner skeleton
+              SkeletonWidget(
+                width: double.infinity,
+                height: 180,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              const SizedBox(height: 24),
+              
+              // Title skeleton
+              SkeletonWidget(
+                width: 180,
+                height: 24,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(height: 16),
+              
+              // Projects grid skeleton
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.9,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  return SkeletonWidget(
+                    width: double.infinity,
+                    height: double.infinity,
+                    borderRadius: BorderRadius.circular(20),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -163,7 +275,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
     final hasSearch = _searchQuery.trim().isNotEmpty;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return _buildLoadingSkeleton();
     }
 
     if (_error != null) {
@@ -895,9 +1007,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: proyectosFiltrados.length > 6
-                  ? 6
-                  : proyectosFiltrados.length,
+              itemCount: proyectosFiltrados.length,
               itemBuilder: (context, index) {
                 return _buildProyectoCardGrid(proyectosFiltrados[index], theme);
               },
@@ -1062,7 +1172,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Icon(
@@ -1084,26 +1194,6 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         ),
                       ],
                     ),
-                    if (proyecto.fechaFin != null) ...[
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.event_rounded,
-                            size: 14,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            DateFormat('dd MMM').format(proyecto.fechaFin!),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
                   ],
                 ),
               ),

@@ -413,14 +413,14 @@ class _VideoFeedPageState extends State<VideoFeedPage> with WidgetsBindingObserv
         Positioned(
           left: 16,
           right: 80,
-          bottom: 100,
+          bottom: MediaQuery.of(context).padding.bottom + 8,
           child: _buildProjectInfo(video),
         ),
 
         // Botones laterales
         Positioned(
           right: 12,
-          bottom: 120,
+          bottom: MediaQuery.of(context).padding.bottom + 16,
           child: _buildSideButtons(video),
         ),
 

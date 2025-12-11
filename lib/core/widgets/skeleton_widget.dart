@@ -43,8 +43,6 @@ class _SkeletonWidgetState extends State<SkeletonWidget>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -57,9 +55,9 @@ class _SkeletonWidgetState extends State<SkeletonWidget>
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                colorScheme.surfaceVariant.withOpacity(0.3),
-                colorScheme.surfaceVariant.withOpacity(0.5),
-                colorScheme.surfaceVariant.withOpacity(0.3),
+                Colors.grey[300]!,
+                Colors.grey[200]!,
+                Colors.grey[300]!,
               ],
               stops: [
                 0.0,

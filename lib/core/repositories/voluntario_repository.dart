@@ -15,6 +15,7 @@ import '../models/tarea.dart';
 import '../models/asignacion_tarea.dart';
 import '../models/categoria.dart';
 import '../models/archivo_digital.dart';
+import '../models/video_feed.dart';
 import '../services/dio_client.dart';
 import '../services/storage_service.dart';
 
@@ -1721,6 +1722,114 @@ class VoluntarioRepository {
       }
     } else {
       return 'Error de conexión. Verifica tu internet.';
+    }
+  }
+
+  // ==================== FEED DE VIDEOS (ESTILO TIKTOK) ====================
+
+  /// Obtener feed de videos paginado
+  /// 
+  /// [pagina] - Número de página (default: 1)
+  /// [limite] - Cantidad de videos por página (default: 10, máx: 50)
+  /// [orden] - Ordenamiento: 'reciente', 'antiguo', 'aleatorio'
+  /// [categoriaId] - Filtrar por ID de categoría (opcional)
+  /// [organizacionId] - Filtrar por ID de organización (opcional)
+  Future<VideoFeedResponse> getFeedVideos({
+    int pagina = 1,
+    int limite = 10,
+    String orden = 'aleatorio',
+    int? categoriaId,
+    int? organizacionId,
+  }) async {
+    try {
+      print('📹 Obteniendo feed de videos (página: $pagina, límite: $limite, orden: $orden)...');
+
+      final queryParameters = <String, dynamic>{
+        'pagina': pagina,
+        'limite': limite,
+        'orden': orden,
+      };
+
+      if (categoriaId != null) {
+        queryParameters['categoria_id'] = categoriaId;
+      }
+      if (organizacionId != null) {
+        queryParameters['organizacion_id'] = organizacionId;
+      }
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.feedVideos,
+        queryParameters: queryParameters,
+      );
+
+      print('📥 Feed videos response: ${response.statusCode}');
+
+      if (response.data is Map<String, dynamic>) {
+        return VideoFeedResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      return const VideoFeedResponse(
+        items: [],
+        total: 0,
+        pagina: 1,
+        limite: 10,
+        tieneMas: false,
+      );
+    } on DioException catch (e) {
+      print('❌ Error obteniendo feed de videos: ${e.message}');
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener un video aleatorio
+  Future<VideoFeedItem?> getVideoAleatorio() async {
+    try {
+      print('🎲 Obteniendo video aleatorio...');
+
+      final response = await _dioClient.dio.get(ApiConfig.feedVideosAleatorio);
+
+      print('📥 Video aleatorio response: ${response.statusCode}');
+
+      if (response.data == null) {
+        return null;
+      }
+
+      if (response.data is Map<String, dynamic>) {
+        return VideoFeedItem.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      return null;
+    } on DioException catch (e) {
+      print('❌ Error obteniendo video aleatorio: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      throw _handleError(e);
+    }
+  }
+
+  /// Obtener videos de un proyecto específico
+  Future<List<VideoFeedItem>> getVideosProyecto(int proyectoId) async {
+    try {
+      print('🎬 Obteniendo videos del proyecto $proyectoId...');
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.feedVideosProyecto(proyectoId),
+      );
+
+      print('📥 Videos proyecto response: ${response.statusCode}');
+
+      if (response.data is List) {
+        return (response.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => VideoFeedItem.fromJson(json))
+            .toList();
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error obteniendo videos del proyecto: ${e.message}');
+      throw _handleError(e);
     }
   }
 }

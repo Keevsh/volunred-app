@@ -6,6 +6,7 @@ import 'pages/proyecto_detail_voluntario_page.dart';
 import 'pages/participaciones_page.dart';
 import 'pages/mis_tareas_page.dart';
 import 'pages/tarea_detail_page.dart';
+import 'pages/video_feed_page.dart';
 
 class VoluntarioModule extends Module {
   @override
@@ -48,5 +49,8 @@ class VoluntarioModule extends Module {
       child: (_, args) =>
           TareaDetailPage(tareaId: int.parse(args.params['tareaId'])),
     ),
+
+    // Feed de videos (estilo TikTok)
+    ChildRoute('/feed', child: (_, __) => const VideoFeedPage()),
   ];
 }

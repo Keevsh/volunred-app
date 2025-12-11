@@ -611,17 +611,6 @@ class _CreateProfilePageState extends State<CreateProfilePage>
                       ],
                     ),
             ),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        Modular.to.navigate('/profile/aptitudes');
-                      },
-                child: const Text('Omitir por ahora'),
-              ),
-            ),
           ],
         ),
       ),

@@ -162,12 +162,6 @@ class _SelectAptitudesPageState extends State<SelectAptitudesPage> {
                         ),
                         child: const Text('Guardar y Continuar'),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Modular.to.navigate('/home/');
-                        },
-                        child: const Text('Omitir por ahora'),
-                      ),
                     ],
                   ),
                 ),

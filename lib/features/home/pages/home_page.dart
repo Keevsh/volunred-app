@@ -4,7 +4,7 @@ import 'package:volunred_app/core/widgets/skeleton_widget.dart';
 import '../../../core/repositories/auth_repository.dart';
 import '../../../core/repositories/funcionario_repository.dart';
 import '../../../core/repositories/voluntario_repository.dart';
-import '../../voluntario/pages/proyectos_explore_page.dart';
+import '../../voluntario/pages/video_feed_page.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/models/organizacion.dart';
@@ -1510,8 +1510,9 @@ class _HomePageState extends State<HomePage> {
 
   // ========== VISTA EXPLORAR VOLUNTARIO ==========
   Widget _buildExplorarView() {
-    // Usar directamente la vista de exploración tipo TikTok para proyectos de voluntario
-    return const ProyectosExplorePage();
+    // Usar el feed de videos estilo TikTok para explorar proyectos
+    // Pasar isActive para pausar/reanudar videos según el tab actual
+    return VideoFeedPage(isActive: _currentIndex == 1);
   }
 
   Widget _buildHomeViewOldBackup() {

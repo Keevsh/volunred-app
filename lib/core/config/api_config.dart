@@ -2,7 +2,7 @@ class ApiConfig {
   // URL base del backend
   // static const String baseUrl = 'http://localhost:3000';
 
-  static const String baseUrl= 'http://192.168.26.3:3000';
+  static const String baseUrl= 'http://192.168.26v.3:3000';
 
 //   static const String baseUrl = 'https://volunred-backend.vercel.app';
 
@@ -88,6 +88,12 @@ class ApiConfig {
   static String archivoDigital(int id) => '$archivosDigitales/$id';
   static String archivosDigitalesProyecto(int proyectoId) =>
       '$archivosDigitales/proyecto/$proyectoId';
+
+  // Feed de videos (estilo TikTok)
+  static const String feedVideos = '/informacion/feed-videos';
+  static const String feedVideosAleatorio = '$feedVideos/aleatorio';
+  static String feedVideosProyecto(int proyectoId) =>
+      '$feedVideos/proyecto/$proyectoId';
 
   // Endpoints de voluntarios (voluntario autenticado)
   static const String voluntariosBase = '/voluntarios';

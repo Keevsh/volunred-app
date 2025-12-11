@@ -715,7 +715,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         ),
                       ),
                       child: const Text(
-                        '✨ Descubre proyectos',
+                        '🎬 Descubre en video',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -726,7 +726,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Explora oportunidades\nque te inspiran',
+                      'Explora proyectos\nen acción',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -738,7 +738,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Conecta con causas, personas y organizaciones\nen pocos toques.',
+                      'Mira videos de proyectos y encuentra\ntu próxima oportunidad de voluntariado.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withOpacity(0.95),
                         fontSize: 13,
@@ -752,10 +752,10 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                       children: [
                         FilledButton.icon(
                           onPressed: () {
-                            Modular.to.pushNamed('/voluntario/proyectos');
+                            Modular.to.pushNamed('/voluntario/feed');
                           },
-                          icon: const Icon(Icons.explore_rounded, size: 18),
-                          label: const Text('Explorar proyectos'),
+                          icon: const Icon(Icons.play_circle_filled, size: 18),
+                          label: const Text('Explorar Videos'),
                           style: FilledButton.styleFrom(
                             foregroundColor: colorScheme.primary,
                             backgroundColor: Colors.white,
@@ -772,7 +772,7 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                         const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: 10,
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
@@ -791,9 +791,9 @@ class _VoluntarioDashboardState extends State<VoluntarioDashboard> {
                                 color: Colors.white,
                                 size: 16,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 4),
                               Text(
-                                '+5K voluntarios',
+                                '+5K',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,

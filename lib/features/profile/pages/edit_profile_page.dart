@@ -236,8 +236,7 @@ class _EditProfilePageState extends State<EditProfilePage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Mi Perfil',
@@ -245,8 +244,9 @@ class _EditProfilePageState extends State<EditProfilePage>
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: colorScheme.onSurface,
         actions: [
           if (!_isLoading)
             Container(
@@ -410,7 +410,7 @@ class _EditProfilePageState extends State<EditProfilePage>
             child: LinearProgressIndicator(
               value: _completionPercentage / 100,
               minHeight: 10,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
             ),
           ),

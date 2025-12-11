@@ -241,8 +241,9 @@ class _EditProfilePageState extends State<EditProfilePage>
         title: const Text('Editar Perfil'),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: Colors.transparent,
         actions: [
           if (!_isLoading)
             TextButton(
@@ -325,7 +326,7 @@ class _EditProfilePageState extends State<EditProfilePage>
           child: LinearProgressIndicator(
             value: _completionPercentage / 100,
             minHeight: 6,
-            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
           ),
         ),

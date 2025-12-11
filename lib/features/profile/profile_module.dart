@@ -5,7 +5,7 @@ import '../../core/repositories/voluntario_repository.dart';
 import 'bloc/profile_bloc.dart';
 import 'pages/create_profile_page.dart';
 import 'pages/create_funcionario_profile_page.dart';
-import 'pages/edit_profile_page.dart';
+import 'pages/edit_profile_page.dart' as edit_page;
 import 'pages/view_funcionario_profile_page.dart';
 import 'pages/voluntario_profile_view_page.dart';
 import 'pages/select_aptitudes_page.dart';
@@ -46,7 +46,7 @@ class ProfileModule extends Module {
         child: const SelectAptitudesPage(),
       ),
     ),
-    ChildRoute('/edit', child: (_, __) => const EditProfilePage()),
+    ChildRoute('/edit', child: (_, __) => const edit_page.EditProfilePage()),
     ChildRoute('/edit-funcionario', child: (_, __) => const CreateFuncionarioProfilePage()),
     ChildRoute('/view-funcionario', child: (_, __) => const ViewFuncionarioProfilePage()),
     ChildRoute(

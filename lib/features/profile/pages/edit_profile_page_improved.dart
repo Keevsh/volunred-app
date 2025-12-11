@@ -236,7 +236,7 @@ class _EditProfilePageState extends State<EditProfilePage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Editar Perfil'),
         centerTitle: true,

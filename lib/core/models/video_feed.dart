@@ -51,7 +51,7 @@ class VideoFeedItem extends Equatable {
   final int idArchivo;
   final String nombreArchivo;
   final String mimeType;
-  final String contenidoBase64;
+  final String? contenidoBase64; // Opcional: solo viene cuando se pide el video individual
   final DateTime creadoEn;
   final VideoProyectoInfo proyecto;
 
@@ -59,10 +59,25 @@ class VideoFeedItem extends Equatable {
     required this.idArchivo,
     required this.nombreArchivo,
     required this.mimeType,
-    required this.contenidoBase64,
+    this.contenidoBase64,
     required this.creadoEn,
     required this.proyecto,
   });
+
+  /// Indica si el video tiene contenido cargado
+  bool get tieneContenido => contenidoBase64 != null && contenidoBase64!.isNotEmpty;
+
+  /// Crea una copia del item con el contenido base64
+  VideoFeedItem copyWithContenido(String contenido) {
+    return VideoFeedItem(
+      idArchivo: idArchivo,
+      nombreArchivo: nombreArchivo,
+      mimeType: mimeType,
+      contenidoBase64: contenido,
+      creadoEn: creadoEn,
+      proyecto: proyecto,
+    );
+  }
 
   factory VideoFeedItem.fromJson(Map<String, dynamic> json) {
     DateTime creadoEn;
@@ -83,7 +98,7 @@ class VideoFeedItem extends Equatable {
           : int.tryParse(json['id_archivo'].toString()) ?? 0,
       nombreArchivo: json['nombre_archivo']?.toString() ?? 'video.mp4',
       mimeType: json['mime_type']?.toString() ?? 'video/mp4',
-      contenidoBase64: json['contenido_base64']?.toString() ?? '',
+      contenidoBase64: json['contenido_base64']?.toString(),
       creadoEn: creadoEn,
       proyecto: json['proyecto'] is Map<String, dynamic>
           ? VideoProyectoInfo.fromJson(json['proyecto'] as Map<String, dynamic>)
@@ -96,7 +111,9 @@ class VideoFeedItem extends Equatable {
   }
 
   /// Obtiene la URI de datos para reproducir el video
-  String get videoDataUri => 'data:$mimeType;base64,$contenidoBase64';
+  String? get videoDataUri => contenidoBase64 != null 
+      ? 'data:$mimeType;base64,$contenidoBase64' 
+      : null;
 
   @override
   List<Object?> get props => [

@@ -167,8 +167,27 @@ class _VideoFeedPageState extends State<VideoFeedPage> with WidgetsBindingObserv
     final video = _videos[index];
 
     try {
+      String? contenidoBase64 = video.contenidoBase64;
+      
+      // Si el video no tiene contenido, cargarlo desde el endpoint individual
+      if (!video.tieneContenido) {
+        print('📥 Cargando contenido del video ${video.idArchivo}...');
+        final videoCompleto = await _repository.getVideoById(video.idArchivo);
+        contenidoBase64 = videoCompleto.contenidoBase64;
+        
+        // Actualizar el video en la lista con el contenido
+        if (contenidoBase64 != null && mounted) {
+          _videos[index] = video.copyWithContenido(contenidoBase64);
+        }
+      }
+      
+      if (contenidoBase64 == null || contenidoBase64.isEmpty) {
+        print('⚠️ Video ${video.idArchivo} no tiene contenido');
+        return;
+      }
+
       // Decodificar base64 y guardar como archivo temporal
-      final bytes = base64Decode(video.contenidoBase64);
+      final bytes = base64Decode(contenidoBase64);
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/video_${video.idArchivo}.mp4');
       await tempFile.writeAsBytes(bytes);

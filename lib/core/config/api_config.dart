@@ -91,6 +91,7 @@ class ApiConfig {
 
   // Feed de videos (estilo TikTok)
   static const String feedVideos = '/informacion/feed-videos';
+  static String feedVideo(int idArchivo) => '$feedVideos/$idArchivo';
   static const String feedVideosAleatorio = '$feedVideos/aleatorio';
   static String feedVideosProyecto(int proyectoId) =>
       '$feedVideos/proyecto/$proyectoId';

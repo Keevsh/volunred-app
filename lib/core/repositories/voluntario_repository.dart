@@ -1862,6 +1862,30 @@ class VoluntarioRepository {
     }
   }
 
+  /// Obtener un video individual con su contenido base64
+  /// 
+  /// [idArchivo] - ID del archivo de video
+  Future<VideoFeedItem> getVideoById(int idArchivo) async {
+    try {
+      print('📹 Obteniendo video individual $idArchivo con contenido...');
+
+      final response = await _dioClient.dio.get(
+        ApiConfig.feedVideo(idArchivo),
+      );
+
+      print('📥 Video individual response: ${response.statusCode}');
+
+      if (response.data is Map<String, dynamic>) {
+        return VideoFeedItem.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      throw Exception('Respuesta inválida del servidor');
+    } on DioException catch (e) {
+      print('❌ Error obteniendo video individual: ${e.message}');
+      throw _handleError(e);
+    }
+  }
+
   /// Obtener videos de un proyecto específico
   Future<List<VideoFeedItem>> getVideosProyecto(int proyectoId) async {
     try {

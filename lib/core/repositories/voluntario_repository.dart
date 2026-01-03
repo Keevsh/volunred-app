@@ -265,7 +265,7 @@ class VoluntarioRepository {
   Future<PerfilVoluntario?> getPerfilByUsuario(int usuarioId) async {
     try {
       final response = await _dioClient.dio.get(
-        '${ApiConfig.perfilesVoluntarios}/$usuarioId',
+        ApiConfig.perfilVoluntarioByUsuario(usuarioId),
       );
 
       // 🔍 DEBUG: Imprimir respuesta del backend

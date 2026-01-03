@@ -11,6 +11,7 @@ import 'pages/voluntario_profile_view_page.dart';
 import 'pages/select_aptitudes_page.dart';
 import 'pages/create_organizacion_page.dart';
 import 'pages/funcionario_options_page.dart';
+import 'pages/edit_funcionario_profile_page.dart';
 
 class ProfileModule extends Module {
   @override
@@ -47,7 +48,7 @@ class ProfileModule extends Module {
       ),
     ),
     ChildRoute('/edit', child: (_, __) => const edit_page.EditProfilePage()),
-    ChildRoute('/edit-funcionario', child: (_, __) => const CreateFuncionarioProfilePage()),
+    ChildRoute('/edit-funcionario', child: (_, __) => const EditFuncionarioProfilePage()),
     ChildRoute('/view-funcionario', child: (_, __) => const ViewFuncionarioProfilePage()),
     ChildRoute(
       '/view-voluntario/:perfilVolId',

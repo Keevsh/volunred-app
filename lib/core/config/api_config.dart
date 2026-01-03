@@ -1,10 +1,10 @@
 class ApiConfig {
   // URL base del backend
-  // static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://192.168.137.243:3000';
 
-  static const String baseUrl= 'http://192.168.1.8:3000';
+//   static const String baseUrl= 'https://feb03f093d39.ngrok-free.app';
 
-  // static const String baseUrl = 'https://0c7358466282.ngrok-free.app';
+//   static const String baseUrl = 'https://38e1752b900f.ngrok-free.app/';
 
   // static const String baseUrl = 'http://10.172.90.187:3000';
 
@@ -19,6 +19,8 @@ class ApiConfig {
 
   // Endpoints de perfiles voluntarios
   static const String perfilesVoluntarios = '/perfiles/perfiles-voluntarios';
+  static String perfilVoluntarioByUsuario(int usuarioId) =>
+      '$perfilesVoluntarios/usuario/$usuarioId';
 
   // Endpoints de aptitudes
   static const String aptitudes = '/configuracion/aptitudes';
